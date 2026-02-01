@@ -10,7 +10,12 @@ import {
   CardContent,
   AppBar,
   Toolbar,
-  Stack
+  Stack,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Chip
 } from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -25,7 +30,9 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import SpeedIcon from '@mui/icons-material/Speed';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import logoImage from '../assent/image-1769925776006.png';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import StarIcon from '@mui/icons-material/Star';
+import logoImage from '../assent/image.png';
 
 // --- STİL TANIMLAMALARI ---
 
@@ -180,21 +187,37 @@ const LandingPage = () => {
                 onClick={() => window.scrollTo(0, 0)}
               />
               <LogoText onClick={() => window.scrollTo(0, 0)}>
-                Trade Scout
+                FORTEX GLOBE SEARCH
               </LogoText>
             </Box>
 
             {/* Menü Linkleri (Masaüstü) */}
-            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-              <NavButton onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+              <NavButton 
+                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+              >
                 Özellikler
               </NavButton>
-              <NavButton onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}>
+              <NavButton 
+                onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+              >
                 Hakkımızda
               </NavButton>
-              <NavButton onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}>
+              <NavButton 
+                onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+              >
                 Bize Ulaşın
               </NavButton>
+              <NavButton 
+                onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })}
+                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+              >
+                Paketler
+              </NavButton>
+              
             </Box>
 
             {/* Giriş Yap Butonu */}
@@ -390,6 +413,299 @@ const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* --- FİYATLANDIRMA VE PAKETLER --- */}
+      <Box id="packages" sx={{ py: 12, bgcolor: 'rgba(255,255,255,0.1)', position: 'relative' }}>
+        {/* Dekoratif ikonlar */}
+        <Box sx={{ position: 'absolute', top: 50, left: 50, opacity: 0.05 }}>
+          <StarIcon sx={{ fontSize: 150, color: 'white' }} />
+        </Box>
+        <Box sx={{ position: 'absolute', bottom: 50, right: 50, opacity: 0.05 }}>
+          <RocketLaunchIcon sx={{ fontSize: 150, color: 'white' }} />
+        </Box>
+        
+        <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
+          <Box textAlign="center" mb={8}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <StarIcon sx={{ color: '#FFFFFF' }} />
+              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>FİYATLANDIRMA</Typography>
+            </Box>
+            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>Size Uygun Paketi Seçin</Typography>
+            <Typography variant="body1" sx={{ color: '#E3F2FD', maxWidth: '600px', mx: 'auto' }} mt={2}>
+              İşletmenizin ihtiyaçlarına göre esnek paketlerimizden birini seçin
+            </Typography>
+          </Box>
+
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 4, 
+            flexWrap: 'wrap', 
+            justifyContent: 'center', 
+            alignItems: 'stretch',
+            maxWidth: '1400px',
+            margin: '0 auto'
+          }}>
+            {/* Başlangıç Paketi */}
+            <Box sx={{ flex: '1 1 350px', minWidth: '350px', maxWidth: '400px', display: 'flex' }}>
+              <FeatureCard sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>
+                    Başlangıç Paketi
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    Yeni başlayanlar için ideal
+                  </Typography>
+                  <Box sx={{ my: 3 }}>
+                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                      $7.5
+                      <Typography component="span" variant="h6" color="text.secondary">
+                        /ay
+                      </Typography>
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Yıllık ödenirse | Aylık: $5
+                    </Typography>
+                  </Box>
+                  <List sx={{ flexGrow: 1 }}>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Aylık 10 Firma Araması" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Temel Excel Raporu" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="E-posta Desteği" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Temel Filtreleme" />
+                    </ListItem>
+                  </List>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="large"
+                    onClick={() => navigate('/login')}
+                    sx={{
+                      mt: 3,
+                      borderColor: '#1565C0',
+                      color: '#1565C0',
+                      borderWidth: 2,
+                      borderRadius: '12px',
+                      py: 1.5,
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        borderWidth: 2,
+                        borderColor: '#0D47A1',
+                        bgcolor: 'rgba(21, 101, 192, 0.05)',
+                      },
+                    }}
+                  >
+                    Hemen Başla
+                  </Button>
+                </CardContent>
+              </FeatureCard>
+            </Box>
+
+            {/* Profesyonel Paket (Öne Çıkan) */}
+            <Box sx={{ flex: '1 1 350px', minWidth: '350px', maxWidth: '400px', display: 'flex' }}>
+              <FeatureCard 
+                sx={{ 
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  border: '3px solid #1565C0',
+                  position: 'relative',
+                  overflow: 'visible',
+                }}
+              >
+                <Chip
+                  label="EN POPÜLER"
+                  sx={{
+                    position: 'absolute',
+                    top: -15,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    bgcolor: '#1565C0',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    px: 2,
+                  }}
+                />
+                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>
+                    Profesyonel Paket
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    Büyüyen işletmeler için
+                  </Typography>
+                  <Box sx={{ my: 3 }}>
+                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                      $15
+                      <Typography component="span" variant="h6" color="text.secondary">
+                        /ay
+                      </Typography>
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Yıllık ödenirse | Aylık: $10
+                    </Typography>
+                  </Box>
+                  <List sx={{ flexGrow: 1 }}>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Aylık 50 Firma Araması" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Detaylı İletişim Bilgileri" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Gelişmiş Excel Raporu" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Öncelikli Destek" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Gelişmiş Filtreleme" />
+                    </ListItem>
+                  </List>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    onClick={() => navigate('/login')}
+                    sx={{
+                      mt: 3,
+                      bgcolor: '#1565C0',
+                      borderRadius: '12px',
+                      py: 1.5,
+                      fontWeight: 'bold',
+                      boxShadow: '0 4px 12px rgba(21, 101, 192, 0.4)',
+                      '&:hover': {
+                        bgcolor: '#0D47A1',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 16px rgba(21, 101, 192, 0.5)',
+                      },
+                    }}
+                  >
+                    Hemen Başla
+                  </Button>
+                </CardContent>
+              </FeatureCard>
+            </Box>
+
+            {/* Kurumsal Paket */}
+            <Box sx={{ flex: '1 1 350px', minWidth: '350px', maxWidth: '400px', display: 'flex' }}>
+              <FeatureCard sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>
+                    Kurumsal Paket
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    Büyük ekipler için
+                  </Typography>
+                  <Box sx={{ my: 3 }}>
+                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                      $75
+                      <Typography component="span" variant="h6" color="text.secondary">
+                        /ay
+                      </Typography>
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Yıllık ödenirse | Aylık: $50
+                    </Typography>
+                  </Box>
+                  <List sx={{ flexGrow: 1 }}>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Sınırsız Firma Araması" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="API Erişimi" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Özel Excel Şablonları" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="7/24 Canlı Destek" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Özel Müşteri Temsilcisi" />
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary="Eğitim ve Onboarding" />
+                    </ListItem>
+                  </List>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    size="large"
+                    onClick={() => navigate('/login')}
+                    sx={{
+                      mt: 3,
+                      borderColor: '#1565C0',
+                      color: '#1565C0',
+                      borderWidth: 2,
+                      borderRadius: '12px',
+                      py: 1.5,
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        borderWidth: 2,
+                        borderColor: '#0D47A1',
+                        bgcolor: 'rgba(21, 101, 192, 0.05)',
+                      },
+                    }}
+                  >
+                    Hemen Başla
+                  </Button>
+                </CardContent>
+              </FeatureCard>
+            </Box>
+          </Box>
+        </Container>
+      </Box>
+
       {/* --- HAKKIMIZDA & İLETİŞİM --- */}
       <Box id="about" sx={{ py: 12, bgcolor: 'rgba(0,0,0,0.1)', position: 'relative' }}>
         {/* Dekoratif ikonlar */}
@@ -405,7 +721,7 @@ const LandingPage = () => {
                 <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF' }}>Hakkımızda</Typography>
               </Box>
               <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: '#E3F2FD', lineHeight: 1.8 }}>
-                Trade Scout, işletmelerin yeni pazarlar bulmasını kolaylaştıran yapay zeka destekli bir veri platformudur.
+                FORTEX GLOBE SEARCH, işletmelerin yeni pazarlar bulmasını kolaylaştıran yapay zeka destekli bir veri platformudur.
                 Amacımız, karmaşık veri madenciliği süreçlerini basitleştirerek KOBİ'lerin ve ihracatçıların
                 dünya pazarlarına açılmasını sağlamaktır.
               </Typography>
@@ -438,12 +754,30 @@ const LandingPage = () => {
                       <Typography variant="body1" sx={{ color: '#333' }}>Teknopark, Düzce Üniversitesi, Düzce/Türkiye</Typography>
                     </Box>
                     <Box display="flex" alignItems="center">
-                      <EmailIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography variant="body1" sx={{ color: '#333' }}>info@tradescout.com</Typography>
+                      <PublicIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ color: '#333' }}
+                        component="a"
+                        href="https://www.fortexglobe.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        www.fortexglobe.com
+                      </Typography>
                     </Box>
                     <Box display="flex" alignItems="center">
-                      <PhoneIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography variant="body1" sx={{ color: '#333' }}>+90 850 123 45 67</Typography>
+                      <BusinessIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ color: '#333' }}
+                        component="a"
+                        href="https://www.linkedin.com/in/ihsan-aytekin-126005165?"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        LinkedIn Profili
+                      </Typography>
                     </Box>
                   </Stack>
                 </CardContent>
@@ -465,7 +799,7 @@ const LandingPage = () => {
                   alt="Trade Scout Logo"
                   sx={{ height: 50, width: 'auto', mr: 1.5 }}
                 />
-                <Typography variant="h5" fontWeight="bold">Trade Scout</Typography>
+                <Typography variant="h5" fontWeight="bold">FORTEX GLOBE SEARCH</Typography>
               </Box>
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 <RocketLaunchIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'middle' }} />
@@ -474,7 +808,7 @@ const LandingPage = () => {
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px', textAlign: { md: 'right' } }}>
               <Typography variant="body2" sx={{ opacity: 0.6 }}>
-                © 2026 Trade Scout. Tüm hakları saklıdır. Gizlilik Politikası | Kullanım Şartları
+                © 2026 FORTEX GLOBE SEARCH. Tüm hakları saklıdır. Gizlilik Politikası | Kullanım Şartları
               </Typography>
             </Box>
           </Box>

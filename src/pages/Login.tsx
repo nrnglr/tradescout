@@ -23,9 +23,10 @@ import GoogleIcon from '@mui/icons-material/Google';
 import AppleIcon from '@mui/icons-material/Apple'; // Apple ikonu için
 import HomeIcon from '@mui/icons-material/Home';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'; // Ticari ikon
-import logoImage from '../assent/image-1769925776006.png'; // Logo import
+import logoImage from '../assent/image.png'; // Logo import
 import loginIllustration from '../assent/login-illustration.png'; // Sol panel görseli
 import login2Illustration from '../assent/login2-illustration.png'; // Sağ panel görseli
+import { authService } from '../services/auth'; // Auth servisi import
 
 // --- STİL TANIMLAMALARI (AQUASOFT Benzeri Modern Tasarım) ---
 
@@ -242,31 +243,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // --- BACKEND API İSTEĞİ (Firebase Yerine) ---
-      // Örnek bir fetch isteği yapısı:
-      /*
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Giriş başarısız.');
-      }
-
-      // Token'ı kaydet
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      */
-
-      // --- MOCK SIMULATION (Gerçek API olmadığı için bekleme simülasyonu) ---
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // GERÇEK BACKEND BAĞLANTISI
+      await authService.login({ email, password });
       
-      // Başarılı senaryo simülasyonu
-      console.log("Login başarılı:", { email, password });
+      console.log("Login başarılı!");
       
       // Beni Hatırla Mantığı
       if (rememberMe) {
@@ -275,12 +255,12 @@ const Login = () => {
         localStorage.removeItem('rememberedEmail');
       }
 
-      // Yönlendirme (Rol bazlı olabilir)
+      // Başarılı girişte Dashboard'a yönlendir
       navigate('/dashboard');
 
     } catch (err: any) {
       console.error("Login hatası:", err);
-      setError(err.message || 'Giriş yapılırken bir hata oluştu. Lütfen bilgilerinizi kontrol edin.');
+      setError(err.message || 'Giriş başarısız. Bilgilerinizi kontrol edin.');
     } finally {
       setLoading(false);
     }
@@ -313,7 +293,7 @@ const Login = () => {
             style={{ height: '45px', width: 'auto', borderRadius: '12px' }}
           />
           <Typography variant="h5" sx={{ color: '#FFFFFF', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-            Trade Scout
+            Fortex Globe Search
           </Typography>
         </Box>
         <Button
@@ -405,7 +385,7 @@ const Login = () => {
                   backgroundClip: 'text',
                 }}
               >
-                Hoş Geldiniz
+                FGS
               </Typography>
               
               <Typography 
