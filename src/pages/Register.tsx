@@ -14,7 +14,8 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import { authService } from '../services/auth';
-import logoImage from '../assent/image.png'; // Logo import
+// Logo import - FGSTrade
+import logoImage from '../assent/fgs-logo.png';
 
 // --- STİLLER (Login ile aynı) ---
 const BRAND_COLORS = {
@@ -25,7 +26,7 @@ const BRAND_COLORS = {
   gradient: 'linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)',
 };
 
-const PageContainer = styled(Box)({
+const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
@@ -35,7 +36,10 @@ const PageContainer = styled(Box)({
   padding: '20px',
   position: 'relative',
   overflow: 'hidden',
-});
+  [theme.breakpoints.down('sm')]: {
+    padding: '10px',
+  },
+}));
 
 const RegisterForm = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(5, 4),
@@ -51,11 +55,16 @@ const RegisterForm = styled(Paper)(({ theme }) => ({
   border: '1px solid rgba(255, 255, 255, 0.3)',
   position: 'relative',
   zIndex: 1,
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(3, 2),
+    borderRadius: 16,
+    maxWidth: '100%',
+  },
 }));
 
-const Logo = styled('img')({
-  width: 100,
-  height: 100,
+const Logo = styled('img')(({ theme }) => ({
+  width: 130,
+  height: 130,
   borderRadius: 20,
   marginBottom: 20,
   objectFit: 'cover',
@@ -64,7 +73,13 @@ const Logo = styled('img')({
   '&:hover': {
     transform: 'scale(1.05)',
   },
-});
+  [theme.breakpoints.down('sm')]: {
+    width: 90,
+    height: 90,
+    borderRadius: 14,
+    marginBottom: 15,
+  },
+}));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2.5),
@@ -202,7 +217,7 @@ const Register = () => {
             backgroundClip: 'text',
           }}
         >
-          Fortex Globe Search
+          FGS Trade
         </Typography>
 
         <Typography 

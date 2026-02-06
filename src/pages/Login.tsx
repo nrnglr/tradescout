@@ -11,9 +11,6 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
-  IconButton,
-  Card,
-  CardContent,
   Checkbox,
   FormControlLabel,
 } from '@mui/material';
@@ -22,8 +19,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import GoogleIcon from '@mui/icons-material/Google';
 import AppleIcon from '@mui/icons-material/Apple'; // Apple ikonu için
 import HomeIcon from '@mui/icons-material/Home';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp'; // Ticari ikon
-import logoImage from '../assent/image.png'; // Logo import
+// Logo import - FGSTrade
+import logoImage from '../assent/fgs-logo.png';
 import loginIllustration from '../assent/login-illustration.png'; // Sol panel görseli
 import login2Illustration from '../assent/login2-illustration.png'; // Sağ panel görseli
 import { authService } from '../services/auth'; // Auth servisi import
@@ -124,11 +121,15 @@ const LoginForm = styled(Paper)(({ theme }) => ({
   boxShadow: '0 16px 48px rgba(0,0,0,0.25)',
   backdropFilter: 'blur(10px)',
   border: '1px solid rgba(255, 255, 255, 0.3)',
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(3, 2),
+    borderRadius: 16,
+  },
 }));
 
-const Logo = styled('img')({
-  width: 120,
-  height: 120,
+const Logo = styled('img')(({ theme }) => ({
+  width: 140,
+  height: 140,
   borderRadius: 24,
   marginBottom: 24,
   objectFit: 'cover',
@@ -137,7 +138,13 @@ const Logo = styled('img')({
   '&:hover': {
     transform: 'scale(1.05)',
   },
-});
+  [theme.breakpoints.down('sm')]: {
+    width: 100,
+    height: 100,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+}));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(2.5),
@@ -217,9 +224,6 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // Backend URL (Çevre değişkeninden veya statik)
-  const API_URL = process.env.REACT_APP_API_URL || 'https://api.siteniz.com';
 
   // Sayfa yüklendiğinde "Beni Hatırla" kontrolü
   useEffect(() => {
@@ -279,21 +283,25 @@ const Login = () => {
     <PageContainer>
       {/* Header Kısmı (Ana Sayfa Butonu) */}
       <Box sx={{ 
-        p: 3, 
+        p: { xs: 1.5, sm: 2 }, 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center',
-        background: 'rgba(21, 101, 192, 0.3)',
+        background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(227, 242, 253, 0.95) 15%, rgba(21, 101, 192, 0.95) 35%, rgba(21, 101, 192, 0.95) 100%)',
         backdropFilter: 'blur(10px)',
+        flexWrap: 'wrap',
+        gap: 2,
+        minHeight: { xs: '56px', md: '64px' },
+        boxShadow: '0 2px 20px rgba(0,0,0,0.2)',
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <img 
             src={logoImage} 
             alt="Trade Scout Logo" 
-            style={{ height: '45px', width: 'auto', borderRadius: '12px' }}
+            style={{ height: '52px', width: 'auto', borderRadius: '8px' }}
           />
-          <Typography variant="h5" sx={{ color: '#FFFFFF', fontWeight: 800, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-            Fortex Globe Search
+          <Typography variant="h5" sx={{ color: '#1565C0', fontWeight: 800, textShadow: '0 1px 2px rgba(255,255,255,0.3)', fontSize: { xs: '1rem', sm: '1.25rem', md: '1.4rem' } }}>
+            FGS Trade
           </Typography>
         </Box>
         <Button
@@ -303,14 +311,16 @@ const Login = () => {
             color: '#FFFFFF',
             fontWeight: 600,
             textTransform: 'none',
-            fontSize: '1rem',
-            borderRadius: '12px',
-            padding: '8px 20px',
-            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+            fontSize: { xs: '0.85rem', sm: '0.9rem' },
+            borderRadius: '10px',
+            padding: { xs: '6px 16px', sm: '6px 20px' },
+            backgroundColor: '#1565C0',
             backdropFilter: 'blur(10px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
             '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.25)',
+              backgroundColor: '#0D47A1',
               transform: 'translateY(-2px)',
+              boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
             },
             transition: 'all 0.3s ease',
           }}

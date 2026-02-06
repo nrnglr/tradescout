@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
@@ -15,14 +15,16 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Chip
+  ListItemButton,
+  Chip,
+  IconButton,
+  Drawer,
+  Divider
 } from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
 import PublicIcon from '@mui/icons-material/Public';
 import SavedSearchIcon from '@mui/icons-material/SavedSearch';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
@@ -32,22 +34,14 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
-import logoImage from '../assent/image.png';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import LoginIcon from '@mui/icons-material/Login';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+// Logo import - FGSTrade
+import logoImage from '../assent/fgs-logo.png';
 
 // --- STİL TANIMLAMALARI ---
-
-const BRAND_COLORS = {
-  primary: '#1565C0',       // Koyu mavi
-  primaryHover: '#0D47A1',  // Daha koyu mavi
-  secondary: '#1976D2',     // Orta mavi
-  lightBlue: '#42A5F5',     // Açık mavi
-  textLight: '#FFFFFF',     // Beyaz yazı
-  textDark: '#E3F2FD',      // Açık mavi yazı
-  gradient: 'linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)', // Mavi gradient
-  gradientReverse: 'linear-gradient(135deg, #42A5F5 0%, #1976D2 50%, #1565C0 100%)',
-  bgLight: '#E3F2FD',       // Açık mavi arka plan
-  cardBg: 'rgba(255, 255, 255, 0.95)', // Beyaz kartlar
-};
 
 const PageContainer = styled(Box)({
   minHeight: '100vh',
@@ -58,54 +52,72 @@ const PageContainer = styled(Box)({
 
 // Üst Menü (Navbar)
 const StyledAppBar = styled(AppBar)({
-  background: 'rgba(21, 101, 192, 0.95)',
+  background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(227, 242, 253, 0.95) 15%, rgba(21, 101, 192, 0.95) 35%, rgba(21, 101, 192, 0.95) 100%)',
   boxShadow: '0 2px 20px rgba(0,0,0,0.2)',
   backdropFilter: 'blur(10px)',
 });
 
-const LogoImage = styled('img')({
-  height: '55px',
+const LogoImage = styled('img')(({ theme }) => ({
+  height: '65px',
   width: 'auto',
   cursor: 'pointer',
   transition: 'transform 0.3s ease',
   '&:hover': {
     transform: 'scale(1.05)',
   },
-});
+  [theme.breakpoints.down('md')]: {
+    height: '52px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    height: '42px',
+  },
+}));
 
-const LogoText = styled(Typography)({
+const LogoText = styled(Typography)(({ theme }) => ({
   fontWeight: 800,
-  color: '#FFFFFF',
-  fontSize: '1.8rem',
+  color: '#1565C0',
+  fontSize: '1.4rem',
   cursor: 'pointer',
-  marginLeft: '12px',
-  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-});
+  marginLeft: '10px',
+  textShadow: '0 1px 2px rgba(255,255,255,0.3)',
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '1.2rem',
+  },
+  [theme.breakpoints.down('md')]: {
+    fontSize: '1rem',
+    marginLeft: '8px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '0.85rem',
+    marginLeft: '6px',
+  },
+}));
 
 const NavButton = styled(Button)({
   textTransform: 'none',
   fontWeight: 600,
-  fontSize: '1rem',
+  fontSize: '0.9rem',
   color: '#FFFFFF',
-  marginLeft: '1rem',
+  marginLeft: '0.8rem',
+  padding: '6px 12px',
   '&:hover': {
     color: '#E3F2FD',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
 });
 
 const LoginButton = styled(Button)({
   textTransform: 'none',
   fontWeight: 700,
-  fontSize: '1rem',
-  borderRadius: '12px',
-  padding: '8px 24px',
-  background: '#FFFFFF',
-  color: '#1565C0',
+  fontSize: '0.9rem',
+  borderRadius: '10px',
+  padding: '6px 20px',
+  background: '#1565C0',
+  color: '#FFFFFF',
   marginLeft: '1.5rem',
   boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
   '&:hover': {
-    background: '#E3F2FD',
+    background: '#0D47A1',
     transform: 'translateY(-2px)',
     boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
   },
@@ -119,6 +131,14 @@ const HeroSection = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   minHeight: '90vh',
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(12, 0, 8),
+    minHeight: '80vh',
+  },
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(10, 0, 6),
+    minHeight: '70vh',
+  },
 }));
 
 const HeroTitle = styled(Typography)(({ theme }) => ({
@@ -172,13 +192,23 @@ const Footer = styled(Box)({
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleMenuItemClick = (action: () => void) => {
+    action();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <PageContainer>
       {/* --- NAVBAR --- */}
       <StyledAppBar position="fixed" color="default">
-        <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
-          <Toolbar disableGutters sx={{ py: 1 }}>
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 6, md: 8, lg: 10, xl: 12 } }}>
+          <Toolbar disableGutters sx={{ py: { xs: 0.5, md: 0.8 }, minHeight: { xs: '56px', md: '64px' } }}>
             {/* Logo */}
             <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
               <LogoImage 
@@ -187,63 +217,236 @@ const LandingPage = () => {
                 onClick={() => window.scrollTo(0, 0)}
               />
               <LogoText onClick={() => window.scrollTo(0, 0)}>
-                FORTEX GLOBE SEARCH
+                FGS TRADE
               </LogoText>
             </Box>
 
             {/* Menü Linkleri (Masaüstü) */}
-            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', gap: { md: 0.5, lg: 1 } }}>
               <NavButton 
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
                 Özellikler
               </NavButton>
               <NavButton 
                 onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
                 Hakkımızda
               </NavButton>
               <NavButton 
                 onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
                 Bize Ulaşın
               </NavButton>
               <NavButton 
                 onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: '1.1rem', fontWeight: 'bold' }}
+                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
                 Paketler
               </NavButton>
               
             </Box>
 
-            {/* Giriş Yap Butonu */}
-            <LoginButton onClick={() => navigate('/login')}>
+            {/* Giriş Yap Butonu (Desktop) */}
+            <LoginButton 
+              onClick={() => navigate('/login')}
+              sx={{ 
+                display: { xs: 'none', md: 'inline-flex' },
+                ml: { md: 1 }
+              }}
+            >
               Giriş Yap
             </LoginButton>
+            
+            {/* Hamburger Menü İkonu (Mobil & Tablet) */}
+            <IconButton
+              onClick={toggleMobileMenu}
+              sx={{
+                display: { xs: 'flex', md: 'none' },
+                color: '#FFFFFF',
+                ml: 1,
+                p: 0.5,
+              }}
+            >
+              <MenuIcon sx={{ fontSize: 28 }} />
+            </IconButton>
           </Toolbar>
         </Container>
       </StyledAppBar>
 
+      {/* --- MOBİL MENÜ DRAWER --- */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={toggleMobileMenu}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '75%', sm: '350px' },
+            background: 'linear-gradient(180deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)',
+            color: '#FFFFFF',
+            padding: 3,
+          },
+        }}
+      >
+        {/* Drawer Header */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ color: '#FFFFFF' }}>
+            Menü
+          </Typography>
+          <IconButton onClick={toggleMobileMenu} sx={{ color: '#FFFFFF' }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', mb: 3 }} />
+
+        {/* Menü İçeriği */}
+        <List sx={{ flexGrow: 1 }}>
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton
+              onClick={() => handleMenuItemClick(() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }))}
+              sx={{ 
+                borderRadius: 2,
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+              }}
+            >
+              <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
+                <SavedSearchIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Özellikler" 
+                primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
+              />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton
+              onClick={() => handleMenuItemClick(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }))}
+              sx={{ 
+                borderRadius: 2,
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+              }}
+            >
+              <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
+                <VerifiedIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Hakkımızda" 
+                primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
+              />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton
+              onClick={() => handleMenuItemClick(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }))}
+              sx={{ 
+                borderRadius: 2,
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+              }}
+            >
+              <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
+                <LocationOnIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Bize Ulaşın" 
+                primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
+              />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem disablePadding sx={{ mb: 1 }}>
+            <ListItemButton
+              onClick={() => handleMenuItemClick(() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' }))}
+              sx={{ 
+                borderRadius: 2,
+                '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
+              }}
+            >
+              <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
+                <StarIcon />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Paketler" 
+                primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
+              />
+            </ListItemButton>
+          </ListItem>
+        </List>
+
+        <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', my: 2 }} />
+
+        {/* Alt Butonlar */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Button
+            variant="contained"
+            fullWidth
+            startIcon={<LoginIcon />}
+            onClick={() => handleMenuItemClick(() => navigate('/login'))}
+            sx={{
+              bgcolor: '#FFFFFF',
+              color: '#1565C0',
+              borderRadius: '12px',
+              py: 1.5,
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              textTransform: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              '&:hover': {
+                bgcolor: '#E3F2FD',
+                transform: 'translateY(-2px)',
+              },
+            }}
+          >
+            Giriş Yap
+          </Button>
+
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={<PersonAddIcon />}
+            onClick={() => handleMenuItemClick(() => navigate('/register'))}
+            sx={{
+              borderColor: '#FFFFFF',
+              borderWidth: 2,
+              color: '#FFFFFF',
+              borderRadius: '12px',
+              py: 1.5,
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              textTransform: 'none',
+              '&:hover': {
+                borderWidth: 2,
+                borderColor: '#E3F2FD',
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            Kayıt Ol
+          </Button>
+        </Box>
+      </Drawer>
+
       {/* --- HERO SECTION --- */}
       <HeroSection>
-        <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
-          <Box sx={{ display: 'flex', gap: { xs: 4, md: 8 }, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Box sx={{ flex: 1, minWidth: '300px', maxWidth: { md: '600px' } }}>
-              <Typography variant="h6" sx={{ color: '#E3F2FD', fontWeight: 'bold', mb: 2 }}>
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 8, lg: 10, xl: 12 } }}>
+          <Box sx={{ display: 'flex', gap: { xs: 3, md: 8 }, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ flex: 1, minWidth: '280px', maxWidth: { md: '600px' } }}>
+              <Typography variant="h6" sx={{ color: '#E3F2FD', fontWeight: 'bold', mb: 2, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } }}>
                 YENİ NESİL TİCARİ İSTİHBARAT
               </Typography>
-              <HeroTitle variant="h2" sx={{ fontSize: { xs: '2.5rem', md: '3.5rem' } }}>
+              <HeroTitle variant="h2" sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' } }}>
                 Potansiyel Müşterilerinizi <br />
                 <span style={{ color: '#E3F2FD' }}>Saniyeler İçinde Bulun</span>
               </HeroTitle>
-              <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 4, lineHeight: 1.8, fontSize: { xs: '1rem', md: '1.25rem' } }}>
+              <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 4, lineHeight: 1.8, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem', lg: '1.25rem' } }}>
                 Google Haritalar ve gelişmiş veri madenciliği teknolojisi ile sektörünüzdeki binlerce firmaya tek tıkla ulaşın. İhracatınızı ve satışlarınızı artırın.
               </Typography>
-              <Stack direction="row" spacing={2}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Button 
                   variant="contained" 
                   size="large"
@@ -252,9 +455,9 @@ const LandingPage = () => {
                     bgcolor: '#FFFFFF',
                     color: '#1565C0',
                     borderRadius: '12px', 
-                    fontSize: '1.1rem', 
-                    px: 4, 
-                    py: 1.5,
+                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' }, 
+                    px: { xs: 3, sm: 4 }, 
+                    py: { xs: 1.2, sm: 1.5 },
                     textTransform: 'none',
                     fontWeight: 'bold',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
@@ -276,9 +479,9 @@ const LandingPage = () => {
                     borderWidth: 2,
                     color: '#FFFFFF',
                     borderRadius: '12px', 
-                    fontSize: '1.1rem', 
-                    px: 4, 
-                    py: 1.5,
+                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' }, 
+                    px: { xs: 3, sm: 4 }, 
+                    py: { xs: 1.2, sm: 1.5 },
                     textTransform: 'none',
                     fontWeight: 'bold',
                     '&:hover': {
@@ -292,12 +495,12 @@ const LandingPage = () => {
                 </Button>
               </Stack>
             </Box>
-            <Box sx={{ flex: 1, minWidth: '300px', position: 'relative' }}>
+            <Box sx={{ flex: 1, minWidth: '280px', position: 'relative', display: { xs: 'none', md: 'block' } }}>
               <Box 
                 sx={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   borderRadius: '24px',
-                  padding: 6,
+                  padding: { xs: 3, sm: 4, md: 6 },
                   boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
                   position: 'relative',
                   overflow: 'hidden',
@@ -437,7 +640,7 @@ const LandingPage = () => {
 
           <Box sx={{ 
             display: 'flex', 
-            gap: 4, 
+            gap: { xs: 3, sm: 4 }, 
             flexWrap: 'wrap', 
             justifyContent: 'center', 
             alignItems: 'stretch',
@@ -445,19 +648,19 @@ const LandingPage = () => {
             margin: '0 auto'
           }}>
             {/* Başlangıç Paketi */}
-            <Box sx={{ flex: '1 1 350px', minWidth: '350px', maxWidth: '400px', display: 'flex' }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: { sm: '320px', md: '350px' }, maxWidth: { xs: '100%', sm: '400px' }, display: 'flex' }}>
               <FeatureCard sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>
+                <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                     Başlangıç Paketi
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Yeni başlayanlar için ideal
                   </Typography>
-                  <Box sx={{ my: 3 }}>
-                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                  <Box sx={{ my: { xs: 2, sm: 3 } }}>
+                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
                       $7.5
-                      <Typography component="span" variant="h6" color="text.secondary">
+                      <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                         /ay
                       </Typography>
                     </Typography>
@@ -470,7 +673,7 @@ const LandingPage = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Aylık 10 Firma Araması" />
+                      <ListItemText primary="Aylık 15 Arama" />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -518,7 +721,7 @@ const LandingPage = () => {
             </Box>
 
             {/* Profesyonel Paket (Öne Çıkan) */}
-            <Box sx={{ flex: '1 1 350px', minWidth: '350px', maxWidth: '400px', display: 'flex' }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: { sm: '320px', md: '350px' }, maxWidth: { xs: '100%', sm: '400px' }, display: 'flex' }}>
               <FeatureCard 
                 sx={{ 
                   width: '100%',
@@ -541,19 +744,20 @@ const LandingPage = () => {
                     color: 'white',
                     fontWeight: 'bold',
                     px: 2,
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   }}
                 />
-                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>
+                <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                     Profesyonel Paket
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Büyüyen işletmeler için
                   </Typography>
-                  <Box sx={{ my: 3 }}>
-                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                  <Box sx={{ my: { xs: 2, sm: 3 } }}>
+                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
                       $15
-                      <Typography component="span" variant="h6" color="text.secondary">
+                      <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                         /ay
                       </Typography>
                     </Typography>
@@ -566,7 +770,7 @@ const LandingPage = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Aylık 50 Firma Araması" />
+                      <ListItemText primary="Aylık 25 Arama" />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -619,19 +823,19 @@ const LandingPage = () => {
             </Box>
 
             {/* Kurumsal Paket */}
-            <Box sx={{ flex: '1 1 350px', minWidth: '350px', maxWidth: '400px', display: 'flex' }}>
+            <Box sx={{ flex: '1 1 100%', minWidth: { sm: '320px', md: '350px' }, maxWidth: { xs: '100%', sm: '400px' }, display: 'flex' }}>
               <FeatureCard sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
-                <CardContent sx={{ p: 4, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>
+                <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
                     Kurumsal Paket
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Büyük ekipler için
                   </Typography>
-                  <Box sx={{ my: 3 }}>
-                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                  <Box sx={{ my: { xs: 2, sm: 3 } }}>
+                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
                       $75
-                      <Typography component="span" variant="h6" color="text.secondary">
+                      <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                         /ay
                       </Typography>
                     </Typography>
@@ -644,7 +848,7 @@ const LandingPage = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Sınırsız Firma Araması" />
+                      <ListItemText primary="Aylık 75 Arama" />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -721,7 +925,7 @@ const LandingPage = () => {
                 <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF' }}>Hakkımızda</Typography>
               </Box>
               <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: '#E3F2FD', lineHeight: 1.8 }}>
-                FORTEX GLOBE SEARCH, işletmelerin yeni pazarlar bulmasını kolaylaştıran yapay zeka destekli bir veri platformudur.
+                FGS TRADE, işletmelerin yeni pazarlar bulmasını kolaylaştıran yapay zeka destekli bir veri platformudur.
                 Amacımız, karmaşık veri madenciliği süreçlerini basitleştirerek KOBİ'lerin ve ihracatçıların
                 dünya pazarlarına açılmasını sağlamaktır.
               </Typography>
@@ -797,9 +1001,13 @@ const LandingPage = () => {
                   component="img"
                   src={logoImage}
                   alt="Trade Scout Logo"
-                  sx={{ height: 50, width: 'auto', mr: 1.5 }}
+                  sx={{ 
+                    height: { xs: 70, sm: 85, md: 95 }, 
+                    width: 'auto', 
+                    mr: 1.5 
+                  }}
                 />
-                <Typography variant="h5" fontWeight="bold">FORTEX GLOBE SEARCH</Typography>
+                <Typography variant="h5" fontWeight="bold">FGS TRADE</Typography>
               </Box>
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 <RocketLaunchIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'middle' }} />
@@ -808,7 +1016,7 @@ const LandingPage = () => {
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px', textAlign: { md: 'right' } }}>
               <Typography variant="body2" sx={{ opacity: 0.6 }}>
-                © 2026 FORTEX GLOBE SEARCH. Tüm hakları saklıdır. Gizlilik Politikası | Kullanım Şartları
+                © 2026 FGS TRADE. Tüm hakları saklıdır. Gizlilik Politikası | Kullanım Şartları
               </Typography>
             </Box>
           </Box>
