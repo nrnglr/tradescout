@@ -28,8 +28,10 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'; // Ürün için
 import DownloadIcon from '@mui/icons-material/Download'; // Excel için
 import LogoutIcon from '@mui/icons-material/Logout';
 import BoltIcon from '@mui/icons-material/Bolt'; // Kredi ikonu
+import BusinessIcon from '@mui/icons-material/Business'; // Firma sayısı için
 
 import { authService } from '../services/auth';
+import { scraperService, Business, ScrapeResponse } from '../services/scraper';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 
@@ -166,19 +168,34 @@ const Dashboard = () => {
   
   // Arama State'leri
   const [searchParams, setSearchParams] = useState({
-    country: '',
+    country: 'Türkiye',
     city: '',
-    language: '',
-    product: ''
+    language: 'tr',
+    product: '',
+    companyCount: '10'
   });
+
+  // Loading ve Sonuç State'leri
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<ScrapeResponse | null>(null);
+  const [error, setError] = useState<string>('');
 
   // Sayfa yüklendiğinde kullanıcıyı çek
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const token = localStorage.getItem('token');
+    
+    console.log('🔍 Dashboard Debug:');
+    console.log('Token var mı?', !!token);
+    console.log('User var mı?', !!storedUser);
+    console.log('Token:', token ? `${token.substring(0, 20)}...` : 'YOK');
+    console.log('User:', storedUser);
+    
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     } else {
       // Kullanıcı yoksa Login'e at (Güvenlik)
+      console.warn('⚠️ Token veya user bulunamadı, login sayfasına yönlendiriliyor...');
       navigate('/login');
     }
   }, [navigate]);
@@ -196,15 +213,123 @@ const Dashboard = () => {
     setAnchorEl(null);
   };
 
-  const handleSearch = () => {
-    console.log("Arama yapılıyor...", searchParams);
-    // Buraya ileride API isteği gelecek
-    alert(`Arama Başlatıldı: ${searchParams.product} - ${searchParams.country}`);
+  const handleSearch = async () => {
+    console.log('🔍 Firma Ara başlatıldı');
+    console.log('Token mevcut mu?', !!localStorage.getItem('token'));
+    console.log('User mevcut mu?', !!localStorage.getItem('user'));
+    
+    const token = localStorage.getItem('token');
+    console.log('🔑 Token değeri:', token);
+    console.log('🔑 Token uzunluğu:', token?.length);
+    console.log('🔑 Token ilk 50 karakter:', token?.substring(0, 50));
+    
+    // Validasyon
+    if (!searchParams.product.trim()) {
+      setError('Lütfen ürün ismi girin!');
+      return;
+    }
+    if (!searchParams.city.trim()) {
+      setError('Lütfen şehir girin!');
+      return;
+    }
+    
+    const companyCount = parseInt(searchParams.companyCount);
+    if (companyCount < 1 || companyCount > 100) {
+      setError('Firma sayısı 1-100 arasında olmalıdır!');
+      return;
+    }
+
+    setError('');
+    setIsLoading(true);
+    setSearchResults(null);
+
+    try {
+      // Kredi kontrolü
+      const availableCredits = user?.credits || 0;
+      if (availableCredits < companyCount) {
+        setError(`Yetersiz kredi! Gerekli: ${companyCount}, Mevcut: ${availableCredits}`);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('📡 API isteği gönderiliyor...');
+      console.log('Parametreler:', {
+        category: searchParams.product,
+        city: searchParams.city,
+        country: searchParams.country || 'Türkiye',
+        language: searchParams.language || 'tr',
+        maxResults: companyCount,
+      });
+
+      // API isteği
+      const response = await scraperService.scrape({
+        category: searchParams.product,
+        city: searchParams.city,
+        country: searchParams.country || 'Türkiye',
+        language: searchParams.language || 'tr',
+        maxResults: companyCount,
+      });
+
+      console.log('✅ API isteği başarılı:', response);
+      setSearchResults(response);
+      
+      // Kullanıcının kredi bilgisini güncelle
+      const updatedUser = { ...user, credits: (user?.credits || 0) - response.creditsUsed };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+    } catch (err: any) {
+      console.error('❌ Arama hatası:', err);
+      console.error('Hata detayı:', {
+        response: err.response,
+        request: err.request,
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
+      
+      // Axios hata mesajını doğru şekilde yakala
+      if (err.response) {
+        // Backend'den gelen hata mesajı
+        const errorMessage = err.response.data?.message || err.response.data?.error || 'Bir hata oluştu';
+        setError(errorMessage);
+        
+        // Hata mesajına scroll yap
+        setTimeout(() => {
+          document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+        
+        // 401 hatası için özel durum
+        if (err.response.status === 401) {
+          setError('⚠️ Oturumunuz sona erdi. 3 saniye içinde giriş sayfasına yönlendirileceksiniz...');
+          // 3 saniye bekle ki kullanıcı mesajı görebilsin
+          setTimeout(() => {
+            authService.logout();
+            navigate('/login');
+          }, 3000);
+        }
+      } else if (err.request) {
+        // İstek gönderildi ama cevap alınamadı (network hatası)
+        setError('❌ Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.');
+        setTimeout(() => {
+          document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      } else {
+        // Başka bir hata
+        setError(err.message || '❌ Bir hata oluştu. Lütfen tekrar deneyin.');
+        setTimeout(() => {
+          document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleExport = () => {
-    console.log("Excel'e aktarılıyor...");
-    alert("Veriler Excel formatında hazırlanıyor...");
+    if (searchResults) {
+      scraperService.downloadExcel(searchResults.jobId);
+    }
   };
 
   return (
@@ -394,15 +519,81 @@ const Dashboard = () => {
                   }}
                 />
               </Box>
+
+              {/* 5. Firma Sayısı */}
+              <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
+                <StyledTextField
+                  fullWidth
+                  type="number"
+                  label="Kaç Firma Aranacak?"
+                  placeholder="Örn: 10, 50, 100..."
+                  value={searchParams.companyCount}
+                  onChange={(e) => setSearchParams({...searchParams, companyCount: e.target.value})}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <BusinessIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    inputProps: { min: 1, max: 1000 }
+                  }}
+                  helperText="En az 1, en fazla 1000 firma"
+                />
+              </Box>
             </Box>
+
+            {/* Hata Mesajı */}
+            {error && (
+              <Box 
+                id="error-message"
+                sx={{ 
+                  mt: 2, 
+                  p: 2.5, 
+                  bgcolor: '#ffebee', 
+                  borderRadius: '12px',
+                  border: '2px solid #ef5350',
+                  boxShadow: '0 4px 12px rgba(239, 83, 80, 0.3)',
+                  animation: 'shake 0.5s',
+                  '@keyframes shake': {
+                    '0%, 100%': { transform: 'translateX(0)' },
+                    '25%': { transform: 'translateX(-10px)' },
+                    '75%': { transform: 'translateX(10px)' }
+                  }
+                }}
+              >
+                <Typography sx={{ color: '#c62828', fontWeight: 600, fontSize: '1rem' }}>
+                  {error}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Loading Mesajı */}
+            {isLoading && (
+              <Box sx={{ 
+                mt: 2, 
+                p: 3, 
+                bgcolor: '#e3f2fd', 
+                borderRadius: '12px',
+                textAlign: 'center'
+              }}>
+                <Typography sx={{ color: '#1565C0', fontWeight: 600, mb: 1 }}>
+                  ⏳ Firmalar aranıyor...
+                </Typography>
+                <Typography sx={{ color: '#666', fontSize: '0.9rem' }}>
+                  Bu işlem {Math.ceil(parseInt(searchParams.companyCount) / 20 * 5)} dakika kadar sürebilir.
+                  Lütfen bekleyiniz.
+                </Typography>
+              </Box>
+            )}
 
             {/* BUTONLAR */}
             <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: { xs: 'center', sm: 'flex-end' }, flexWrap: 'wrap' }}>
-               {/* Excel Butonu (Sadece sonuç varsa aktif olur, şimdilik aktif) */}
+               {/* Excel Butonu (Sadece sonuç varsa aktif) */}
                <ExcelButton 
                 variant="contained" 
                 onClick={handleExport}
                 startIcon={<DownloadIcon />}
+                disabled={!searchResults || isLoading}
               >
                 Excel'e Aktar
               </ExcelButton>
@@ -412,38 +603,135 @@ const Dashboard = () => {
                 variant="contained" 
                 onClick={handleSearch}
                 startIcon={<SearchIcon />}
-                sx={{ px: { xs: 3, sm: 6 } }} // Daha geniş buton
+                disabled={isLoading}
+                sx={{ px: { xs: 3, sm: 6 } }}
               >
-                Firma Ara
+                {isLoading ? 'Aranıyor...' : 'Firma Ara'}
               </ActionButton>
             </Box>
           </Box>
         </SearchCard>
 
-        {/* Sonuç Alanı (Placeholder - Boşken güzel görünsün diye) */}
-        <Box sx={{ 
-          mt: { xs: 4, sm: 5, md: 6 }, 
-          textAlign: 'center',
-          bgcolor: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: { xs: '16px', sm: '20px' },
-          p: { xs: 3, sm: 4, md: 6 },
-          border: '1px solid rgba(21, 101, 192, 0.1)',
-          boxShadow: '0 4px 20px rgba(21, 101, 192, 0.08)',
-          transition: 'all 0.3s ease',
-        }}>
+        {/* Sonuç Alanı */}
+        {searchResults ? (
           <Box sx={{ 
-            width: { xs: 80, sm: 100, md: 120 }, 
-            height: { xs: 80, sm: 100, md: 120 }, 
-            borderRadius: '50%', 
-            bgcolor: 'rgba(21, 101, 192, 0.1)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto',
-            mb: { xs: 2, sm: 3 },
+            mt: { xs: 4, sm: 5, md: 6 }, 
+            bgcolor: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: { xs: '16px', sm: '20px' },
+            p: { xs: 3, sm: 4 },
+            border: '1px solid rgba(21, 101, 192, 0.2)',
+            boxShadow: '0 8px 32px rgba(21, 101, 192, 0.15)',
           }}>
-            <SearchIcon sx={{ fontSize: { xs: 40, sm: 50, md: 60 }, color: BRAND_COLORS.primary, opacity: 0.5 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+              <Typography variant="h5" fontWeight="bold" sx={{ color: BRAND_COLORS.primary }}>
+                ✅ {searchResults.totalResults} Firma Bulundu!
+              </Typography>
+              <Chip 
+                label={`${searchResults.creditsUsed} kredi kullanıldı`}
+                sx={{ 
+                  bgcolor: '#4caf50', 
+                  color: 'white', 
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem'
+                }}
+              />
+            </Box>
+
+            <Typography variant="body1" sx={{ color: '#666', mb: 3 }}>
+              {searchResults.message}
+            </Typography>
+
+            {/* Firma Listesi */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {searchResults.businesses.slice(0, 5).map((business, index) => (
+                <Paper 
+                  key={index}
+                  sx={{ 
+                    p: 2, 
+                    borderRadius: '12px',
+                    border: '1px solid #e0e0e0',
+                    '&:hover': {
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      transform: 'translateY(-2px)',
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: BRAND_COLORS.primary, mb: 1 }}>
+                    {business.businessName}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
+                    📍 {business.address}
+                  </Typography>
+                  {business.phone && (
+                    <Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
+                      📞 {business.phone}
+                    </Typography>
+                  )}
+                  {business.website && (
+                    <Typography 
+                      variant="body2" 
+                      component="a"
+                      href={business.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ color: '#1976d2', textDecoration: 'none', mb: 0.5, display: 'block' }}
+                    >
+                      🌐 {business.website}
+                    </Typography>
+                  )}
+                  {business.rating > 0 && (
+                    <Typography variant="body2" sx={{ color: '#666' }}>
+                      ⭐ {business.rating} ({business.reviewCount} değerlendirme)
+                    </Typography>
+                  )}
+                </Paper>
+              ))}
+            </Box>
+
+            {searchResults.businesses.length > 5 && (
+              <Typography variant="body2" sx={{ color: '#666', mt: 2, textAlign: 'center', fontStyle: 'italic' }}>
+                ... ve {searchResults.businesses.length - 5} firma daha. Tüm firmalar için Excel'i indirin.
+              </Typography>
+            )}
+
+            {/* Excel İndirme Butonu */}
+            <Box sx={{ mt: 4, textAlign: 'center' }}>
+              <ExcelButton 
+                variant="contained"
+                onClick={handleExport}
+                startIcon={<DownloadIcon />}
+                sx={{ fontSize: '1rem', py: 1.5, px: 4 }}
+              >
+                📥 Excel Dosyasını İndir
+              </ExcelButton>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ 
+            mt: { xs: 4, sm: 5, md: 6 }, 
+            textAlign: 'center',
+            bgcolor: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: { xs: '16px', sm: '20px' },
+            p: { xs: 3, sm: 4, md: 6 },
+            border: '1px solid rgba(21, 101, 192, 0.1)',
+            boxShadow: '0 4px 20px rgba(21, 101, 192, 0.08)',
+            transition: 'all 0.3s ease',
+          }}>
+            <Box sx={{ 
+              width: { xs: 80, sm: 100, md: 120 }, 
+              height: { xs: 80, sm: 100, md: 120 }, 
+              borderRadius: '50%', 
+              bgcolor: 'rgba(21, 101, 192, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto',
+              mb: { xs: 2, sm: 3 },
+            }}>
+              <SearchIcon sx={{ fontSize: { xs: 40, sm: 50, md: 60 }, color: BRAND_COLORS.primary, opacity: 0.5 }} />
           </Box>
           
           <Typography variant="h5" fontWeight="600" sx={{ color: BRAND_COLORS.primary, mb: 2, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
@@ -469,6 +757,7 @@ const Dashboard = () => {
             </Box>
           </Box>
         </Box>
+        )}
 
       </Container>
     </PageContainer>

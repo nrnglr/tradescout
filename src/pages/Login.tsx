@@ -248,9 +248,14 @@ const Login = () => {
 
     try {
       // GERÇEK BACKEND BAĞLANTISI
-      await authService.login({ email, password });
+      const response = await authService.login({ email, password });
       
-      console.log("Login başarılı!");
+      console.log("✅ Login başarılı!");
+      console.log("📦 Response:", response);
+      console.log("🔑 Token kaydedildi mi?", !!localStorage.getItem('token'));
+      console.log("👤 User kaydedildi mi?", !!localStorage.getItem('user'));
+      console.log("🔑 Token:", localStorage.getItem('token'));
+      console.log("👤 User:", localStorage.getItem('user'));
       
       // Beni Hatırla Mantığı
       if (rememberMe) {
@@ -263,7 +268,7 @@ const Login = () => {
       navigate('/dashboard');
 
     } catch (err: any) {
-      console.error("Login hatası:", err);
+      console.error("❌ Login hatası:", err);
       setError(err.message || 'Giriş başarısız. Bilgilerinizi kontrol edin.');
     } finally {
       setLoading(false);

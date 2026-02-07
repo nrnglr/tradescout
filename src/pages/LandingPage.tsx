@@ -38,6 +38,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import EmailIcon from '@mui/icons-material/Email';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 
@@ -954,8 +955,15 @@ const LandingPage = () => {
                   <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>Bize Ulaşın</Typography>
                   <Stack spacing={3} mt={3}>
                     <Box display="flex" alignItems="center">
-                      <LocationOnIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography variant="body1" sx={{ color: '#333' }}>Teknopark, Düzce Üniversitesi, Düzce/Türkiye</Typography>
+                      <EmailIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ color: '#333' }}
+                        component="a"
+                        href="mailto:info@fgstrade.com"
+                      >
+                        info@fgstrade.com
+                      </Typography>
                     </Box>
                     <Box display="flex" alignItems="center">
                       <PublicIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
