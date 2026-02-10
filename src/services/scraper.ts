@@ -47,12 +47,34 @@ export interface JobStatusResponse {
 
 class ScraperService {
   /**
-   * Scraping başlat
+   * 🔍 Varsayılan scraping endpoint (ChromeDriver destekli)
+   * Backend'de istediğiniz yöntemi kullanabilirsiniz (Gemini AI, Selenium, vb.)
+   * Frontend kullanıcısı bu detayları görmez, sadece "arama yapılıyor" mesajı alır.
    * @param data - Scraping parametreleri
    * @returns Scraping sonucu
    */
   async scrape(data: ScrapeRequest): Promise<ScrapeResponse> {
+    const response = await apiClient.post<ScrapeResponse>('/api/scraper/scrape-gemini', data);
+    return response.data;
+  }
+
+  /**
+   * 🐌 Selenium ile detaylı scraping (yavaş ama kesin)
+   * @param data - Scraping parametreleri
+   * @returns Scraping sonucu
+   */
+  async scrapeWithSelenium(data: ScrapeRequest): Promise<ScrapeResponse> {
     const response = await apiClient.post<ScrapeResponse>('/api/scraper/scrape', data);
+    return response.data;
+  }
+
+  /**
+   * 🚀 10 proxy ile paralel scraping (hızlı ve detaylı)
+   * @param data - Scraping parametreleri
+   * @returns Scraping sonucu
+   */
+  async scrapeWithParallel(data: ScrapeRequest): Promise<ScrapeResponse> {
+    const response = await apiClient.post<ScrapeResponse>('/api/scraper/scrape-parallel', data);
     return response.data;
   }
 

@@ -2,7 +2,9 @@
 import axios from 'axios';
 
 // Base URL - Environment variable'dan okunabilir
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Production'da proxy kullanıldığı için boş string (relative path)
+// Development'ta .env'den okunur veya localhost:5000
+export const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 // Axios instance oluştur
 export const apiClient = axios.create({

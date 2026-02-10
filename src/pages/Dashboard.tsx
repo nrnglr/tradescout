@@ -175,6 +175,9 @@ const Dashboard = () => {
     companyCount: '10'
   });
 
+  // Scraping her zaman Gemini AI ile yapılacak (kullanıcıya gösterilmez)
+  const scrapingMethod = 'gemini';
+
   // Loading ve Sonuç State'leri
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<ScrapeResponse | null>(null);
@@ -261,7 +264,8 @@ const Dashboard = () => {
         maxResults: companyCount,
       });
 
-      // API isteği
+      // API isteği - Arka planda Gemini AI ile otomatik arama
+      console.log('� Firmalar aranıyor...');
       const response = await scraperService.scrape({
         category: searchParams.product,
         city: searchParams.city,
@@ -542,6 +546,8 @@ const Dashboard = () => {
               </Box>
             </Box>
 
+
+
             {/* Hata Mesajı */}
             {error && (
               <Box 
@@ -577,11 +583,10 @@ const Dashboard = () => {
                 textAlign: 'center'
               }}>
                 <Typography sx={{ color: '#1565C0', fontWeight: 600, mb: 1 }}>
-                  ⏳ Firmalar aranıyor...
+                  🔍 Firmalar aranıyor...
                 </Typography>
                 <Typography sx={{ color: '#666', fontSize: '0.9rem' }}>
-                  Bu işlem {Math.ceil(parseInt(searchParams.companyCount) / 20 * 5)} dakika kadar sürebilir.
-                  Lütfen bekleyiniz.
+                  Bu işlem birkaç dakika sürebilir. Lütfen bekleyiniz.
                 </Typography>
               </Box>
             )}

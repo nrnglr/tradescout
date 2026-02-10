@@ -445,7 +445,8 @@ const LandingPage = () => {
                 <span style={{ color: '#E3F2FD' }}>Saniyeler İçinde Bulun</span>
               </HeroTitle>
               <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 4, lineHeight: 1.8, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem', lg: '1.25rem' } }}>
-                Google Haritalar ve gelişmiş veri madenciliği teknolojisi ile sektörünüzdeki binlerce firmaya tek tıkla ulaşın. İhracatınızı ve satışlarınızı artırın.
+          FGS TRADE, gelişmiş veri analizi ve çok kaynaklı pazar istihbaratı altyapısı ile
+şirketlerin dünya genelinde potansiyel müşteri ve tedarikçilere hızlı, güvenilir ve ölçeklenebilir şekilde erişmesini sağlar.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Button 
@@ -926,9 +927,11 @@ const LandingPage = () => {
                 <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF' }}>Hakkımızda</Typography>
               </Box>
               <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: '#E3F2FD', lineHeight: 1.8 }}>
-                FGS TRADE, işletmelerin yeni pazarlar bulmasını kolaylaştıran yapay zeka destekli bir veri platformudur.
-                Amacımız, karmaşık veri madenciliği süreçlerini basitleştirerek KOBİ'lerin ve ihracatçıların
-                dünya pazarlarına açılmasını sağlamaktır.
+                FGS TRADE, şirketlerin hem yerel hem de uluslararası pazarlarda potansiyel müşteri ve tedarikçilere stratejik olarak erişmesini sağlayan, ileri düzey bir ticari veri ve pazar araştırma platformudur.
+Platformumuz; gelişmiş veri toplama, çok kaynaklı analiz ve akıllı eşleştirme teknolojileri sayesinde, firmalara doğru pazarlarda, doğru firmalarla ve doğru zamanda bağlantı kurma imkânı sunar.
+FGS TRADE’in sunduğu firma databankları, yalnızca bir veri seti değil; şirketler için ölçeklenebilir, sürdürülebilir ve stratejik bir iş varlığıdır. Bu yapı; websitesi,email adresi, adres, iletişim bilgileri ve erişilebilen ticari göstergelerden oluşur ve düzenli olarak güncellenir.
+Amacımız, karmaşık veri süreçlerini sadeleştirerek şirketlerin pazar keşfi, iş geliştirme ve büyüme kararlarını güvenilir verilerle desteklemektir.
+Güçlü altyapımız ve sürekli gelişen veri ekosistemimiz ile küresel ticaretin yönünü siz belirlersiniz.
               </Typography>
               <Typography variant="body1" sx={{ fontSize: '1.1rem', color: '#FFFFFF', lineHeight: 1.8 }}>
                 <TrendingUpIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
