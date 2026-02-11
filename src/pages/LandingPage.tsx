@@ -19,7 +19,9 @@ import {
   Chip,
   IconButton,
   Drawer,
-  Divider
+  Divider,
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -39,8 +41,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import EmailIcon from '@mui/icons-material/Email';
+import LanguageIcon from '@mui/icons-material/Language';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // --- STİL TANIMLAMALARI ---
 
@@ -53,54 +57,74 @@ const PageContainer = styled(Box)({
 
 // Üst Menü (Navbar)
 const StyledAppBar = styled(AppBar)({
-  background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(227, 242, 253, 0.95) 15%, rgba(21, 101, 192, 0.95) 35%, rgba(21, 101, 192, 0.95) 100%)',
+  background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(227, 242, 253, 0.95) 30%, rgba(21, 101, 192, 0.95) 50%, rgba(21, 101, 192, 0.95) 100%)',
   boxShadow: '0 2px 20px rgba(0,0,0,0.2)',
   backdropFilter: 'blur(10px)',
 });
 
 const LogoImage = styled('img')(({ theme }) => ({
-  height: '65px',
+  height: '105px',
   width: 'auto',
   cursor: 'pointer',
   transition: 'transform 0.3s ease',
+  objectFit: 'contain',
   '&:hover': {
     transform: 'scale(1.05)',
   },
+  [theme.breakpoints.down('lg')]: {
+    height: '102px',
+  },
   [theme.breakpoints.down('md')]: {
-    height: '52px',
+    height: '95px',
   },
   [theme.breakpoints.down('sm')]: {
-    height: '42px',
+    height: '88px',
+  },
+  [theme.breakpoints.down(450)]: {
+    height: '85px',
+  },
+  [theme.breakpoints.down(380)]: {
+    height: '82px',
   },
 }));
 
 const LogoText = styled(Typography)(({ theme }) => ({
   fontWeight: 800,
   color: '#1565C0',
-  fontSize: '1.4rem',
+  fontSize: '2.72rem',
   cursor: 'pointer',
-  marginLeft: '10px',
-  textShadow: '0 1px 2px rgba(255,255,255,0.3)',
+  marginLeft: '6px',
+  whiteSpace: 'nowrap',
+  textShadow: '0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.9), 0 2px 10px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.15)',
   [theme.breakpoints.down('lg')]: {
-    fontSize: '1.2rem',
+    fontSize: '2.4rem',
+    marginLeft: '5px',
   },
   [theme.breakpoints.down('md')]: {
-    fontSize: '1rem',
-    marginLeft: '8px',
+    fontSize: '2.16rem',
+    marginLeft: '13px',
   },
   [theme.breakpoints.down('sm')]: {
-    fontSize: '0.85rem',
-    marginLeft: '6px',
+    fontSize: '1.92rem',
+    marginLeft: '9px',
+  },
+  [theme.breakpoints.down(450)]: {
+    fontSize: '1.76rem',
+    marginLeft: '2px',
+  },
+  [theme.breakpoints.down(380)]: {
+    fontSize: '1.6rem',
+    marginLeft: '2px',
   },
 }));
 
 const NavButton = styled(Button)({
   textTransform: 'none',
-  fontWeight: 600,
-  fontSize: '0.9rem',
+  fontWeight: 700,
+  fontSize: '1.15rem',
   color: '#FFFFFF',
-  marginLeft: '0.8rem',
-  padding: '6px 12px',
+  marginLeft: '1.2rem',
+  padding: '10px 18px',
   '&:hover': {
     color: '#E3F2FD',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
@@ -110,12 +134,12 @@ const NavButton = styled(Button)({
 const LoginButton = styled(Button)({
   textTransform: 'none',
   fontWeight: 700,
-  fontSize: '0.9rem',
-  borderRadius: '10px',
-  padding: '6px 20px',
+  fontSize: '1.15rem',
+  borderRadius: '12px',
+  padding: '10px 30px',
   background: '#1565C0',
   color: '#FFFFFF',
-  marginLeft: '1.5rem',
+  marginLeft: '2rem',
   boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
   '&:hover': {
     background: '#0D47A1',
@@ -137,8 +161,9 @@ const HeroSection = styled(Box)(({ theme }) => ({
     minHeight: '80vh',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(10, 0, 6),
+    padding: theme.spacing(14, 0, 6),
     minHeight: '70vh',
+    paddingTop: '140px',
   },
 }));
 
@@ -193,6 +218,7 @@ const Footer = styled(Box)({
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -204,14 +230,28 @@ const LandingPage = () => {
     setMobileMenuOpen(false);
   };
 
+  const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, newLanguage: 'tr' | 'en' | null) => {
+    if (newLanguage !== null) {
+      setLanguage(newLanguage);
+    }
+  };
+
   return (
     <PageContainer>
       {/* --- NAVBAR --- */}
       <StyledAppBar position="fixed" color="default">
-        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 6, md: 8, lg: 10, xl: 12 } }}>
-          <Toolbar disableGutters sx={{ py: { xs: 0.5, md: 0.8 }, minHeight: { xs: '56px', md: '64px' } }}>
+        <Container maxWidth={false} sx={{ px: { xs: 0, sm: 1, md: 3, lg: 5, xl: 8 } }}>
+          <Toolbar 
+            disableGutters 
+            sx={{ 
+              py: { xs: 0.5, md: 0.8 }, 
+              minHeight: { xs: '85px', md: '110px' },
+              maxHeight: { xs: '85px', md: '110px' },
+              overflow: 'hidden'
+            }}
+          >
             {/* Logo */}
-            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', height: '100%', pl: { xs: 0, sm: 0.5 } }}>
               <LogoImage 
                 src={logoImage} 
                 alt="Trade Scout Logo" 
@@ -226,29 +266,61 @@ const LandingPage = () => {
             <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', gap: { md: 0.5, lg: 1 } }}>
               <NavButton 
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
-                Özellikler
+                {t('navbar.features')}
               </NavButton>
               <NavButton 
                 onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
-                Hakkımızda
+                {t('navbar.about')}
               </NavButton>
               <NavButton 
                 onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
-                Bize Ulaşın
+                {t('navbar.contact')}
               </NavButton>
               <NavButton 
                 onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })}
-                sx={{ fontSize: { md: '0.85rem', lg: '0.95rem' }, fontWeight: 'bold' }}
               >
-                Paketler
+                {t('navbar.packages')}
               </NavButton>
               
+              {/* Dil Seçici */}
+              <ToggleButtonGroup
+                value={language}
+                exclusive
+                onChange={handleLanguageChange}
+                aria-label="language"
+                size="small"
+                sx={{
+                  ml: 1,
+                  '& .MuiToggleButton-root': {
+                    color: '#FFFFFF',
+                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    px: 1.5,
+                    py: 0.5,
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    '&.Mui-selected': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      color: '#FFFFFF',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                      },
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    },
+                  },
+                }}
+              >
+                <ToggleButton value="tr" aria-label="Turkish">
+                  TR
+                </ToggleButton>
+                <ToggleButton value="en" aria-label="English">
+                  EN
+                </ToggleButton>
+              </ToggleButtonGroup>
             </Box>
 
             {/* Giriş Yap Butonu (Desktop) */}
@@ -259,7 +331,7 @@ const LandingPage = () => {
                 ml: { md: 1 }
               }}
             >
-              Giriş Yap
+              {t('navbar.login')}
             </LoginButton>
             
             {/* Hamburger Menü İkonu (Mobil & Tablet) */}
@@ -295,7 +367,7 @@ const LandingPage = () => {
         {/* Drawer Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ color: '#FFFFFF' }}>
-            Menü
+            {t('navbar.home')}
           </Typography>
           <IconButton onClick={toggleMobileMenu} sx={{ color: '#FFFFFF' }}>
             <CloseIcon />
@@ -318,7 +390,7 @@ const LandingPage = () => {
                 <SavedSearchIcon />
               </ListItemIcon>
               <ListItemText 
-                primary="Özellikler" 
+                primary={t('navbar.features')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
             </ListItemButton>
@@ -336,7 +408,7 @@ const LandingPage = () => {
                 <VerifiedIcon />
               </ListItemIcon>
               <ListItemText 
-                primary="Hakkımızda" 
+                primary={t('navbar.about')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
             </ListItemButton>
@@ -354,7 +426,7 @@ const LandingPage = () => {
                 <LocationOnIcon />
               </ListItemIcon>
               <ListItemText 
-                primary="Bize Ulaşın" 
+                primary={t('navbar.contact')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
             </ListItemButton>
@@ -372,12 +444,53 @@ const LandingPage = () => {
                 <StarIcon />
               </ListItemIcon>
               <ListItemText 
-                primary="Paketler" 
+                primary={t('navbar.packages')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
             </ListItemButton>
           </ListItem>
         </List>
+
+        <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', my: 2 }} />
+
+        {/* Dil Seçici (Mobil) */}
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body2" sx={{ color: '#E3F2FD', mb: 1, fontWeight: 600 }}>
+            {language === 'tr' ? 'Dil / Language' : 'Language / Dil'}
+          </Typography>
+          <ToggleButtonGroup
+            value={language}
+            exclusive
+            onChange={handleLanguageChange}
+            aria-label="language"
+            fullWidth
+            sx={{
+              '& .MuiToggleButton-root': {
+                color: '#FFFFFF',
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                py: 1,
+                fontWeight: 600,
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                  },
+                },
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                },
+              },
+            }}
+          >
+            <ToggleButton value="tr" aria-label="Turkish">
+              🇹🇷 Türkçe
+            </ToggleButton>
+            <ToggleButton value="en" aria-label="English">
+              🇬🇧 English
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Box>
 
         <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', my: 2 }} />
 
@@ -403,7 +516,7 @@ const LandingPage = () => {
               },
             }}
           >
-            Giriş Yap
+            {t('navbar.login')}
           </Button>
 
           <Button
@@ -427,7 +540,7 @@ const LandingPage = () => {
               },
             }}
           >
-            Kayıt Ol
+            {t('login.register')}
           </Button>
         </Box>
       </Drawer>
@@ -437,16 +550,24 @@ const LandingPage = () => {
         <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 8, lg: 10, xl: 12 } }}>
           <Box sx={{ display: 'flex', gap: { xs: 3, md: 8 }, alignItems: 'center', flexWrap: 'wrap' }}>
             <Box sx={{ flex: 1, minWidth: '280px', maxWidth: { md: '600px' } }}>
-              <Typography variant="h6" sx={{ color: '#E3F2FD', fontWeight: 'bold', mb: 2, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } }}>
-                YENİ NESİL TİCARİ İSTİHBARAT
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: '#E3F2FD', 
+                  fontWeight: 'bold', 
+                  mb: 2, 
+                  mt: { xs: 2, sm: 0 },
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } 
+                }}
+              >
+                {t('hero.subtitle')}
               </Typography>
               <HeroTitle variant="h2" sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem', lg: '3.5rem' } }}>
-                Potansiyel Müşterilerinizi <br />
-                <span style={{ color: '#E3F2FD' }}>Saniyeler İçinde Bulun</span>
+                {t('hero.title')} <br />
+                <span style={{ color: '#E3F2FD' }}>{t('hero.titleHighlight')}</span>
               </HeroTitle>
               <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 4, lineHeight: 1.8, fontSize: { xs: '0.875rem', sm: '1rem', md: '1.1rem', lg: '1.25rem' } }}>
-          FGS TRADE, gelişmiş veri analizi ve çok kaynaklı pazar istihbaratı altyapısı ile
-şirketlerin dünya genelinde potansiyel müşteri ve tedarikçilere hızlı, güvenilir ve ölçeklenebilir şekilde erişmesini sağlar.
+                {t('hero.description')}
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <Button 
@@ -470,7 +591,7 @@ const LandingPage = () => {
                     },
                   }}
                 >
-                  Hemen Başla
+                  {t('hero.startNow')}
                 </Button>
                 <Button 
                   variant="outlined" 
@@ -493,7 +614,7 @@ const LandingPage = () => {
                     },
                   }}
                 >
-                  Daha Fazla Bilgi
+                  {t('hero.moreInfo')}
                 </Button>
               </Stack>
             </Box>
@@ -521,17 +642,17 @@ const LandingPage = () => {
                     <Box sx={{ textAlign: 'center', color: 'white' }}>
                       <AnalyticsIcon sx={{ fontSize: 60, mb: 1 }} />
                       <Typography variant="h4" fontWeight="bold">1000+</Typography>
-                      <Typography variant="body2">Firma</Typography>
+                      <Typography variant="body2">{t('hero.statsCompanies')}</Typography>
                     </Box>
                     <Box sx={{ textAlign: 'center', color: 'white' }}>
                       <GroupsIcon sx={{ fontSize: 60, mb: 1 }} />
                       <Typography variant="h4" fontWeight="bold">500+</Typography>
-                      <Typography variant="body2">Müşteri</Typography>
+                      <Typography variant="body2">{t('hero.statsCustomers')}</Typography>
                     </Box>
                     <Box sx={{ textAlign: 'center', color: 'white' }}>
                       <SpeedIcon sx={{ fontSize: 60, mb: 1 }} />
                       <Typography variant="h4" fontWeight="bold">%95</Typography>
-                      <Typography variant="body2">Başarı</Typography>
+                      <Typography variant="body2">{t('hero.statsSuccess')}</Typography>
                     </Box>
                   </Box>
                   
@@ -543,10 +664,10 @@ const LandingPage = () => {
                   }}>
                     <Typography variant="h6" color="white" fontWeight="bold" gutterBottom>
                       <RocketLaunchIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                      Hızlı & Güvenilir
+                      {t('hero.fastReliable')}
                     </Typography>
                     <Typography variant="body1" color="rgba(255,255,255,0.9)">
-                      Yapay zeka destekli sistemimiz ile saniyeler içinde binlerce potansiyel müşteriye ulaşın.
+                      {t('hero.fastReliableDesc')}
                     </Typography>
                   </Box>
                 </Box>
@@ -570,11 +691,11 @@ const LandingPage = () => {
           <Box textAlign="center" mb={8}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <VerifiedIcon sx={{ color: '#FFFFFF' }} />
-              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>NEDEN TRADESCOUT?</Typography>
+              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>{t('features.whyTradeScout')}</Typography>
             </Box>
-            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>İşinizi Büyütmek İçin Güçlü Araçlar</Typography>
+            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>{t('features.powerfulTools')}</Typography>
             <Typography variant="body1" sx={{ color: '#E3F2FD', maxWidth: '600px', mx: 'auto' }} mt={2}>
-              Modern teknoloji ve yapay zeka ile işinizi bir üst seviyeye taşıyın
+              {t('features.modernTech')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -583,9 +704,9 @@ const LandingPage = () => {
               <FeatureCard>
                 <CardContent sx={{ p: 4 }}>
                   <IconWrapper><PublicIcon fontSize="large" /></IconWrapper>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom>Global Veri Erişimi</Typography>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom>{t('features.feature1.title')}</Typography>
                   <Typography color="text.secondary">
-                    Sadece Türkiye değil, tüm dünyadaki potansiyel müşterilerinizi lokasyon bazlı tarayın ve bulun.
+                    {t('features.feature1.description')}
                   </Typography>
                 </CardContent>
               </FeatureCard>
@@ -595,9 +716,9 @@ const LandingPage = () => {
               <FeatureCard>
                 <CardContent sx={{ p: 4 }}>
                   <IconWrapper><SavedSearchIcon fontSize="large" /></IconWrapper>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom>Akıllı Filtreleme</Typography>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom>{t('features.feature2.title')}</Typography>
                   <Typography color="text.secondary">
-                    Sektör, şehir ve anahtar kelimeye göre detaylı arama yapın. Sadece ihtiyacınız olan firmalara odaklanın.
+                    {t('features.feature2.description')}
                   </Typography>
                 </CardContent>
               </FeatureCard>
@@ -607,9 +728,9 @@ const LandingPage = () => {
               <FeatureCard>
                 <CardContent sx={{ p: 4 }}>
                   <IconWrapper><BusinessIcon fontSize="large" /></IconWrapper>
-                  <Typography variant="h5" fontWeight="bold" gutterBottom>Excel Raporlama</Typography>
+                  <Typography variant="h5" fontWeight="bold" gutterBottom>{t('features.feature3.title')}</Typography>
                   <Typography color="text.secondary">
-                    Bulduğunuz binlerce firmanın telefon ve e-posta bilgilerini tek tıkla Excel formatında indirin.
+                    {t('features.feature3.description')}
                   </Typography>
                 </CardContent>
               </FeatureCard>
@@ -632,11 +753,11 @@ const LandingPage = () => {
           <Box textAlign="center" mb={8}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <StarIcon sx={{ color: '#FFFFFF' }} />
-              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>FİYATLANDIRMA</Typography>
+              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>{t('packages.pricing')}</Typography>
             </Box>
-            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>Size Uygun Paketi Seçin</Typography>
+            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>{t('packages.choosePackage')}</Typography>
             <Typography variant="body1" sx={{ color: '#E3F2FD', maxWidth: '600px', mx: 'auto' }} mt={2}>
-              İşletmenizin ihtiyaçlarına göre esnek paketlerimizden birini seçin
+              {t('packages.flexiblePackages')}
             </Typography>
           </Box>
 
@@ -654,20 +775,20 @@ const LandingPage = () => {
               <FeatureCard sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                    Başlangıç Paketi
+                    {t('packages.starter.name')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    Yeni başlayanlar için ideal
+                    {t('packages.starter.subtitle')}
                   </Typography>
                   <Box sx={{ my: { xs: 2, sm: 3 } }}>
                     <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
-                      $7.5
+                      {t('packages.starter.price')}
                       <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        /ay
+                        {t('packages.starter.period')}
                       </Typography>
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Yıllık ödenirse | Aylık: $5
+                      {t('packages.starter.yearlyNote')}
                     </Typography>
                   </Box>
                   <List sx={{ flexGrow: 1 }}>
@@ -675,25 +796,25 @@ const LandingPage = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Aylık 15 Arama" />
+                      <ListItemText primary={t('packages.starter.feature1')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Temel Excel Raporu" />
+                      <ListItemText primary={t('packages.starter.feature2')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="E-posta Desteği" />
+                      <ListItemText primary={t('packages.starter.feature3')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Temel Filtreleme" />
+                      <ListItemText primary={t('packages.starter.feature4')} />
                     </ListItem>
                   </List>
                   <Button
@@ -716,7 +837,7 @@ const LandingPage = () => {
                       },
                     }}
                   >
-                    Hemen Başla
+                    {t('packages.startNow')}
                   </Button>
                 </CardContent>
               </FeatureCard>
@@ -736,7 +857,7 @@ const LandingPage = () => {
                 }}
               >
                 <Chip
-                  label="EN POPÜLER"
+                  label={t('packages.mostPopular')}
                   sx={{
                     position: 'absolute',
                     top: -15,
@@ -751,20 +872,20 @@ const LandingPage = () => {
                 />
                 <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                    Profesyonel Paket
+                    {t('packages.professional.name')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    Büyüyen işletmeler için
+                    {t('packages.professional.subtitle')}
                   </Typography>
                   <Box sx={{ my: { xs: 2, sm: 3 } }}>
                     <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
-                      $15
+                      {t('packages.professional.price')}
                       <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        /ay
+                        {t('packages.professional.period')}
                       </Typography>
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Yıllık ödenirse | Aylık: $10
+                      {t('packages.professional.yearlyNote')}
                     </Typography>
                   </Box>
                   <List sx={{ flexGrow: 1 }}>
@@ -772,31 +893,31 @@ const LandingPage = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Aylık 25 Arama" />
+                      <ListItemText primary={t('packages.professional.feature1')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Detaylı İletişim Bilgileri" />
+                      <ListItemText primary={t('packages.professional.feature2')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Gelişmiş Excel Raporu" />
+                      <ListItemText primary={t('packages.professional.feature3')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Öncelikli Destek" />
+                      <ListItemText primary={t('packages.professional.feature4')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Gelişmiş Filtreleme" />
+                      <ListItemText primary={t('packages.professional.feature5')} />
                     </ListItem>
                   </List>
                   <Button
@@ -818,7 +939,7 @@ const LandingPage = () => {
                       },
                     }}
                   >
-                    Hemen Başla
+                    {t('packages.startNow')}
                   </Button>
                 </CardContent>
               </FeatureCard>
@@ -829,20 +950,20 @@ const LandingPage = () => {
               <FeatureCard sx={{ width: '100%', display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <CardContent sx={{ p: { xs: 3, sm: 4 }, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-                    Kurumsal Paket
+                    {t('packages.enterprise.name')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    Büyük ekipler için
+                    {t('packages.enterprise.subtitle')}
                   </Typography>
                   <Box sx={{ my: { xs: 2, sm: 3 } }}>
                     <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
-                      $75
+                      {t('packages.enterprise.price')}
                       <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        /ay
+                        {t('packages.enterprise.period')}
                       </Typography>
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Yıllık ödenirse | Aylık: $50
+                      {t('packages.enterprise.yearlyNote')}
                     </Typography>
                   </Box>
                   <List sx={{ flexGrow: 1 }}>
@@ -850,37 +971,37 @@ const LandingPage = () => {
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Aylık 75 Arama" />
+                      <ListItemText primary={t('packages.enterprise.feature1')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="API Erişimi" />
+                      <ListItemText primary={t('packages.enterprise.feature2')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Özel Excel Şablonları" />
+                      <ListItemText primary={t('packages.enterprise.feature3')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="7/24 Canlı Destek" />
+                      <ListItemText primary={t('packages.enterprise.feature4')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Özel Müşteri Temsilcisi" />
+                      <ListItemText primary={t('packages.enterprise.feature5')} />
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
-                      <ListItemText primary="Eğitim ve Onboarding" />
+                      <ListItemText primary={t('packages.enterprise.feature6')} />
                     </ListItem>
                   </List>
                   <Button
@@ -903,7 +1024,7 @@ const LandingPage = () => {
                       },
                     }}
                   >
-                    Hemen Başla
+                    {t('packages.startNow')}
                   </Button>
                 </CardContent>
               </FeatureCard>
@@ -924,18 +1045,14 @@ const LandingPage = () => {
             <Box sx={{ flex: 1, minWidth: '300px' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <VerifiedIcon sx={{ color: '#FFFFFF', fontSize: 40, mr: 2 }} />
-                <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF' }}>Hakkımızda</Typography>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF' }}>{t('about.title')}</Typography>
               </Box>
               <Typography variant="body1" paragraph sx={{ fontSize: '1.1rem', color: '#E3F2FD', lineHeight: 1.8 }}>
-                FGS TRADE, şirketlerin hem yerel hem de uluslararası pazarlarda potansiyel müşteri ve tedarikçilere stratejik olarak erişmesini sağlayan, ileri düzey bir ticari veri ve pazar araştırma platformudur.
-Platformumuz; gelişmiş veri toplama, çok kaynaklı analiz ve akıllı eşleştirme teknolojileri sayesinde, firmalara doğru pazarlarda, doğru firmalarla ve doğru zamanda bağlantı kurma imkânı sunar.
-FGS TRADE’in sunduğu firma databankları, yalnızca bir veri seti değil; şirketler için ölçeklenebilir, sürdürülebilir ve stratejik bir iş varlığıdır. Bu yapı; websitesi,email adresi, adres, iletişim bilgileri ve erişilebilen ticari göstergelerden oluşur ve düzenli olarak güncellenir.
-Amacımız, karmaşık veri süreçlerini sadeleştirerek şirketlerin pazar keşfi, iş geliştirme ve büyüme kararlarını güvenilir verilerle desteklemektir.
-Güçlü altyapımız ve sürekli gelişen veri ekosistemimiz ile küresel ticaretin yönünü siz belirlersiniz.
+                {t('about.description')}
               </Typography>
               <Typography variant="body1" sx={{ fontSize: '1.1rem', color: '#FFFFFF', lineHeight: 1.8 }}>
                 <TrendingUpIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                Güvenilir altyapımız ve güncel veri tabanımızla ticaretin rotasını siz çiziyorsunuz.
+                {t('about.reliableInfra')}
               </Typography>
               
               {/* İstatistikler */}
@@ -943,19 +1060,19 @@ Güçlü altyapımız ve sürekli gelişen veri ekosistemimiz ile küresel ticar
                 <Box sx={{ textAlign: 'center', bgcolor: 'rgba(255,255,255,0.15)', p: 2, borderRadius: 2, flex: 1, backdropFilter: 'blur(10px)' }}>
                   <SpeedIcon sx={{ color: '#FFFFFF', fontSize: 40 }} />
                   <Typography variant="h5" fontWeight="bold" sx={{ color: '#FFFFFF' }}>%99.9</Typography>
-                  <Typography variant="body2" sx={{ color: '#E3F2FD' }}>Uptime</Typography>
+                  <Typography variant="body2" sx={{ color: '#E3F2FD' }}>{t('about.uptime')}</Typography>
                 </Box>
                 <Box sx={{ textAlign: 'center', bgcolor: 'rgba(255,255,255,0.15)', p: 2, borderRadius: 2, flex: 1, backdropFilter: 'blur(10px)' }}>
                   <AnalyticsIcon sx={{ color: '#FFFFFF', fontSize: 40 }} />
                   <Typography variant="h5" fontWeight="bold" sx={{ color: '#FFFFFF' }}>24/7</Typography>
-                  <Typography variant="body2" sx={{ color: '#E3F2FD' }}>Destek</Typography>
+                  <Typography variant="body2" sx={{ color: '#E3F2FD' }}>{t('about.support')}</Typography>
                 </Box>
               </Box>
             </Box>
             <Box sx={{ flex: 1, minWidth: '300px' }} id="contact">
               <Card sx={{ borderRadius: '20px', p: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.3)', bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)' }}>
                 <CardContent>
-                  <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>Bize Ulaşın</Typography>
+                  <Typography variant="h4" fontWeight="bold" gutterBottom sx={{ color: '#1565C0' }}>{t('about.contactUs')}</Typography>
                   <Stack spacing={3} mt={3}>
                     <Box display="flex" alignItems="center">
                       <EmailIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
@@ -1022,12 +1139,12 @@ Güçlü altyapımız ve sürekli gelişen veri ekosistemimiz ile küresel ticar
               </Box>
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 <RocketLaunchIcon sx={{ fontSize: 16, mr: 1, verticalAlign: 'middle' }} />
-                Ticaretin yeni rotası. Veri odaklı büyüme platformu.
+                {t('footer.tagline')}
               </Typography>
             </Box>
             <Box sx={{ flex: 1, minWidth: '200px', textAlign: { md: 'right' } }}>
               <Typography variant="body2" sx={{ opacity: 0.6 }}>
-                © 2026 FGS TRADE. Tüm hakları saklıdır. Gizlilik Politikası | Kullanım Şartları
+                © 2026 FGS TRADE. {t('footer.rights')}
               </Typography>
             </Box>
           </Box>

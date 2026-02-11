@@ -14,6 +14,7 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import { authService } from '../services/auth';
+import { useLanguage } from '../i18n/LanguageContext';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 
@@ -133,6 +134,7 @@ const ActionButton = styled(Button)({
 // --- COMPONENT ---
 const Register = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -228,7 +230,7 @@ const Register = () => {
             fontWeight: 600
           }}
         >
-          Hesap Oluştur
+          {t('register.title')}
         </Typography>
 
         {/* Avantaj Chip'leri */}
@@ -244,7 +246,7 @@ const Register = () => {
           }}>
             <CardGiftcardIcon sx={{ fontSize: 18, color: BRAND_COLORS.primary }} />
             <Typography variant="caption" fontWeight="600" color={BRAND_COLORS.primary}>
-              5 Ücretsiz Arama
+              {t('register.benefit3')}
             </Typography>
           </Box>
           <Box sx={{ 
@@ -258,7 +260,7 @@ const Register = () => {
           }}>
             <RocketLaunchIcon sx={{ fontSize: 18, color: BRAND_COLORS.primary }} />
             <Typography variant="caption" fontWeight="600" color={BRAND_COLORS.primary}>
-              Hızlı Başlangıç
+              {t('register.benefit1')}
             </Typography>
           </Box>
         </Box>
@@ -267,34 +269,34 @@ const Register = () => {
 
         <Box component="form" onSubmit={handleSubmit} width="100%">
           <StyledTextField
-            fullWidth label="Ad Soyad" name="fullName"
+            fullWidth label={t('register.fullName')} name="fullName"
             value={formData.fullName} onChange={handleChange}
             InputProps={{ startAdornment: (<InputAdornment position="start"><PersonIcon color="action"/></InputAdornment>) }}
           />
           <StyledTextField
-            fullWidth label="E-Posta" name="email" type="email"
+            fullWidth label={t('register.email')} name="email" type="email"
             value={formData.email} onChange={handleChange}
             InputProps={{ startAdornment: (<InputAdornment position="start"><EmailIcon color="action"/></InputAdornment>) }}
           />
           <StyledTextField
-            fullWidth label="Şifre" name="password" type="password"
+            fullWidth label={t('register.password')} name="password" type="password"
             value={formData.password} onChange={handleChange}
             InputProps={{ startAdornment: (<InputAdornment position="start"><LockIcon color="action"/></InputAdornment>) }}
           />
           <StyledTextField
-            fullWidth label="Firma Adı (Opsiyonel)" name="companyName"
+            fullWidth label={t('register.companyName')} name="companyName"
             value={formData.companyName} onChange={handleChange}
             InputProps={{ startAdornment: (<InputAdornment position="start"><BusinessIcon color="action"/></InputAdornment>) }}
           />
 
           <ActionButton type="submit" fullWidth variant="contained" disabled={loading}>
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Hesap Oluştur'}
+            {loading ? <CircularProgress size={24} color="inherit" /> : t('register.registerButton')}
           </ActionButton>
 
           {/* Giriş Yap Linki */}
           <Box sx={{ mt: 3, textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              Zaten hesabınız var mı?{' '}
+              {t('register.haveAccount')}{' '}
               <Button 
                 onClick={() => navigate('/login')}
                 sx={{ 
@@ -306,7 +308,7 @@ const Register = () => {
                   verticalAlign: 'baseline'
                 }}
               >
-                Giriş Yap
+                {t('register.loginNow')}
               </Button>
             </Typography>
           </Box>
@@ -317,7 +319,7 @@ const Register = () => {
         </Snackbar>
         <Snackbar open={success} autoHideDuration={6000}>
           <Alert severity="success" sx={{ borderRadius: 2 }}>
-            Kayıt Başarılı! Giriş sayfasına yönlendiriliyorsunuz...
+            {t('register.successMessage')}
           </Alert>
         </Snackbar>
       </RegisterForm>

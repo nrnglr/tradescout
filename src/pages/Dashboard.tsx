@@ -16,7 +16,9 @@ import {
   Menu,
   MenuItem,
   IconButton,
-  Tooltip
+  Tooltip,
+  Alert,
+  AlertTitle
 } from '@mui/material';
 
 // İkonlar
@@ -29,6 +31,8 @@ import DownloadIcon from '@mui/icons-material/Download'; // Excel için
 import LogoutIcon from '@mui/icons-material/Logout';
 import BoltIcon from '@mui/icons-material/Bolt'; // Kredi ikonu
 import BusinessIcon from '@mui/icons-material/Business'; // Firma sayısı için
+import ConstructionIcon from '@mui/icons-material/Construction'; // Yapım ikonu
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
 
 import { authService } from '../services/auth';
 import { scraperService, Business, ScrapeResponse } from '../services/scraper';
@@ -347,7 +351,7 @@ const Dashboard = () => {
               sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: 1.5, 
+                gap: { xs: 1, sm: 1.5 }, 
                 cursor: 'pointer' 
               }}
               onClick={() => navigate('/')}
@@ -357,7 +361,7 @@ const Dashboard = () => {
                 src={logoImage}
                 alt="FGS Logo"
                 sx={{
-                  height: { xs: 50, sm: 55, md: 60 },
+                  height: { xs: 60, sm: 65, md: 70 },
                   width: 'auto',
                   borderRadius: '8px',
                   transition: 'transform 0.3s ease',
@@ -372,8 +376,7 @@ const Dashboard = () => {
                 sx={{ 
                   color: '#1565C0',
                   textShadow: '0 1px 2px rgba(255,255,255,0.3)',
-                  fontSize: { xs: '1rem', sm: '1.25rem', md: '1.4rem' },
-                  display: { xs: 'none', sm: 'block' }
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' }
                 }}
               >
                 FGS Trade
@@ -441,6 +444,65 @@ const Dashboard = () => {
             Bugün hangi pazarı keşfetmek istiyorsun?
           </Typography>
         </Box>
+
+        {/* Yapım Aşaması & Erken Yatırım Bildirimi */}
+        <Alert 
+          severity="info" 
+          icon={<ConstructionIcon fontSize="large" />}
+          sx={{ 
+            mb: 3,
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(227, 242, 253, 0.95) 100%)',
+            backdropFilter: 'blur(10px)',
+            border: '2px solid #42A5F5',
+            boxShadow: '0 8px 24px rgba(21, 101, 192, 0.2)',
+            animation: 'pulse 2s ease-in-out infinite',
+            '@keyframes pulse': {
+              '0%, 100%': { 
+                boxShadow: '0 8px 24px rgba(21, 101, 192, 0.2)',
+              },
+              '50%': { 
+                boxShadow: '0 8px 32px rgba(21, 101, 192, 0.4)',
+              }
+            },
+            '& .MuiAlert-icon': {
+              color: BRAND_COLORS.primary,
+              fontSize: '2rem'
+            }
+          }}
+        >
+          <AlertTitle sx={{ fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.1rem' }, color: BRAND_COLORS.primary }}>
+            Platform Yapım Aşamasında
+          </AlertTitle>
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant="body1" sx={{ mb: 2, color: '#333', lineHeight: 1.6, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+              FGS TRADE platformu aktif olarak geliştirilmektedir. Bazı özellikler beta aşamasındadır ve zaman zaman kesintiler yaşanabilir.
+            </Typography>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: 1.5, 
+                bgcolor: 'rgba(255, 193, 7, 0.15)', 
+                p: { xs: 2, sm: 2.5 }, 
+                borderRadius: '12px',
+                border: '2px solid #FFC107',
+                mt: 2
+              }}
+            >
+              <CardGiftcardIcon sx={{ color: '#F57C00', fontSize: { xs: 32, sm: 36 }, flexShrink: 0 }} />
+              <Box>
+                <Typography variant="body1" fontWeight="bold" sx={{ color: '#E65100', fontSize: { xs: '0.95rem', sm: '1.05rem' } }}>
+                  🎁 Erken Yatırımcılara Özel Fırsat!
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#666', mt: 0.5, fontSize: { xs: '0.85rem', sm: '0.9rem' }, lineHeight: 1.5 }}>
+                  Beta döneminde paket satın alan tüm kullanıcılara, platform resmi olarak yayınlandığında <strong>%50 bonus kredi</strong> hediye edilecektir! 🚀
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Alert>
 
         {/* Arama Paneli (Beyaz Kart) */}
         <SearchCard elevation={3}>

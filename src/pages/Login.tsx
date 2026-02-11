@@ -13,17 +13,21 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
+  Container,
+  Toolbar,
+  AppBar,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import GoogleIcon from '@mui/icons-material/Google';
-import AppleIcon from '@mui/icons-material/Apple'; // Apple ikonu için
+import AppleIcon from '@mui/icons-material/Apple';
 import HomeIcon from '@mui/icons-material/Home';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
-import loginIllustration from '../assent/login-illustration.png'; // Sol panel görseli
-import login2Illustration from '../assent/login2-illustration.png'; // Sağ panel görseli
-import { authService } from '../services/auth'; // Auth servisi import
+import loginIllustration from '../assent/login-illustration.png';
+import login2Illustration from '../assent/login2-illustration.png';
+import { authService } from '../services/auth';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // --- STİL TANIMLAMALARI (AQUASOFT Benzeri Modern Tasarım) ---
 
@@ -96,6 +100,51 @@ const Image = styled('img')(({ theme }) => ({
   cursor: 'pointer'
 }));
 
+const StyledAppBar = styled(AppBar)({
+  background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(227, 242, 253, 0.95) 30%, rgba(21, 101, 192, 0.95) 50%, rgba(21, 101, 192, 0.95) 100%)',
+  boxShadow: '0 2px 20px rgba(0,0,0,0.2)',
+  backdropFilter: 'blur(10px)',
+});
+
+const LogoImage = styled('img')(({ theme }) => ({
+  height: '105px',
+  width: 'auto',
+  cursor: 'pointer',
+  transition: 'transform 0.3s ease',
+  objectFit: 'contain',
+  '&:hover': {
+    transform: 'scale(1.05)',
+  },
+  [theme.breakpoints.down('lg')]: {
+    height: '102px',
+  },
+  [theme.breakpoints.down('md')]: {
+    height: '95px',
+  },
+  [theme.breakpoints.down('sm')]: {
+    height: '88px',
+  },
+}));
+
+const LogoText = styled(Typography)(({ theme }) => ({
+  fontWeight: 800,
+  color: '#1565C0',
+  fontSize: '2.72rem',
+  cursor: 'pointer',
+  marginLeft: '6px',
+  whiteSpace: 'nowrap',
+  textShadow: '0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.9), 0 2px 10px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.15)',
+  [theme.breakpoints.down('lg')]: {
+    fontSize: '2.4rem',
+  },
+  [theme.breakpoints.down('md')]: {
+    fontSize: '2.2rem',
+  },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1.8rem',
+  },
+}));
+
 const FormContainer = styled(Box)(({ theme }) => ({
   flex: 1.2,
   display: 'flex',
@@ -128,19 +177,19 @@ const LoginForm = styled(Paper)(({ theme }) => ({
 }));
 
 const Logo = styled('img')(({ theme }) => ({
-  width: 140,
-  height: 140,
+  width: 180,
+  height: 180,
   borderRadius: 24,
   marginBottom: 24,
-  objectFit: 'cover',
+  objectFit: 'contain',
   boxShadow: '0 8px 24px rgba(21, 101, 192, 0.3)',
   transition: 'transform 0.3s ease',
   '&:hover': {
     transform: 'scale(1.05)',
   },
   [theme.breakpoints.down('sm')]: {
-    width: 100,
-    height: 100,
+    width: 140,
+    height: 140,
     borderRadius: 16,
     marginBottom: 16,
   },
@@ -217,6 +266,7 @@ const SocialButton = styled(Button)(({ theme }) => ({
 
 const Login = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   
   // State Yönetimi
   const [email, setEmail] = useState('');
@@ -240,7 +290,7 @@ const Login = () => {
     
     // Validasyon
     if (!email || !password) {
-      setError('Lütfen e-posta ve şifrenizi giriniz.');
+      setError(t('login.errorEmpty'));
       return;
     }
 
@@ -269,7 +319,7 @@ const Login = () => {
 
     } catch (err: any) {
       console.error("❌ Login hatası:", err);
-      setError(err.message || 'Giriş başarısız. Bilgilerinizi kontrol edin.');
+      setError(err.message || t('login.errorFailed'));
     } finally {
       setLoading(false);
     }
@@ -287,55 +337,62 @@ const Login = () => {
   return (
     <PageContainer>
       {/* Header Kısmı (Ana Sayfa Butonu) */}
-      <Box sx={{ 
-        p: { xs: 1.5, sm: 2 }, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.98) 0%, rgba(227, 242, 253, 0.95) 15%, rgba(21, 101, 192, 0.95) 35%, rgba(21, 101, 192, 0.95) 100%)',
-        backdropFilter: 'blur(10px)',
-        flexWrap: 'wrap',
-        gap: 2,
-        minHeight: { xs: '56px', md: '64px' },
-        boxShadow: '0 2px 20px rgba(0,0,0,0.2)',
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <img 
-            src={logoImage} 
-            alt="Trade Scout Logo" 
-            style={{ height: '52px', width: 'auto', borderRadius: '8px' }}
-          />
-          <Typography variant="h5" sx={{ color: '#1565C0', fontWeight: 800, textShadow: '0 1px 2px rgba(255,255,255,0.3)', fontSize: { xs: '1rem', sm: '1.25rem', md: '1.4rem' } }}>
-            FGS Trade
-          </Typography>
-        </Box>
-        <Button
-          startIcon={<HomeIcon />}
-          onClick={() => navigate('/')}
-          sx={{
-            color: '#FFFFFF',
-            fontWeight: 600,
-            textTransform: 'none',
-            fontSize: { xs: '0.85rem', sm: '0.9rem' },
-            borderRadius: '10px',
-            padding: { xs: '6px 16px', sm: '6px 20px' },
-            backgroundColor: '#1565C0',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-            '&:hover': {
-              backgroundColor: '#0D47A1',
-              transform: 'translateY(-2px)',
-              boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
-            },
-            transition: 'all 0.3s ease',
-          }}
-        >
-          Ana Sayfa
-        </Button>
-      </Box>
+      <StyledAppBar position="fixed" color="default">
+        <Container maxWidth={false} sx={{ px: { xs: 0, sm: 1, md: 3, lg: 5, xl: 8 } }}>
+          <Toolbar 
+            disableGutters 
+            sx={{ 
+              py: { xs: 0.5, md: 0.8 }, 
+              minHeight: { xs: '85px', md: '110px' },
+              maxHeight: { xs: '85px', md: '110px' },
+              overflow: 'hidden',
+              justifyContent: 'space-between'
+            }}
+          >
+            {/* Logo */}
+            <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', pl: { xs: 0, sm: 0.5 } }}>
+              <LogoImage 
+                src={logoImage} 
+                alt="Trade Scout Logo" 
+                onClick={() => navigate('/')}
+              />
+              <LogoText onClick={() => navigate('/')}>
+                FGS TRADE
+              </LogoText>
+            </Box>
+            
+            {/* Ana Sayfa Butonu */}
+            <Button
+              startIcon={<HomeIcon sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }} />}
+              onClick={() => navigate('/')}
+              sx={{
+                color: '#FFFFFF',
+                fontWeight: 700,
+                textTransform: 'none',
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                borderRadius: '12px',
+                padding: { xs: '8px 16px', sm: '10px 24px', md: '10px 30px' },
+                backgroundColor: '#1565C0',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                '&:hover': {
+                  backgroundColor: '#0D47A1',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
+                },
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {t('navbar.home')}
+            </Button>
+          </Toolbar>
+        </Container>
+      </StyledAppBar>
 
-      <LoginContent>
-        <LoginSection>
+      {/* Content - Toolbar yüksekliği kadar boşluk bırak */}
+      <Box sx={{ pt: { xs: '85px', md: '110px' } }}>
+        <LoginContent>
+          <LoginSection>
           
           {/* Sol Görsel Alanı - İllüstrasyon */}
           <ImageContainer>
@@ -369,10 +426,10 @@ const Login = () => {
                 }}
               />
               <Typography variant="h4" sx={{ color: '#FFFFFF', fontWeight: 800, textAlign: 'center', mt: 3, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                Potansiyel Müşterilerinizi Bulun
+                {t('login.heroTitle')}
               </Typography>
               <Typography variant="h6" sx={{ color: '#E3F2FD', textAlign: 'center', mt: 2, fontWeight: 500 }}>
-                Google Haritalar ile sektörünüzdeki firmaları keşfedin
+                {t('login.heroSubtitle')}
               </Typography>
             </Box>
           </ImageContainer>
@@ -393,21 +450,19 @@ const Login = () => {
                 sx={{ 
                   fontWeight: 800, 
                   color: '#1565C0',
+                  fontSize: '2.2rem',
                   mb: 1,
-                  background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
+                  textShadow: '0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.9), 0 2px 10px rgba(255, 255, 255, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.15)'
                 }}
               >
-                FGS
+                {t('login.title')}
               </Typography>
               
               <Typography 
                 variant="body1" 
                 sx={{ color: '#666', mb: 4, fontWeight: 500 }}
               >
-                Devam etmek için lütfen giriş yapın
+                {t('login.subtitle')}
               </Typography>
 
               <Box component="form" onSubmit={handleSubmit} width="100%">
@@ -415,7 +470,7 @@ const Login = () => {
                   variant="outlined"
                   fullWidth
                   id="email"
-                  label="E-Posta Adresi"
+                  label={t('login.email')}
                   name="email"
                   autoComplete="email"
                   value={email}
@@ -433,7 +488,7 @@ const Login = () => {
                   variant="outlined"
                   fullWidth
                   name="password"
-                  label="Şifre"
+                  label={t('login.password')}
                   type="password"
                   id="password"
                   autoComplete="current-password"
@@ -458,14 +513,14 @@ const Login = () => {
                         size="small"
                       />
                     }
-                    label={<Typography variant="body2" color="text.secondary">Beni Hatırla</Typography>}
+                    label={<Typography variant="body2" color="text.secondary">{t('login.rememberMe')}</Typography>}
                   />
                   
                   <Button 
                     onClick={handleForgotPassword}
                     sx={{ textTransform: 'none', color: BRAND_COLORS.primary, fontWeight: 600 }}
                   >
-                    Şifremi Unuttum?
+                    {t('login.forgotPassword')}
                   </Button>
                 </Box>
 
@@ -475,13 +530,13 @@ const Login = () => {
                   variant="contained"
                   disabled={loading}
                 >
-                  {loading ? <CircularProgress size={24} sx={{ color: '#FFFFFF' }} /> : 'Giriş Yap'}
+                  {loading ? <CircularProgress size={24} sx={{ color: '#FFFFFF' }} /> : t('login.loginButton')}
                 </ActionButton>
 
                 {/* Sosyal Medya Girişleri */}
                 <Box sx={{ mt: 3, mb: 2 }}>
                   <Typography variant="caption" display="block" align="center" color="text.secondary" sx={{ mb: 2 }}>
-                    Veya şununla devam et
+                    {t('login.orContinue')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <SocialButton variant="outlined" onClick={() => console.log('Google Login')}>
@@ -495,7 +550,7 @@ const Login = () => {
 
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
-                    Hesabınız yok mu?{' '}
+                    {t('login.noAccount')}{' '}
                     <Button 
                       onClick={handleRegisterRedirect}
                       sx={{ 
@@ -507,7 +562,7 @@ const Login = () => {
                         verticalAlign: 'baseline'
                       }}
                     >
-                      Kayıt Ol
+                      {t('login.register')}
                     </Button>
                   </Typography>
                 </Box>
@@ -561,16 +616,17 @@ const Login = () => {
                 }}
               />
               <Typography variant="h4" sx={{ color: '#FFFFFF', fontWeight: 800, textAlign: 'center', mt: 3, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                Mali Analiz & Hesaplama
+                {t('login.hero2Title')}
               </Typography>
               <Typography variant="h6" sx={{ color: '#E3F2FD', textAlign: 'center', mt: 2, fontWeight: 500 }}>
-                Finansal raporlarınızı kolayca yönetin
+                {t('login.hero2Subtitle')}
               </Typography>
             </Box>
           </ImageContainer>
 
         </LoginSection>
       </LoginContent>
+      </Box>
     </PageContainer>
   );
 };
