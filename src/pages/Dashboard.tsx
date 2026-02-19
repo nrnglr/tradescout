@@ -35,7 +35,7 @@ import ConstructionIcon from '@mui/icons-material/Construction'; // Yapım ikonu
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
 
 import { authService } from '../services/auth';
-import { scraperService, Business, ScrapeResponse } from '../services/scraper';
+import { scraperService, ScrapeResponse } from '../services/scraper';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 
@@ -178,9 +178,6 @@ const Dashboard = () => {
     product: '',
     companyCount: '10'
   });
-
-  // Scraping her zaman Gemini AI ile yapılacak (kullanıcıya gösterilmez)
-  const scrapingMethod = 'gemini';
 
   // Loading ve Sonuç State'leri
   const [isLoading, setIsLoading] = useState(false);
@@ -705,63 +702,389 @@ const Dashboard = () => {
               />
             </Box>
 
-            <Typography variant="body1" sx={{ color: '#666', mb: 3 }}>
-              {searchResults.message}
-            </Typography>
+            {/* Firma Tablosu - Profesyonel Responsive Data Table */}
+            <Box sx={{ 
+              overflowX: 'auto',
+              borderRadius: { xs: '12px', sm: '16px' },
+              border: `1px solid ${BRAND_COLORS.primary}20`,
+              mb: 4,
+              boxShadow: '0 2px 8px rgba(21, 101, 192, 0.08)',
+              WebkitOverflowScrolling: 'touch',
+              '&::-webkit-scrollbar': {
+                height: '8px',
+              },
+              '&::-webkit-scrollbar-track': {
+                background: 'rgba(21, 101, 192, 0.05)',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: BRAND_COLORS.primary,
+                borderRadius: '4px',
+                '&:hover': {
+                  background: BRAND_COLORS.primaryHover,
+                }
+              }
+            }}>
+              {/* Sabit Grid Sütun Yapısı - Header ve Satırlar İçin */}
+              <Box sx={{ 
+                display: 'flex',
+                flexDirection: 'column',
+                bgcolor: '#FFFFFF',
+                borderRadius: { xs: '12px', sm: '16px' },
+                overflow: 'hidden',
+                minWidth: '1530px',
+              }}>
+                {/* Tablo Header - Sticky & Fixed */}
+                <Box sx={{ 
+                  display: 'grid',
+                  gridTemplateColumns: '200px 250px 180px 160px 130px 130px 110px 110px 180px 180px',
+                  gap: 0,
+                  bgcolor: `${BRAND_COLORS.primary}15`,
+                  borderBottom: `2px solid ${BRAND_COLORS.primary}`,
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 20,
+                  backdropFilter: 'blur(4px)',
+                  width: '100%',
+                }}>
+                  {[
+                    'Firma Adı',
+                    'Adres',
+                    'Website',
+                    'E-mail',
+                    'Telefon',
+                    'Mobil',
+                    'Şehir',
+                    'Ülke',
+                    'Sosyal Medya',
+                    'Notlar'
+                  ].map((label, idx) => (
+                    <Box 
+                      key={idx}
+                      sx={{ 
+                        p: '14px 12px',
+                        fontWeight: 'bold',
+                        color: BRAND_COLORS.primary,
+                        fontSize: '0.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        textAlign: 'left',
+                        borderRight: idx < 9 ? `1px solid ${BRAND_COLORS.primary}20` : 'none',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        ...(idx === 0 && {
+                          position: 'sticky',
+                          left: 0,
+                          zIndex: 21,
+                          bgcolor: `${BRAND_COLORS.primary}15`,
+                          boxShadow: '2px 0 4px rgba(21, 101, 192, 0.1)'
+                        })
+                      }}>
+                      {label}
+                    </Box>
+                  ))}
+                </Box>
 
-            {/* Firma Listesi */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {searchResults.businesses.slice(0, 5).map((business, index) => (
-                <Paper 
-                  key={index}
-                  sx={{ 
-                    p: 2, 
-                    borderRadius: '12px',
-                    border: '1px solid #e0e0e0',
-                    '&:hover': {
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      transform: 'translateY(-2px)',
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: BRAND_COLORS.primary, mb: 1 }}>
-                    {business.businessName}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-                    📍 {business.address}
-                  </Typography>
-                  {business.phone && (
-                    <Typography variant="body2" sx={{ color: '#666', mb: 0.5 }}>
-                      📞 {business.phone}
-                    </Typography>
-                  )}
-                  {business.website && (
-                    <Typography 
-                      variant="body2" 
-                      component="a"
-                      href={business.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ color: '#1976d2', textDecoration: 'none', mb: 0.5, display: 'block' }}
-                    >
-                      🌐 {business.website}
-                    </Typography>
-                  )}
-                  {business.rating > 0 && (
-                    <Typography variant="body2" sx={{ color: '#666' }}>
-                      ⭐ {business.rating} ({business.reviewCount} değerlendirme)
-                    </Typography>
-                  )}
-                </Paper>
-              ))}
+                {/* Tablo Satırları */}
+                {searchResults.businesses.map((business, index) => (
+                  <Box 
+                    key={index}
+                    sx={{ 
+                      display: 'grid',
+                      gridTemplateColumns: '200px 250px 180px 160px 130px 130px 110px 110px 180px 180px',
+                      gap: 0,
+                      borderBottom: `1px solid ${BRAND_COLORS.primary}15`,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        bgcolor: `${BRAND_COLORS.primary}08`,
+                        boxShadow: `inset 0 0 0 1px ${BRAND_COLORS.primary}20`,
+                      },
+                      '&:last-child': {
+                        borderBottom: 'none',
+                        borderRadius: '0 0 16px 16px'
+                      }
+                    }}
+                  >
+                    {/* Firma Adı */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px',
+                      position: 'sticky',
+                      left: 0,
+                      zIndex: 15,
+                      bgcolor: '#FFFFFF',
+                      boxShadow: '2px 0 4px rgba(21, 101, 192, 0.08)'
+                    }}>
+                      <Typography 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: BRAND_COLORS.primary,
+                          fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                          lineHeight: 1.3,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                        title={business.businessName}
+                      >
+                        {business.businessName}
+                      </Typography>
+                    </Box>
+
+                    {/* Adres */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      <Typography 
+                        sx={{ 
+                          color: '#555',
+                          fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                          lineHeight: 1.3,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                        title={business.address}
+                      >
+                        {business.address || 'Not Found'}
+                      </Typography>
+                    </Box>
+
+                    {/* Website */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      {business.website ? (
+                        <Typography 
+                          component="a"
+                          href={business.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ 
+                            color: '#1976d2',
+                            textDecoration: 'none',
+                            fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                            '&:hover': { textDecoration: 'underline' }
+                          }}
+                          title={business.website}
+                        >
+                          {business.website}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ color: '#999', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>Not Found</Typography>
+                      )}
+                    </Box>
+
+                    {/* E-mail */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      {business.email ? (
+                        <Typography 
+                          component="a"
+                          href={`mailto:${business.email}`}
+                          sx={{ 
+                            color: '#1976d2',
+                            textDecoration: 'none',
+                            fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                            '&:hover': { textDecoration: 'underline' }
+                          }}
+                          title={business.email}
+                        >
+                          {business.email}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ color: '#999', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>Not Found</Typography>
+                      )}
+                    </Box>
+
+                    {/* Telefon */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      {business.phone ? (
+                        <Typography 
+                          component="a"
+                          href={`tel:${business.phone}`}
+                          sx={{ 
+                            color: '#1976d2',
+                            textDecoration: 'none',
+                            fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                          }}
+                          title={business.phone}
+                        >
+                          {business.phone}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ color: '#999', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>Not Found</Typography>
+                      )}
+                    </Box>
+
+                    {/* Mobil */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      {business.mobile ? (
+                        <Typography 
+                          component="a"
+                          href={`tel:${business.mobile}`}
+                          sx={{ 
+                            color: '#1976d2',
+                            textDecoration: 'none',
+                            fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                          }}
+                          title={business.mobile}
+                        >
+                          {business.mobile}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ color: '#999', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>Not Found</Typography>
+                      )}
+                    </Box>
+
+                    {/* Şehir */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      <Typography sx={{ color: '#555', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                        {business.city || 'Not Found'}
+                      </Typography>
+                    </Box>
+
+                    {/* Ülke */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      <Typography sx={{ color: '#555', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>
+                        {business.country || 'Not Found'}
+                      </Typography>
+                    </Box>
+
+                    {/* Sosyal Medya */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRight: `1px solid ${BRAND_COLORS.primary}15`,
+                      minHeight: '50px'
+                    }}>
+                      {business.socialMedia ? (
+                        <Typography 
+                          component="a"
+                          href={business.socialMedia}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ 
+                            color: '#1976d2',
+                            textDecoration: 'none',
+                            fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                            '&:hover': { textDecoration: 'underline' }
+                          }}
+                          title={business.socialMedia}
+                        >
+                          {business.socialMedia}
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ color: '#999', fontSize: { xs: '0.75rem', sm: '0.85rem' } }}>Not Found</Typography>
+                      )}
+                    </Box>
+
+                    {/* Notlar/Yorum */}
+                    <Box sx={{ 
+                      p: { xs: '10px 12px', sm: '12px 14px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      minHeight: '50px'
+                    }}>
+                      <Typography 
+                        sx={{ 
+                          color: '#555',
+                          fontSize: { xs: '0.75rem', sm: '0.85rem' },
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                        }}
+                        title={business.comments || 'Not Found'}
+                      >
+                        {business.comments || 'Not Found'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
             </Box>
 
-            {searchResults.businesses.length > 5 && (
-              <Typography variant="body2" sx={{ color: '#666', mt: 2, textAlign: 'center', fontStyle: 'italic' }}>
-                ... ve {searchResults.businesses.length - 5} firma daha. Tüm firmalar için Excel'i indirin.
+            {/* Bilgi Mesajı */}
+            <Box sx={{ 
+              bgcolor: 'rgba(21, 101, 192, 0.05)',
+              border: `1px solid ${BRAND_COLORS.primary}30`,
+              borderRadius: '12px',
+              p: { xs: 2, sm: 2.5 },
+              textAlign: 'center',
+              mb: 3
+            }}>
+              <Typography variant="body2" sx={{ color: '#666', fontWeight: 500 }}>
+                📊 Toplam <strong>{searchResults.businesses.length}</strong> firma listelendi. Tüm verileri Excel'e aktarmak için aşağıdaki butonu kullanın.
               </Typography>
-            )}
+            </Box>
 
             {/* Excel İndirme Butonu */}
             <Box sx={{ mt: 4, textAlign: 'center' }}>
@@ -773,6 +1096,9 @@ const Dashboard = () => {
               >
                 📥 Excel Dosyasını İndir
               </ExcelButton>
+              <Typography variant="body2" sx={{ color: '#666', mt: 2, fontSize: '0.85rem', fontStyle: 'italic' }}>
+                💡 Tüm firma bilgilerini detaylı şekilde Excel formatında indirebilirsiniz.
+              </Typography>
             </Box>
           </Box>
         ) : (

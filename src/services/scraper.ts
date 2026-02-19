@@ -12,15 +12,18 @@ export interface ScrapeRequest {
 export interface Business {
   businessName: string;
   address: string;
-  phone: string;
-  website: string;
-  rating: number;
-  reviewCount: number;
-  workingHours: string;
-  category: string;
+  phone?: string;
+  mobile?: string;
+  website?: string;
+  email?: string;
+  rating?: number;
+  reviewCount?: number;
+  workingHours?: string;
+  category?: string;
   city: string;
   country: string;
-  googleMapsUrl: string;
+  socialMedia?: string;
+  comments?: string;
 }
 
 export interface ScrapeResponse {
