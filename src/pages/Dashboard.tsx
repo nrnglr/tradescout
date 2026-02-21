@@ -36,6 +36,7 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
 
 import { authService } from '../services/auth';
 import { scraperService, ScrapeResponse } from '../services/scraper';
+import { useLanguage } from '../i18n/LanguageContext';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 
@@ -167,6 +168,7 @@ const ExcelButton = styled(Button)(({ theme }: { theme?: any }) => ({
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
   const [user, setUser] = useState<any>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   
@@ -196,7 +198,10 @@ const Dashboard = () => {
     console.log('User:', storedUser);
     
     if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      console.log('📋 Parsed User:', parsedUser);
+      console.log('👤 User Role:', parsedUser.role);
+      setUser(parsedUser);
     } else {
       // Kullanıcı yoksa Login'e at (Güvenlik)
       console.warn('⚠️ Token veya user bulunamadı, login sayfasına yönlendiriliyor...');
@@ -229,17 +234,30 @@ const Dashboard = () => {
     
     // Validasyon
     if (!searchParams.product.trim()) {
-      setError('Lütfen ürün ismi girin!');
+      setError(language === 'tr' ? 'Lütfen ürün ismi girin!' : 'Please enter a product name!');
       return;
     }
     if (!searchParams.city.trim()) {
-      setError('Lütfen şehir girin!');
+      setError(language === 'tr' ? 'Lütfen şehir girin!' : 'Please enter a city!');
       return;
     }
     
     const companyCount = parseInt(searchParams.companyCount);
-    if (companyCount < 1 || companyCount > 100) {
-      setError('Firma sayısı 1-100 arasında olmalıdır!');
+    const isAdmin = user?.role?.toLowerCase() === 'admin';
+    
+    console.log('👤 User role:', user?.role);
+    console.log('🔐 Is Admin?', isAdmin);
+    console.log('📊 Company count:', companyCount);
+    
+    // Admin değilse firma sayısı kontrolü yap (Max 10)
+    if (!isAdmin && (companyCount < 1 || companyCount > 10)) {
+      setError(`⚠️ ${language === 'tr' ? 'Free pakette maksimum 10 firma aranabilir.' : 'Maximum 10 companies per search in free plan.'} ${language === 'tr' ? 'Daha fazla arama için paket yükseltin!' : 'Upgrade your package to search more!'}`);
+      return;
+    }
+    
+    // Admin ise sınır yok, normal kullanıcılar için minimum kontrol
+    if (companyCount < 1) {
+      setError(language === 'tr' ? 'Lütfen en az 1 firma seçin!' : 'Please select at least 1 company!');
       return;
     }
 
@@ -248,10 +266,12 @@ const Dashboard = () => {
     setSearchResults(null);
 
     try {
-      // Kredi kontrolü
+      // Kredi kontrolü (Admin için değil)
+      const isAdmin = user?.role?.toLowerCase() === 'admin';
       const availableCredits = user?.credits || 0;
-      if (availableCredits < companyCount) {
-        setError(`Yetersiz kredi! Gerekli: ${companyCount}, Mevcut: ${availableCredits}`);
+      
+      if (!isAdmin && availableCredits < companyCount) {
+        setError(`${language === 'tr' ? '❌ Yetersiz kredi!' : '❌ Insufficient credits!'} ${language === 'tr' ? 'Gerekli' : 'Required'}: ${companyCount}, ${language === 'tr' ? 'Mevcut' : 'Available'}: ${availableCredits}`);
         setIsLoading(false);
         return;
       }
@@ -382,24 +402,44 @@ const Dashboard = () => {
 
             {/* Sağ Taraf: Kredi ve Profil */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
-              {/* Kredi Göstergesi */}
-              <Chip 
-                icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />} 
-                label={`${user?.credits || 0} Kredi`} 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)', 
-                  color: '#FFFFFF',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  height: { xs: 32, sm: 40 },
-                  borderRadius: '10px',
-                  backdropFilter: 'blur(10px)',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  '&:hover': {
-                    bgcolor: 'rgba(255, 255, 255, 0.3)',
-                  }
-                }} 
-              />
+              {/* Kredi Göstergesi / Admin Badge */}
+              {user?.role?.toLowerCase() === 'admin' ? (
+                <Chip 
+                  icon={<BoltIcon sx={{ color: '#FFD700 !important' }} />} 
+                  label="🔑 Admin" 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    bgcolor: 'rgba(255, 215, 0, 0.3)', 
+                    color: '#FFD700',
+                    border: '2px solid rgba(255, 215, 0, 0.6)',
+                    height: { xs: 32, sm: 40 },
+                    borderRadius: '10px',
+                    backdropFilter: 'blur(10px)',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 215, 0, 0.4)',
+                    }
+                  }} 
+                />
+              ) : (
+                <Chip 
+                  icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />} 
+                  label={`${user?.credits || 0} ${t('dashboard.credits')}`} 
+                  sx={{ 
+                    fontWeight: 'bold', 
+                    bgcolor: 'rgba(255, 255, 255, 0.2)', 
+                    color: '#FFFFFF',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    height: { xs: 32, sm: 40 },
+                    borderRadius: '10px',
+                    backdropFilter: 'blur(10px)',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.3)',
+                    }
+                  }} 
+                />
+              )}
 
               {/* Profil Menüsü */}
               <Tooltip title="Hesap Ayarları">
@@ -418,10 +458,10 @@ const Dashboard = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem onClick={handleClose}>Profilim</MenuItem>
-                <MenuItem onClick={handleClose}>Paket Yükselt</MenuItem>
+                <MenuItem onClick={handleClose}>{t('dashboard.profile')}</MenuItem>
+                <MenuItem onClick={handleClose}>{t('dashboard.upgrade')}</MenuItem>
                 <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
-                  <LogoutIcon fontSize="small" sx={{ mr: 1 }} /> Çıkış Yap
+                  <LogoutIcon fontSize="small" sx={{ mr: 1 }} /> {t('dashboard.logout')}
                 </MenuItem>
               </Menu>
             </Box>
@@ -435,10 +475,10 @@ const Dashboard = () => {
         {/* Karşılama Başlığı */}
         <Box mb={{ xs: 2, sm: 3, md: 4 }}>
           <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF', textShadow: '0 2px 4px rgba(0,0,0,0.3)', fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
-            Merhaba, {user?.fullName?.split(' ')[0] || 'Gezgin'} 👋
+            {t('dashboard.greeting')}, {user?.fullName?.split(' ')[0] || 'Gezgin'} 👋
           </Typography>
           <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.9)', mt: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-            Bugün hangi pazarı keşfetmek istiyorsun?
+            {t('dashboard.subtitle')}
           </Typography>
         </Box>
 
@@ -469,11 +509,11 @@ const Dashboard = () => {
           }}
         >
           <AlertTitle sx={{ fontWeight: 'bold', fontSize: { xs: '1rem', sm: '1.1rem' }, color: BRAND_COLORS.primary }}>
-            Platform Yapım Aşamasında
+            {t('dashboard.notification.betaTitle')}
           </AlertTitle>
           <Box sx={{ mt: 1.5 }}>
             <Typography variant="body1" sx={{ mb: 2, color: '#333', lineHeight: 1.6, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-              FGS TRADE platformu aktif olarak geliştirilmektedir. Bazı özellikler beta aşamasındadır ve zaman zaman kesintiler yaşanabilir.
+              {t('dashboard.notification.betaDesc')}
             </Typography>
             <Box 
               sx={{ 
@@ -491,10 +531,10 @@ const Dashboard = () => {
               <CardGiftcardIcon sx={{ color: '#F57C00', fontSize: { xs: 32, sm: 36 }, flexShrink: 0 }} />
               <Box>
                 <Typography variant="body1" fontWeight="bold" sx={{ color: '#E65100', fontSize: { xs: '0.95rem', sm: '1.05rem' } }}>
-                  🎁 Erken Yatırımcılara Özel Fırsat!
+                  🎁 {t('dashboard.notification.bonusTitle')}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#666', mt: 0.5, fontSize: { xs: '0.85rem', sm: '0.9rem' }, lineHeight: 1.5 }}>
-                  Beta döneminde paket satın alan tüm kullanıcılara, platform resmi olarak yayınlandığında <strong>%50 bonus kredi</strong> hediye edilecektir! 🚀
+                  {t('dashboard.notification.bonusDesc')}
                 </Typography>
               </Box>
             </Box>
@@ -505,7 +545,7 @@ const Dashboard = () => {
         <SearchCard elevation={3}>
           <Typography variant="h6" fontWeight="bold" mb={3} sx={{ display: 'flex', alignItems: 'center', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             <SearchIcon sx={{ mr: 1, color: BRAND_COLORS.primary }} />
-            Hedef Pazar Araması
+            {t('dashboard.search.title')}
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
@@ -513,8 +553,8 @@ const Dashboard = () => {
             <Box sx={{ width: '100%' }}>
               <StyledTextField
                 fullWidth
-                label="Ne satıyorsunuz? (Ürün İsmi)"
-                placeholder="Örn: Tekstil, Zeytinyağı, Mobilya..."
+                label={t('dashboard.search.product')}
+                placeholder={t('dashboard.search.productPlaceholder')}
                 value={searchParams.product}
                 onChange={(e) => setSearchParams({...searchParams, product: e.target.value})}
                 InputProps={{
@@ -533,8 +573,8 @@ const Dashboard = () => {
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
                 <StyledTextField
                   fullWidth
-                  label="Hedef Ülke"
-                  placeholder="Örn: Almanya"
+                  label={t('dashboard.search.country')}
+                  placeholder={t('dashboard.search.countryPlaceholder')}
                   value={searchParams.country}
                   onChange={(e) => setSearchParams({...searchParams, country: e.target.value})}
                   InputProps={{
@@ -551,8 +591,8 @@ const Dashboard = () => {
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
                 <StyledTextField
                   fullWidth
-                  label="Hedef Şehir"
-                  placeholder="Örn: Berlin (Opsiyonel)"
+                  label={t('dashboard.search.city')}
+                  placeholder={t('dashboard.search.cityPlaceholder')}
                   value={searchParams.city}
                   onChange={(e) => setSearchParams({...searchParams, city: e.target.value})}
                   InputProps={{
@@ -569,8 +609,8 @@ const Dashboard = () => {
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
                 <StyledTextField
                   fullWidth
-                  label="Dil"
-                  placeholder="Örn: İngilizce, Almanca"
+                  label={t('dashboard.search.language')}
+                  placeholder={t('dashboard.search.languagePlaceholder')}
                   value={searchParams.language}
                   onChange={(e) => setSearchParams({...searchParams, language: e.target.value})}
                   InputProps={{
@@ -588,19 +628,35 @@ const Dashboard = () => {
                 <StyledTextField
                   fullWidth
                   type="number"
-                  label="Kaç Firma Aranacak?"
-                  placeholder="Örn: 10, 50, 100..."
+                  label={t('dashboard.search.companyCount')}
+                  placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : "Maximum 10 companies"}
                   value={searchParams.companyCount}
-                  onChange={(e) => setSearchParams({...searchParams, companyCount: e.target.value})}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    const isAdmin = user?.role?.toLowerCase() === 'admin';
+                    
+                    // Admin değilse 10'a sınırla ve uyar
+                    if (!isAdmin && value > 10) {
+                      setError(`⚠️ ${language === 'tr' ? 'Free pakette maksimum 10 firma aranabilir.' : 'Maximum 10 companies per search in free plan.'} ${language === 'tr' ? 'Daha fazla arama için paket yükseltin!' : 'Upgrade your package to search more!'}`);
+                      setTimeout(() => setError(''), 5000);
+                      setSearchParams({...searchParams, companyCount: '10'});
+                    } else {
+                      // Admin ise sınır yok, değeri direkt kaydet
+                      setSearchParams({...searchParams, companyCount: value.toString()});
+                    }
+                  }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
                         <BusinessIcon color="action" />
                       </InputAdornment>
                     ),
-                    inputProps: { min: 1, max: 1000 }
+                    inputProps: { 
+                      min: 1, 
+                      max: user?.role?.toLowerCase() === 'admin' ? 1000 : 10 
+                    }
                   }}
-                  helperText="En az 1, en fazla 1000 firma"
+                  helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : "Min 1, max 10 companies"}
                 />
               </Box>
             </Box>
@@ -642,7 +698,7 @@ const Dashboard = () => {
                 textAlign: 'center'
               }}>
                 <Typography sx={{ color: '#1565C0', fontWeight: 600, mb: 1 }}>
-                  🔍 Firmalar aranıyor...
+                  🔍 {t('dashboard.search.searching')}
                 </Typography>
                 <Typography sx={{ color: '#666', fontSize: '0.9rem' }}>
                   Bu işlem birkaç dakika sürebilir. Lütfen bekleyiniz.
@@ -659,7 +715,7 @@ const Dashboard = () => {
                 startIcon={<DownloadIcon />}
                 disabled={!searchResults || isLoading}
               >
-                Excel'e Aktar
+                {t('dashboard.search.exportExcel')}
               </ExcelButton>
 
               {/* Ara Butonu */}
@@ -670,7 +726,7 @@ const Dashboard = () => {
                 disabled={isLoading}
                 sx={{ px: { xs: 3, sm: 6 } }}
               >
-                {isLoading ? 'Aranıyor...' : 'Firma Ara'}
+                {isLoading ? t('dashboard.search.searching') : t('dashboard.search.searchButton')}
               </ActionButton>
             </Box>
           </Box>
@@ -748,16 +804,16 @@ const Dashboard = () => {
                   width: '100%',
                 }}>
                   {[
-                    'Firma Adı',
-                    'Adres',
+                    'Company Name',
+                    'Address',
                     'Website',
-                    'E-mail',
-                    'Telefon',
-                    'Mobil',
-                    'Şehir',
-                    'Ülke',
-                    'Sosyal Medya',
-                    'Notlar'
+                    'Email',
+                    'Phone',
+                    'Mobile',
+                    'City',
+                    'Country',
+                    'Social Media',
+                    'Notes'
                   ].map((label, idx) => (
                     <Box 
                       key={idx}
