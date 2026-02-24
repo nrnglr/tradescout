@@ -50,7 +50,6 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
-import LanguageIcon from '@mui/icons-material/Language';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -396,13 +395,14 @@ const LandingPage = () => {
     setFeedbackLoading(true);
 
     try {
-      const templateParams = {
-        fullName: fullName,
-        email: email,
-        phone: phone || '',
-        subject: subject,
-        message: message,
-        feedbackType: feedbackType || 'Genel',
+      // Backend PascalCase bekliyor
+      const requestData = {
+        FullName: fullName,
+        Email: email,
+        Phone: phone || null,
+        Subject: subject,
+        Message: message,
+        FeedbackType: feedbackType || null,
       };
 
       const apiUrl = process.env.REACT_APP_API_URL || '';
@@ -411,7 +411,7 @@ const LandingPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(templateParams),
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {

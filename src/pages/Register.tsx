@@ -3,15 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
   Box, TextField, Button, Typography, CircularProgress, Paper, 
-  InputAdornment, Snackbar, Alert, IconButton, Divider, MenuItem, Select, FormControl, InputLabel, Container, Toolbar, AppBar
+  InputAdornment, Snackbar, Alert, Divider, MenuItem, Select, FormControl, InputLabel, Container, Toolbar, AppBar
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import BusinessIcon from '@mui/icons-material/Business';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import LocationCityIcon from '@mui/icons-material/LocationCity';

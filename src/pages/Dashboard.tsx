@@ -27,7 +27,6 @@ import {
 // İkonlar
 import SearchIcon from '@mui/icons-material/Search';
 import PublicIcon from '@mui/icons-material/Public'; // Ülke için
-import LocationCityIcon from '@mui/icons-material/LocationCity'; // Şehir için
 import LanguageIcon from '@mui/icons-material/Language'; // Dil için
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'; // Ürün için
 import DownloadIcon from '@mui/icons-material/Download'; // Excel için
@@ -43,6 +42,40 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { Country, State } from 'country-state-city';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
+
+// Tüm diller listesi
+const ALL_LANGUAGES = [
+  { code: 'tr', name: 'Türkçe', native: 'Türkçe' },
+  { code: 'en', name: 'English', native: 'English' },
+  { code: 'de', name: 'German', native: 'Deutsch' },
+  { code: 'fr', name: 'French', native: 'Français' },
+  { code: 'es', name: 'Spanish', native: 'Español' },
+  { code: 'it', name: 'Italian', native: 'Italiano' },
+  { code: 'pt', name: 'Portuguese', native: 'Português' },
+  { code: 'ru', name: 'Russian', native: 'Русский' },
+  { code: 'zh', name: 'Chinese', native: '中文' },
+  { code: 'ja', name: 'Japanese', native: '日本語' },
+  { code: 'ko', name: 'Korean', native: '한국어' },
+  { code: 'ar', name: 'Arabic', native: 'العربية' },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
+  { code: 'nl', name: 'Dutch', native: 'Nederlands' },
+  { code: 'pl', name: 'Polish', native: 'Polski' },
+  { code: 'sv', name: 'Swedish', native: 'Svenska' },
+  { code: 'no', name: 'Norwegian', native: 'Norsk' },
+  { code: 'da', name: 'Danish', native: 'Dansk' },
+  { code: 'fi', name: 'Finnish', native: 'Suomi' },
+  { code: 'el', name: 'Greek', native: 'Ελληνικά' },
+  { code: 'cs', name: 'Czech', native: 'Čeština' },
+  { code: 'hu', name: 'Hungarian', native: 'Magyar' },
+  { code: 'ro', name: 'Romanian', native: 'Română' },
+  { code: 'bg', name: 'Bulgarian', native: 'Български' },
+  { code: 'uk', name: 'Ukrainian', native: 'Українська' },
+  { code: 'he', name: 'Hebrew', native: 'עברית' },
+  { code: 'th', name: 'Thai', native: 'ไทย' },
+  { code: 'vi', name: 'Vietnamese', native: 'Tiếng Việt' },
+  { code: 'id', name: 'Indonesian', native: 'Bahasa Indonesia' },
+  { code: 'ms', name: 'Malay', native: 'Bahasa Melayu' },
+];
 
 // --- STİLLER (Mavi tema ağırlıklı) ---
 const BRAND_COLORS = {
@@ -611,22 +644,27 @@ const Dashboard = () => {
                 </StyledFormControl>
               </Box>
 
-              {/* 4. Dil */}
+              {/* 4. Dil - Dropdown */}
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
-                <StyledTextField
-                  fullWidth
-                  label={t('dashboard.search.language')}
-                  placeholder={t('dashboard.search.languagePlaceholder')}
-                  value={searchParams.language}
-                  onChange={(e) => setSearchParams({...searchParams, language: e.target.value})}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
+                <StyledFormControl fullWidth>
+                  <InputLabel>{t('dashboard.search.language')}</InputLabel>
+                  <Select
+                    label={t('dashboard.search.language')}
+                    value={searchParams.language}
+                    onChange={(e) => setSearchParams({...searchParams, language: e.target.value})}
+                    startAdornment={
+                      <InputAdornment position="start" sx={{ ml: 1 }}>
                         <LanguageIcon color="action" />
                       </InputAdornment>
-                    ),
-                  }}
-                />
+                    }
+                  >
+                    {ALL_LANGUAGES.map((lang) => (
+                      <MenuItem key={lang.code} value={lang.code}>
+                        {lang.native} ({lang.name})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </StyledFormControl>
               </Box>
 
               {/* 5. Firma Sayısı */}

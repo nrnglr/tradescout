@@ -78,7 +78,7 @@ const LoginSection = styled(Box)(({ theme }) => ({
   gap: theme.spacing(4),
 }));
 
-// Sol ve Sağ görsel alanları (Opsiyonel: API yapısında backend'den resim gelmeyebilir, placeholder koydum)
+// Sol ve Sağ görsel alanları
 const ImageContainer = styled(Box)(({ theme }) => ({
   flex: 1,
   display: 'flex',
@@ -87,19 +87,6 @@ const ImageContainer = styled(Box)(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
     display: 'none',
   },
-}));
-
-const Image = styled('img')(({ theme }) => ({
-  maxWidth: '90%',
-  height: 'auto',
-  objectFit: 'contain',
-  borderRadius: theme.spacing(2),
-  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-  transition: 'transform 0.3s ease',
-  '&:hover': {
-    transform: 'scale(1.03)',
-  },
-  cursor: 'pointer'
 }));
 
 const StyledAppBar = styled(AppBar)({
@@ -301,7 +288,7 @@ const Login = () => {
 
     try {
       // GERÇEK BACKEND BAĞLANTISI
-      const response = await authService.login({ email, password });
+      await authService.login({ email, password });
       
       // Beni Hatırla Mantığı
       if (rememberMe) {
