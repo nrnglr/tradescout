@@ -124,7 +124,7 @@ export const translations = {
       logout: "Çıkış Yap",
       search: {
         title: "Hedef Pazar Araması",
-        product: "Ne satıyorsunuz? (Ürün İsmi)",
+        product: "Ürün İsmi",
         productPlaceholder: "Örn: Tekstil, Zeytinyağı, Mobilya...",
         country: "Hedef Ülke",
         countryPlaceholder: "Örn: Almanya",
@@ -176,6 +176,15 @@ export const translations = {
       email: "E-Posta Adresi",
       password: "Şifre",
       companyName: "Şirket Adı (Opsiyonel)",
+      address: "Adres",
+      city: "Şehir",
+      country: "Ülke",
+      phone: "Telefon",
+      website: "Web Sitesi",
+      userType: "Kullanıcı Türü",
+      manufacturer: "Üretici",
+      wholesaler: "Toptancı",
+      researcher: "Araştırmacı",
       registerButton: "Kayıt Ol",
       haveAccount: "Zaten hesabınız var mı?",
       loginNow: "Giriş Yapın",
@@ -183,6 +192,22 @@ export const translations = {
       benefit2: "Güvenli Platform",
       benefit3: "%50 Bonus Kredi",
       successMessage: "Kayıt Başarılı! Giriş sayfasına yönlendiriliyorsunuz..."
+    },
+    
+    // Feedback
+    feedback: {
+      title: "Bize Ulaşın",
+      heading: "İletişim Formu",
+      description: "Bize ulaşmak ve sorularınızı yöneltmek için lütfen aşağıdaki formu doldurun.",
+      typeLabel: "Türü (Opsiyonel)",
+      complaint: "🚨 Şikayet",
+      suggestion: "💡 Öneri",
+      problem: "❌ Sorun",
+      other: "📝 Diğer Geri Bildirim",
+      submitButton: "📧 Mesajı Gönder",
+      sending: "Gönderiliyor...",
+      successMessage: "✅ Mesajınız başarıyla gönderildi! Teşekkür ederiz.",
+      errorGeneral: "Mesaj gönderimi sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin."
     }
   },
   
@@ -309,7 +334,7 @@ export const translations = {
       logout: "Logout",
       search: {
         title: "Target Market Search",
-        product: "What are you selling? (Product Name)",
+        product: "Product Name",
         productPlaceholder: "E.g: Textile, Olive Oil, Furniture...",
         country: "Target Country",
         countryPlaceholder: "E.g: Germany",
@@ -361,6 +386,15 @@ export const translations = {
       email: "Email Address",
       password: "Password",
       companyName: "Company Name (Optional)",
+      address: "Address",
+      city: "City",
+      country: "Country",
+      phone: "Phone",
+      website: "Website",
+      userType: "User Type",
+      manufacturer: "Manufacturer",
+      wholesaler: "Wholesaler",
+      researcher: "Researcher",
       registerButton: "Register",
       haveAccount: "Already have an account?",
       loginNow: "Login",
@@ -368,6 +402,22 @@ export const translations = {
       benefit2: "Secure Platform",
       benefit3: "50% Bonus Credits",
       successMessage: "Registration Successful! Redirecting to login page..."
+    },
+    
+    // Feedback
+    feedback: {
+      title: "Contact Us",
+      heading: "Contact Form",
+      description: "Please fill out the form below to reach us and ask your questions.",
+      typeLabel: "Type (Optional)",
+      complaint: "🚨 Complaint",
+      suggestion: "💡 Suggestion",
+      problem: "❌ Problem",
+      other: "📝 Other Feedback",
+      submitButton: "📧 Send Message",
+      sending: "Sending...",
+      successMessage: "✅ Your message has been sent successfully! Thank you.",
+      errorGeneral: "An error occurred while sending the message. Please try again later."
     }
   }
 };

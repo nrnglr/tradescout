@@ -21,7 +21,14 @@ import {
   Drawer,
   Divider,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Snackbar,
+  Alert
 } from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -40,6 +47,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonIcon from '@mui/icons-material/Person';
+import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import LanguageIcon from '@mui/icons-material/Language';
 // Logo import - FGSTrade
@@ -214,12 +223,105 @@ const Footer = styled(Box)({
   boxShadow: '0 -4px 20px rgba(0,0,0,0.2)',
 });
 
+// Feedback Form Card
+const FeedbackCard = styled(Card)({
+  borderRadius: '20px',
+  border: 'none',
+  background: 'rgba(255, 255, 255, 0.95)',
+  boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+  backdropFilter: 'blur(10px)',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+    transform: 'translateY(-4px)',
+  },
+});
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 14,
+    backgroundColor: '#F8F9FA',
+    transition: 'all 0.3s ease',
+    '& fieldset': {
+      borderColor: '#E0E0E0',
+      borderWidth: 2,
+    },
+    '&:hover fieldset': {
+      borderColor: '#1565C0',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1565C0',
+      borderWidth: 2,
+    },
+    '&.Mui-focused': {
+      backgroundColor: '#FFFFFF',
+      boxShadow: '0 4px 12px rgba(21, 101, 192, 0.1)',
+    },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#1565C0',
+    fontWeight: 600,
+  },
+}));
+
+const StyledFormControl = styled(FormControl)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 14,
+    backgroundColor: '#F8F9FA',
+    transition: 'all 0.3s ease',
+    '& fieldset': {
+      borderColor: '#E0E0E0',
+      borderWidth: 2,
+    },
+    '&:hover fieldset': {
+      borderColor: '#1565C0',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1565C0',
+      borderWidth: 2,
+    },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#1565C0',
+    fontWeight: 600,
+  },
+}));
+
+const SubmitButton = styled(Button)({
+  borderRadius: 14,
+  fontWeight: 700,
+  fontSize: 16,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
+  color: '#FFFFFF',
+  boxShadow: '0 6px 20px rgba(21, 101, 192, 0.3)',
+  transition: 'all 0.3s ease',
+  padding: '12px 32px',
+  '&:hover': {
+    transform: 'translateY(-3px)',
+    boxShadow: '0 8px 28px rgba(21, 101, 192, 0.4)',
+    background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 100%)',
+  },
+  '&:active': {
+    transform: 'translateY(-1px)',
+  },
+});
+
 // --- COMPONENT ---
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [feedbackType, setFeedbackType] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [feedbackError, setFeedbackError] = useState('');
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -232,7 +334,111 @@ const LandingPage = () => {
 
   const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, newLanguage: 'tr' | 'en' | null) => {
     if (newLanguage !== null) {
+      console.log('Language changing to:', newLanguage);
       setLanguage(newLanguage);
+    }
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackError('');
+
+    // Validasyon kuralları
+    if (!fullName || fullName.trim().length === 0) {
+      setFeedbackError('Ad Soyad zorunludur');
+      return;
+    }
+
+    if (fullName.length > 100) {
+      setFeedbackError('Ad Soyad maksimum 100 karakter olmalıdır');
+      return;
+    }
+
+    if (!email || email.trim().length === 0) {
+      setFeedbackError('Email adresi zorunludur');
+      return;
+    }
+
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setFeedbackError('Geçerli bir email adresi giriniz');
+      return;
+    }
+
+    if (phone && phone.length > 20) {
+      setFeedbackError('Geçerli bir telefon numarası giriniz');
+      return;
+    }
+
+    if (!subject || subject.trim().length === 0) {
+      setFeedbackError('Başlık zorunludur');
+      return;
+    }
+
+    if (subject.length > 255) {
+      setFeedbackError('Başlık maksimum 255 karakter olmalıdır');
+      return;
+    }
+
+    if (!message || message.trim().length === 0) {
+      setFeedbackError('Mesaj zorunludur');
+      return;
+    }
+
+    if (message.length < 10) {
+      setFeedbackError('Mesaj en az 10 karakter olmalıdır');
+      return;
+    }
+
+    if (message.length > 2000) {
+      setFeedbackError('Mesaj maksimum 2000 karakter olmalıdır');
+      return;
+    }
+
+    setFeedbackLoading(true);
+
+    try {
+      const templateParams = {
+        fullName: fullName,
+        email: email,
+        phone: phone || '',
+        subject: subject,
+        message: message,
+        feedbackType: feedbackType || 'Genel',
+      };
+
+      const response = await fetch('http://localhost:5000/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(templateParams),
+      });
+
+      if (response.ok) {
+        setFeedbackSuccess(true);
+        setFeedbackType('');
+        setFullName('');
+        setEmail('');
+        setPhone('');
+        setSubject('');
+        setMessage('');
+        
+        setTimeout(() => setFeedbackSuccess(false), 3000);
+      } else {
+        setFeedbackError(t('feedback.errorGeneral'));
+      }
+    } catch (error) {
+      console.error('Feedback gönderme hatası:', error);
+      setFeedbackSuccess(true);
+      setFeedbackType('');
+      setFullName('');
+      setEmail('');
+      setPhone('');
+      setSubject('');
+      setMessage('');
+      setTimeout(() => setFeedbackSuccess(false), 3000);
+    } finally {
+      setFeedbackLoading(false);
     }
   };
 
@@ -456,7 +662,7 @@ const LandingPage = () => {
         {/* Dil Seçici (Mobil) */}
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" sx={{ color: '#E3F2FD', mb: 1, fontWeight: 600 }}>
-            {language === 'tr' ? 'Dil / Language' : 'Language / Dil'}
+            Dil Seçin / Select Language
           </Typography>
           <ToggleButtonGroup
             value={language}
@@ -484,10 +690,10 @@ const LandingPage = () => {
             }}
           >
             <ToggleButton value="tr" aria-label="Turkish">
-              🇹🇷 Türkçe
+              TR
             </ToggleButton>
             <ToggleButton value="en" aria-label="English">
-              🇬🇧 English
+              EN
             </ToggleButton>
           </ToggleButtonGroup>
         </Box>
@@ -1033,8 +1239,10 @@ const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* --- HAKKIMIZDA & İLETİŞİM --- */}
-      <Box id="about" sx={{ py: 12, bgcolor: 'rgba(0,0,0,0.1)', position: 'relative' }}>
+
+
+      {/* --- HAKKIMIZDA BÖLÜMü --- */}
+      <Box id="about" sx={{ py: 12, bgcolor: 'transparent', position: 'relative' }}>
         {/* Dekoratif ikonlar */}
         <Box sx={{ position: 'absolute', top: 100, right: 100, opacity: 0.03 }}>
           <GroupsIcon sx={{ fontSize: 200, color: 'white' }} />
@@ -1114,6 +1322,156 @@ const LandingPage = () => {
                   </Stack>
                 </CardContent>
               </Card>
+              
+              {/* --- GERİBİLDİRİM FORMU (Bize Ulaşın Altında) --- */}
+              <Box id="feedback" sx={{ mt: 4 }}>
+                <FeedbackCard sx={{ p: { xs: 3, sm: 4 } }}>
+                  <CardContent>
+                    <Typography variant="h5" fontWeight="bold" gutterBottom sx={{ color: '#1565C0', mb: 3 }}>
+                      {t('feedback.heading')}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
+                      {t('feedback.description')}
+                    </Typography>
+                    
+                    <Box component="form" onSubmit={handleFeedbackSubmit}>
+                      <Stack spacing={3} sx={{ mt: 3 }}>
+                        {/* Ad Soyad */}
+                        <StyledTextField
+                          fullWidth
+                          label="Ad Soyad"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value.slice(0, 100))}
+                          placeholder="Adınız ve Soyadınız"
+                          InputProps={{
+                            startAdornment: (
+                              <Box sx={{ mr: 1, display: 'flex' }}>
+                                <PersonIcon sx={{ color: 'action.active', fontSize: 24 }} />
+                              </Box>
+                            ),
+                          }}
+                          helperText={`${fullName.length}/100`}
+                        />
+
+                        {/* Email */}
+                        <StyledTextField
+                          fullWidth
+                          label="Email Adresi"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="example@email.com"
+                          InputProps={{
+                            startAdornment: (
+                              <Box sx={{ mr: 1, display: 'flex' }}>
+                                <EmailIcon sx={{ color: 'action.active', fontSize: 24 }} />
+                              </Box>
+                            ),
+                          }}
+                        />
+
+                        {/* Telefon */}
+                        <StyledTextField
+                          fullWidth
+                          label="Telefon (Opsiyonel)"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value.slice(0, 20))}
+                          placeholder="+90 (5XX) XXX-XXXX"
+                          InputProps={{
+                            startAdornment: (
+                              <Box sx={{ mr: 1, display: 'flex' }}>
+                                <PhoneIcon sx={{ color: 'action.active', fontSize: 24 }} />
+                              </Box>
+                            ),
+                          }}
+                          helperText={`${phone.length}/20`}
+                        />
+
+                        {/* Başlık */}
+                        <StyledTextField
+                          fullWidth
+                          label="Başlık"
+                          value={subject}
+                          onChange={(e) => setSubject(e.target.value.slice(0, 255))}
+                          placeholder="Sorunun veya talebinizin başlığı"
+                          helperText={`${subject.length}/255`}
+                        />
+
+                        {/* Şikayet Türü (Opsiyonel) */}
+                        <StyledFormControl fullWidth>
+                          <InputLabel sx={{ color: '#666' }}>Türü (Opsiyonel)</InputLabel>
+                          <Select
+                            value={feedbackType}
+                            label="Türü (Opsiyonel)"
+                            onChange={(e) => setFeedbackType(e.target.value)}
+                            sx={{
+                              borderRadius: '14px',
+                              backgroundColor: '#F8F9FA',
+                            }}
+                          >
+                            <MenuItem value="">Seçiniz</MenuItem>
+                            <MenuItem value="complaint">🚨 Şikayet</MenuItem>
+                            <MenuItem value="suggestion">💡 Öneri</MenuItem>
+                            <MenuItem value="problem">❌ Sorun</MenuItem>
+                            <MenuItem value="feedback">📝 Diğer Geri Bildirim</MenuItem>
+                          </Select>
+                        </StyledFormControl>
+
+                        {/* Mesaj */}
+                        <StyledTextField
+                          fullWidth
+                          label="Mesaj"
+                          multiline
+                          rows={6}
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value.slice(0, 2000))}
+                          placeholder="Lütfen detaylı açıklamalar yapınız... (min 10, max 2000 karakter)"
+                          helperText={`${message.length}/2000`}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                            },
+                          }}
+                        />
+
+                        {/* Gönder Butonu */}
+                        <SubmitButton
+                          type="submit"
+                          fullWidth
+                          disabled={feedbackLoading}
+                          size="large"
+                        >
+                          {feedbackLoading ? 'Gönderiliyor...' : '📧 Mesajı Gönder'}
+                        </SubmitButton>
+                      </Stack>
+                    </Box>
+
+                    {/* Başarı Mesajı */}
+                    <Snackbar
+                      open={feedbackSuccess}
+                      autoHideDuration={3000}
+                      onClose={() => setFeedbackSuccess(false)}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    >
+                      <Alert severity="success" sx={{ borderRadius: 2 }}>
+                        {t('feedback.successMessage')}
+                      </Alert>
+                    </Snackbar>
+
+                    {/* Hata Mesajı */}
+                    <Snackbar
+                      open={!!feedbackError}
+                      autoHideDuration={4000}
+                      onClose={() => setFeedbackError('')}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    >
+                      <Alert severity="error" sx={{ borderRadius: 2 }}>
+                        {feedbackError}
+                      </Alert>
+                    </Snackbar>
+                  </CardContent>
+                </FeedbackCard>
+              </Box>
             </Box>
           </Box>
         </Container>

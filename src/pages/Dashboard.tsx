@@ -270,8 +270,9 @@ const Dashboard = () => {
       const isAdmin = user?.role?.toLowerCase() === 'admin';
       const availableCredits = user?.credits || 0;
       
-      if (!isAdmin && availableCredits < companyCount) {
-        setError(`${language === 'tr' ? '❌ Yetersiz kredi!' : '❌ Insufficient credits!'} ${language === 'tr' ? 'Gerekli' : 'Required'}: ${companyCount}, ${language === 'tr' ? 'Mevcut' : 'Available'}: ${availableCredits}`);
+      // Her arama 1 kredi kullanıyor
+      if (!isAdmin && availableCredits < 1) {
+        setError(`${language === 'tr' ? '❌ Yetersiz kredi!' : '❌ Insufficient credits!'} ${language === 'tr' ? 'Mevcut' : 'Available'}: ${availableCredits}`);
         setIsLoading(false);
         return;
       }
@@ -298,8 +299,8 @@ const Dashboard = () => {
       console.log('✅ API isteği başarılı:', response);
       setSearchResults(response);
       
-      // Kullanıcının kredi bilgisini güncelle
-      const updatedUser = { ...user, credits: (user?.credits || 0) - response.creditsUsed };
+      // Kullanıcının kredi bilgisini güncelle - Her arama 1 kredi düşer (companyCount değil)
+      const updatedUser = { ...user, credits: (user?.credits || 0) - 1 };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
@@ -315,33 +316,34 @@ const Dashboard = () => {
       
       // Axios hata mesajını doğru şekilde yakala
       if (err.response) {
-        // Backend'den gelen hata mesajı
-        const errorMessage = err.response.data?.message || err.response.data?.error || 'Bir hata oluştu';
-        setError(errorMessage);
+        // Backend'den gelen hata mesajı - Gemini detaylarını gösterme
+        // Sadece genel bir hata mesajı göster
+        if (err.response.status === 401) {
+          setError(language === 'tr' ? '⚠️ Oturumunuz sona erdi. 3 saniye içinde giriş sayfasına yönlendirileceksiniz...' : '⚠️ Your session has expired. You will be redirected to login in 3 seconds...');
+          // 3 saniye bekle ki kullanıcı mesajı görebilsin
+          setTimeout(() => {
+            authService.logout();
+            navigate('/login');
+          }, 3000);
+        } else {
+          // Diğer hatalar için genel mesaj
+          setError(language === 'tr' ? '❌ Arama başarısız oldu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.' : '❌ Search failed. Please check your information and try again.');
+        }
         
         // Hata mesajına scroll yap
         setTimeout(() => {
           document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
         
-        // 401 hatası için özel durum
-        if (err.response.status === 401) {
-          setError('⚠️ Oturumunuz sona erdi. 3 saniye içinde giriş sayfasına yönlendirileceksiniz...');
-          // 3 saniye bekle ki kullanıcı mesajı görebilsin
-          setTimeout(() => {
-            authService.logout();
-            navigate('/login');
-          }, 3000);
-        }
       } else if (err.request) {
         // İstek gönderildi ama cevap alınamadı (network hatası)
-        setError('❌ Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.');
+        setError(language === 'tr' ? '❌ Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.' : '❌ Cannot connect to server. Please check your internet connection.');
         setTimeout(() => {
           document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
       } else {
         // Başka bir hata
-        setError(err.message || '❌ Bir hata oluştu. Lütfen tekrar deneyin.');
+        setError(language === 'tr' ? '❌ Arama başarısız oldu. Lütfen tekrar deneyin.' : '❌ Search failed. Please try again.');
         setTimeout(() => {
           document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
@@ -353,7 +355,9 @@ const Dashboard = () => {
 
   const handleExport = () => {
     if (searchResults) {
-      scraperService.downloadExcel(searchResults.jobId);
+      // Ürün ismini kullan (boşlukları alt çizgi ile değiştir)
+      const productName = searchParams.product.trim().replace(/\s+/g, '_');
+      scraperService.downloadExcel(searchResults.jobId, productName);
     }
   };
 
@@ -493,15 +497,6 @@ const Dashboard = () => {
             backdropFilter: 'blur(10px)',
             border: '2px solid #42A5F5',
             boxShadow: '0 8px 24px rgba(21, 101, 192, 0.2)',
-            animation: 'pulse 2s ease-in-out infinite',
-            '@keyframes pulse': {
-              '0%, 100%': { 
-                boxShadow: '0 8px 24px rgba(21, 101, 192, 0.2)',
-              },
-              '50%': { 
-                boxShadow: '0 8px 32px rgba(21, 101, 192, 0.4)',
-              }
-            },
             '& .MuiAlert-icon': {
               color: BRAND_COLORS.primary,
               fontSize: '2rem'
@@ -688,20 +683,74 @@ const Dashboard = () => {
               </Box>
             )}
 
-            {/* Loading Mesajı */}
+            {/* Loading Mesajı - Modern Animasyon */}
             {isLoading && (
               <Box sx={{ 
                 mt: 2, 
                 p: 3, 
-                bgcolor: '#e3f2fd', 
+                bgcolor: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                 borderRadius: '12px',
-                textAlign: 'center'
+                textAlign: 'center',
+                border: '2px solid #42A5F5',
+                boxShadow: '0 4px 20px rgba(21, 101, 192, 0.2)'
               }}>
-                <Typography sx={{ color: '#1565C0', fontWeight: 600, mb: 1 }}>
+                {/* Animasyonlu Dönen Dünya */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  mb: 3,
+                  position: 'relative',
+                  height: '120px'
+                }}>
+                  {/* Merkez Dönen Küre */}
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '80px',
+                    height: '80px',
+                    animation: 'spinClockwise 2s linear infinite',
+                    zIndex: 10,
+                    '@keyframes spinClockwise': {
+                      '0%': { transform: 'rotate(0deg)' },
+                      '100%': { transform: 'rotate(360deg)' }
+                    },
+                    filter: 'drop-shadow(0 4px 10px rgba(21, 101, 192, 0.4))'
+                  }}>
+                    <Typography sx={{ fontSize: '4.5rem' }}>
+                      🌍
+                    </Typography>
+                  </Box>
+
+                  {/* Arka plan pulse efekti */}
+                  <Box sx={{
+                    position: 'absolute',
+                    width: '150px',
+                    height: '150px',
+                    borderRadius: '50%',
+                    border: '2px solid #42A5F5',
+                    opacity: 0.3,
+                    animation: 'pulse 2s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%, 100%': { 
+                        transform: 'scale(1)',
+                        opacity: 0.3
+                      },
+                      '50%': { 
+                        transform: 'scale(1.1)',
+                        opacity: 0.1
+                      }
+                    }
+                  }} />
+                </Box>
+
+                {/* Metin */}
+                <Typography sx={{ color: '#1565C0', fontWeight: 700, mb: 1, fontSize: '1.1rem' }}>
                   🔍 {t('dashboard.search.searching')}
                 </Typography>
-                <Typography sx={{ color: '#666', fontSize: '0.9rem' }}>
-                  Bu işlem birkaç dakika sürebilir. Lütfen bekleyiniz.
+                <Typography sx={{ color: '#555', fontSize: '0.9rem', fontWeight: 500 }}>
+                  Bu işlem birkaç dakika sürebilir. Lütfen bekleyiniz...
                 </Typography>
               </Box>
             )}
@@ -748,7 +797,7 @@ const Dashboard = () => {
                 ✅ {searchResults.totalResults} Firma Bulundu!
               </Typography>
               <Chip 
-                label={`${searchResults.creditsUsed} kredi kullanıldı`}
+                label={`1 kredi kullanıldı`}
                 sx={{ 
                   bgcolor: '#4caf50', 
                   color: 'white', 

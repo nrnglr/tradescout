@@ -6,6 +6,12 @@ export interface RegisterData {
   email: string;
   password: string;
   companyName?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+  website?: string;
+  userType?: string;
 }
 
 export interface LoginData {
@@ -46,9 +52,15 @@ class AuthService {
    * Kullanıcı girişi
    */
   async login(data: LoginData): Promise<AuthResponse> {
+    console.log('🔍 Login REQUEST Debug:');
+    console.log('  - Email:', data.email);
+    console.log('  - Password:', data.password);
+    console.log('  - Request body:', JSON.stringify(data));
+    console.log('  - Content-Type header:', 'application/json');
+    
     const response = await apiClient.post<AuthResponse>('/api/auth/login', data);
     
-    console.log('🔍 Login Response Debug:');
+    console.log('🔍 Login RESPONSE Debug:');
     console.log('  - Full response:', response);
     console.log('  - Response data:', response.data);
     console.log('  - Token:', response.data.token);

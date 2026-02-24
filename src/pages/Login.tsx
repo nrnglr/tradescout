@@ -319,6 +319,11 @@ const Login = () => {
 
     } catch (err: any) {
       console.error("❌ Login hatası:", err);
+      console.error("  - Error message:", err.message);
+      console.error("  - Error code:", err.code);
+      console.error("  - Error status:", err.response?.status);
+      console.error("  - Error response:", err.response?.data);
+      console.error("  - Full error:", err);
       setError(err.message || t('login.errorFailed'));
     } finally {
       setLoading(false);

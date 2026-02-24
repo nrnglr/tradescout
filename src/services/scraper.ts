@@ -111,8 +111,9 @@ class ScraperService {
   /**
    * Excel dosyasını indir
    * @param jobId - İş ID'si
+   * @param productName - Ürün ismi
    */
-  async downloadExcel(jobId: number): Promise<void> {
+  async downloadExcel(jobId: number, productName: string = 'Export'): Promise<void> {
     try {
       const response = await apiClient.get(`/api/scraper/download/${jobId}`, {
         responseType: 'blob',
@@ -122,7 +123,7 @@ class ScraperService {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.download = `TradeScout_${new Date().toISOString().split('T')[0]}_${jobId}.xlsx`;
+      link.download = `FGStrade_${productName}_${jobId}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
