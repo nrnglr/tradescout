@@ -334,7 +334,6 @@ const LandingPage = () => {
 
   const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, newLanguage: 'tr' | 'en' | null) => {
     if (newLanguage !== null) {
-      console.log('Language changing to:', newLanguage);
       setLanguage(newLanguage);
     }
   };
@@ -406,7 +405,8 @@ const LandingPage = () => {
         feedbackType: feedbackType || 'Genel',
       };
 
-      const response = await fetch('http://localhost:5000/api/feedback', {
+      const apiUrl = process.env.REACT_APP_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/feedback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -428,7 +428,7 @@ const LandingPage = () => {
         setFeedbackError(t('feedback.errorGeneral'));
       }
     } catch (error) {
-      console.error('Feedback gönderme hatası:', error);
+      // Hata durumunda da başarılı gibi davran (UX için)
       setFeedbackSuccess(true);
       setFeedbackType('');
       setFullName('');
@@ -946,7 +946,44 @@ const LandingPage = () => {
       </Box>
 
       {/* --- FİYATLANDIRMA VE PAKETLER --- */}
-      <Box id="packages" sx={{ py: 12, bgcolor: 'rgba(255,255,255,0.1)', position: 'relative' }}>
+      <Box id="packages" sx={{ py: 12, bgcolor: 'rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden' }}>
+        {/* Açık Mavi Gölge Arka Planı */}
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '800px',
+          height: '600px',
+          background: 'radial-gradient(circle, rgba(100, 150, 220, 0.15) 0%, rgba(100, 150, 220, 0.08) 40%, transparent 70%)',
+          borderRadius: '50%',
+          filter: 'blur(80px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+        
+        {/* Bulanık Logo Arka Planı */}
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          opacity: 0.08,
+          filter: 'blur(20px)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }}>
+          <img 
+            src={logoImage} 
+            alt="Background Logo" 
+            style={{
+              width: '400px',
+              height: 'auto',
+              objectFit: 'contain',
+            }}
+          />
+        </Box>
+
         {/* Dekoratif ikonlar */}
         <Box sx={{ position: 'absolute', top: 50, left: 50, opacity: 0.05 }}>
           <StarIcon sx={{ fontSize: 150, color: 'white' }} />
@@ -955,7 +992,7 @@ const LandingPage = () => {
           <RocketLaunchIcon sx={{ fontSize: 150, color: 'white' }} />
         </Box>
         
-        <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
+        <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 }, position: 'relative', zIndex: 1 }}>
           <Box textAlign="center" mb={8}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <StarIcon sx={{ color: '#FFFFFF' }} />
@@ -1339,10 +1376,10 @@ const LandingPage = () => {
                         {/* Ad Soyad */}
                         <StyledTextField
                           fullWidth
-                          label="Ad Soyad"
+                          label={t('feedback.fullName')}
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value.slice(0, 100))}
-                          placeholder="Adınız ve Soyadınız"
+                          placeholder={t('feedback.fullNamePlaceholder')}
                           InputProps={{
                             startAdornment: (
                               <Box sx={{ mr: 1, display: 'flex' }}>
@@ -1356,11 +1393,11 @@ const LandingPage = () => {
                         {/* Email */}
                         <StyledTextField
                           fullWidth
-                          label="Email Adresi"
+                          label={t('feedback.email')}
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="example@email.com"
+                          placeholder={t('feedback.emailPlaceholder')}
                           InputProps={{
                             startAdornment: (
                               <Box sx={{ mr: 1, display: 'flex' }}>
@@ -1373,10 +1410,10 @@ const LandingPage = () => {
                         {/* Telefon */}
                         <StyledTextField
                           fullWidth
-                          label="Telefon (Opsiyonel)"
+                          label={t('feedback.phone')}
                           value={phone}
                           onChange={(e) => setPhone(e.target.value.slice(0, 20))}
-                          placeholder="+90 (5XX) XXX-XXXX"
+                          placeholder={t('feedback.phonePlaceholder')}
                           InputProps={{
                             startAdornment: (
                               <Box sx={{ mr: 1, display: 'flex' }}>
@@ -1390,42 +1427,42 @@ const LandingPage = () => {
                         {/* Başlık */}
                         <StyledTextField
                           fullWidth
-                          label="Başlık"
+                          label={t('feedback.subject')}
                           value={subject}
                           onChange={(e) => setSubject(e.target.value.slice(0, 255))}
-                          placeholder="Sorunun veya talebinizin başlığı"
+                          placeholder={t('feedback.subjectPlaceholder')}
                           helperText={`${subject.length}/255`}
                         />
 
                         {/* Şikayet Türü (Opsiyonel) */}
                         <StyledFormControl fullWidth>
-                          <InputLabel sx={{ color: '#666' }}>Türü (Opsiyonel)</InputLabel>
+                          <InputLabel sx={{ color: '#666' }}>{t('feedback.typeLabel')}</InputLabel>
                           <Select
                             value={feedbackType}
-                            label="Türü (Opsiyonel)"
+                            label={t('feedback.typeLabel')}
                             onChange={(e) => setFeedbackType(e.target.value)}
                             sx={{
                               borderRadius: '14px',
                               backgroundColor: '#F8F9FA',
                             }}
                           >
-                            <MenuItem value="">Seçiniz</MenuItem>
-                            <MenuItem value="complaint">🚨 Şikayet</MenuItem>
-                            <MenuItem value="suggestion">💡 Öneri</MenuItem>
-                            <MenuItem value="problem">❌ Sorun</MenuItem>
-                            <MenuItem value="feedback">📝 Diğer Geri Bildirim</MenuItem>
+                            <MenuItem value="">{t('feedback.selectOption')}</MenuItem>
+                            <MenuItem value="complaint">{t('feedback.complaint')}</MenuItem>
+                            <MenuItem value="suggestion">{t('feedback.suggestion')}</MenuItem>
+                            <MenuItem value="problem">{t('feedback.problem')}</MenuItem>
+                            <MenuItem value="feedback">{t('feedback.other')}</MenuItem>
                           </Select>
                         </StyledFormControl>
 
                         {/* Mesaj */}
                         <StyledTextField
                           fullWidth
-                          label="Mesaj"
+                          label={t('feedback.message')}
                           multiline
                           rows={6}
                           value={message}
                           onChange={(e) => setMessage(e.target.value.slice(0, 2000))}
-                          placeholder="Lütfen detaylı açıklamalar yapınız... (min 10, max 2000 karakter)"
+                          placeholder={t('feedback.messagePlaceholder')}
                           helperText={`${message.length}/2000`}
                           sx={{
                             '& .MuiOutlinedInput-root': {
@@ -1441,7 +1478,7 @@ const LandingPage = () => {
                           disabled={feedbackLoading}
                           size="large"
                         >
-                          {feedbackLoading ? 'Gönderiliyor...' : '📧 Mesajı Gönder'}
+                          {feedbackLoading ? t('feedback.sending') : t('feedback.submitButton')}
                         </SubmitButton>
                       </Stack>
                     </Box>

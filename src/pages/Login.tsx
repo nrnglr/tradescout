@@ -303,13 +303,6 @@ const Login = () => {
       // GERÇEK BACKEND BAĞLANTISI
       const response = await authService.login({ email, password });
       
-      console.log("✅ Login başarılı!");
-      console.log("📦 Response:", response);
-      console.log("🔑 Token kaydedildi mi?", !!localStorage.getItem('token'));
-      console.log("👤 User kaydedildi mi?", !!localStorage.getItem('user'));
-      console.log("🔑 Token:", localStorage.getItem('token'));
-      console.log("👤 User:", localStorage.getItem('user'));
-      
       // Beni Hatırla Mantığı
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
@@ -321,12 +314,6 @@ const Login = () => {
       navigate('/dashboard');
 
     } catch (err: any) {
-      console.error("❌ Login hatası:", err);
-      console.error("  - Error message:", err.message);
-      console.error("  - Error code:", err.code);
-      console.error("  - Error status:", err.response?.status);
-      console.error("  - Error response:", err.response?.data);
-      console.error("  - Full error:", err);
       setError(err.message || t('login.errorFailed'));
     } finally {
       setLoading(false);
@@ -339,7 +326,7 @@ const Login = () => {
 
   const handleForgotPassword = () => {
     // Şifre sıfırlama mantığı veya modal açma
-    console.log("Şifremi unuttum tıklandı");
+    // TODO: Şifre sıfırlama sayfasına yönlendirme eklenecek
   };
 
   return (
@@ -571,10 +558,10 @@ const Login = () => {
                     {t('login.orContinue')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
-                    <SocialButton variant="outlined" onClick={() => console.log('Google Login')}>
+                    <SocialButton variant="outlined" onClick={() => { /* TODO: Google Login */ }}>
                       <GoogleIcon sx={{ color: '#DB4437' }} />
                     </SocialButton>
-                    <SocialButton variant="outlined" onClick={() => console.log('Apple Login')}>
+                    <SocialButton variant="outlined" onClick={() => { /* TODO: Apple Login */ }}>
                       <AppleIcon sx={{ color: '#000' }} />
                     </SocialButton>
                   </Box>

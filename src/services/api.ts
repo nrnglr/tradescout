@@ -1,10 +1,10 @@
 // Base API Configuration
 import axios from 'axios';
 
-// Base URL - Environment variable'dan okunabilir
-// Development: http://localhost:5100 (Backend sunucusu)
-// Production: https://api.fgstrade.com veya backend URL
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5100';
+// Base URL - Environment variable'dan okunur
+// Development: Boş string (proxy kullanılır - package.json)
+// Production: https://api.fgstrade.com (veya backend sunucu URL'i)
+export const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 // Axios instance oluştur
 export const apiClient = axios.create({

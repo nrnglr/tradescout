@@ -308,17 +308,7 @@ const Dashboard = () => {
         return;
       }
 
-      console.log('📡 API isteği gönderiliyor...');
-      console.log('Parametreler:', {
-        category: searchParams.product,
-        city: searchParams.city,
-        country: searchParams.country || 'Türkiye',
-        language: searchParams.language || 'tr',
-        maxResults: companyCount,
-      });
-
       // API isteği - Arka planda Gemini AI ile otomatik arama
-      console.log('� Firmalar aranıyor...');
       const response = await scraperService.scrape({
         category: searchParams.product,
         city: searchParams.city,
@@ -327,7 +317,6 @@ const Dashboard = () => {
         maxResults: companyCount,
       });
 
-      console.log('✅ API isteği başarılı:', response);
       setSearchResults(response);
       
       // Kullanıcının kredi bilgisini güncelle - Her arama 1 kredi düşer (companyCount değil)
@@ -336,15 +325,6 @@ const Dashboard = () => {
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
     } catch (err: any) {
-      console.error('❌ Arama hatası:', err);
-      console.error('Hata detayı:', {
-        response: err.response,
-        request: err.request,
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-      });
-      
       // Axios hata mesajını doğru şekilde yakala
       if (err.response) {
         // Backend'den gelen hata mesajı - Gemini detaylarını gösterme
