@@ -19,6 +19,8 @@ import {
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import GoogleIcon from '@mui/icons-material/Google';
 import AppleIcon from '@mui/icons-material/Apple';
 import HomeIcon from '@mui/icons-material/Home';
@@ -271,6 +273,7 @@ const Login = () => {
   // State Yönetimi
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -494,7 +497,7 @@ const Login = () => {
                   fullWidth
                   name="password"
                   label={t('login.password')}
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   autoComplete="current-password"
                   value={password}
@@ -503,6 +506,30 @@ const Login = () => {
                     startAdornment: (
                       <InputAdornment position="start">
                         <LockIcon color="action" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Button
+                          onClick={() => setShowPassword(!showPassword)}
+                          onMouseDown={(e) => e.preventDefault()}
+                          sx={{
+                            minWidth: 'auto',
+                            p: '4px 8px',
+                            color: 'action.active',
+                            '&:hover': {
+                              backgroundColor: 'rgba(21, 101, 192, 0.08)',
+                            },
+                            borderRadius: '6px',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          {showPassword ? (
+                            <VisibilityOffIcon fontSize="small" />
+                          ) : (
+                            <VisibilityIcon fontSize="small" />
+                          )}
+                        </Button>
                       </InputAdornment>
                     ),
                   }}

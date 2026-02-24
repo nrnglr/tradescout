@@ -18,7 +18,10 @@ import {
   IconButton,
   Tooltip,
   Alert,
-  AlertTitle
+  AlertTitle,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 
 // İkonlar
@@ -37,6 +40,7 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
 import { authService } from '../services/auth';
 import { scraperService, ScrapeResponse } from '../services/scraper';
 import { useLanguage } from '../i18n/LanguageContext';
+import { Country, State } from 'country-state-city';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 
@@ -120,6 +124,31 @@ const StyledTextField = styled(TextField)({
   },
 });
 
+const StyledFormControl = styled(FormControl)({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '12px',
+    backgroundColor: '#F8F9FA',
+    transition: 'all 0.3s ease',
+    '& fieldset': { 
+      borderColor: '#BBDEFB',
+      borderWidth: 2,
+    },
+    '&:hover fieldset': { 
+      borderColor: BRAND_COLORS.primary,
+      borderWidth: 2,
+    },
+    '&.Mui-focused fieldset': { 
+      borderColor: BRAND_COLORS.primary,
+      borderWidth: 2,
+      boxShadow: '0 0 0 3px rgba(21, 101, 192, 0.1)',
+    },
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: BRAND_COLORS.primary,
+    fontWeight: 600,
+  },
+});
+
 const ActionButton = styled(Button)(({ theme }: { theme?: any }) => ({
   borderRadius: '12px',
   padding: '12px 24px',
@@ -172,9 +201,13 @@ const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   
+  // Ülke ve Şehir State'leri
+  const [countries, setCountries] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  
   // Arama State'leri
   const [searchParams, setSearchParams] = useState({
-    country: 'Türkiye',
+    country: '',
     city: '',
     language: 'tr',
     product: '',
@@ -188,26 +221,33 @@ const Dashboard = () => {
 
   // Sayfa yüklendiğinde kullanıcıyı çek
   useEffect(() => {
+    // Ülkeleri yükle
+    const countryList = Country.getAllCountries().map(c => c.name);
+    setCountries(countryList);
+    
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
     
-    console.log('🔍 Dashboard Debug:');
-    console.log('Token var mı?', !!token);
-    console.log('User var mı?', !!storedUser);
-    console.log('Token:', token ? `${token.substring(0, 20)}...` : 'YOK');
-    console.log('User:', storedUser);
-    
     if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
-      console.log('📋 Parsed User:', parsedUser);
-      console.log('👤 User Role:', parsedUser.role);
       setUser(parsedUser);
     } else {
       // Kullanıcı yoksa Login'e at (Güvenlik)
-      console.warn('⚠️ Token veya user bulunamadı, login sayfasına yönlendiriliyor...');
       navigate('/login');
     }
   }, [navigate]);
+
+  // Ülke değiştiğinde şehirleri güncelle
+  useEffect(() => {
+    if (searchParams.country) {
+      const countryData = Country.getAllCountries().find(c => c.name === searchParams.country);
+      if (countryData) {
+        const stateList = State.getStatesOfCountry(countryData.isoCode).map(s => s.name);
+        setCities(stateList);
+        setSearchParams(prev => ({ ...prev, city: '' })); // Şehri sıfırla
+      }
+    }
+  }, [searchParams.country]);
 
   const handleLogout = () => {
     authService.logout();
@@ -223,31 +263,22 @@ const Dashboard = () => {
   };
 
   const handleSearch = async () => {
-    console.log('🔍 Firma Ara başlatıldı');
-    console.log('Token mevcut mu?', !!localStorage.getItem('token'));
-    console.log('User mevcut mu?', !!localStorage.getItem('user'));
-    
-    const token = localStorage.getItem('token');
-    console.log('🔑 Token değeri:', token);
-    console.log('🔑 Token uzunluğu:', token?.length);
-    console.log('🔑 Token ilk 50 karakter:', token?.substring(0, 50));
-    
     // Validasyon
     if (!searchParams.product.trim()) {
       setError(language === 'tr' ? 'Lütfen ürün ismi girin!' : 'Please enter a product name!');
       return;
     }
-    if (!searchParams.city.trim()) {
-      setError(language === 'tr' ? 'Lütfen şehir girin!' : 'Please enter a city!');
+    if (!searchParams.country) {
+      setError(language === 'tr' ? 'Lütfen ülke seçin!' : 'Please select a country!');
+      return;
+    }
+    if (!searchParams.city) {
+      setError(language === 'tr' ? 'Lütfen şehir seçin!' : 'Please select a city!');
       return;
     }
     
     const companyCount = parseInt(searchParams.companyCount);
     const isAdmin = user?.role?.toLowerCase() === 'admin';
-    
-    console.log('👤 User role:', user?.role);
-    console.log('🔐 Is Admin?', isAdmin);
-    console.log('📊 Company count:', companyCount);
     
     // Admin değilse firma sayısı kontrolü yap (Max 10)
     if (!isAdmin && (companyCount < 1 || companyCount > 10)) {
@@ -564,40 +595,40 @@ const Dashboard = () => {
 
             {/* 2-4. Ülke, Şehir, Dil */}
             <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
-              {/* 2. Ülke */}
+              {/* 2. Ülke - Dropdown */}
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
-                <StyledTextField
-                  fullWidth
-                  label={t('dashboard.search.country')}
-                  placeholder={t('dashboard.search.countryPlaceholder')}
-                  value={searchParams.country}
-                  onChange={(e) => setSearchParams({...searchParams, country: e.target.value})}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PublicIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <StyledFormControl fullWidth>
+                  <InputLabel>{t('dashboard.search.country')}</InputLabel>
+                  <Select
+                    label={t('dashboard.search.country')}
+                    value={searchParams.country}
+                    onChange={(e) => setSearchParams({...searchParams, country: e.target.value})}
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country} value={country}>
+                        {country}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </StyledFormControl>
               </Box>
 
-              {/* 3. Şehir */}
+              {/* 3. Şehir - Dropdown (Ülke seçildikten sonra aktif) */}
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
-                <StyledTextField
-                  fullWidth
-                  label={t('dashboard.search.city')}
-                  placeholder={t('dashboard.search.cityPlaceholder')}
-                  value={searchParams.city}
-                  onChange={(e) => setSearchParams({...searchParams, city: e.target.value})}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <LocationCityIcon color="action" />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
+                <StyledFormControl fullWidth disabled={!searchParams.country}>
+                  <InputLabel>{t('dashboard.search.city')}</InputLabel>
+                  <Select
+                    label={t('dashboard.search.city')}
+                    value={searchParams.city}
+                    onChange={(e) => setSearchParams({...searchParams, city: e.target.value})}
+                  >
+                    {cities.map((city) => (
+                      <MenuItem key={city} value={city}>
+                        {city}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </StyledFormControl>
               </Box>
 
               {/* 4. Dil */}
