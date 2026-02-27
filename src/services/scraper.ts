@@ -48,6 +48,25 @@ export interface JobStatusResponse {
   businesses: Business[];
 }
 
+// Kullanıcının geçmiş aramaları için tip
+export interface UserJob {
+  jobId: number;
+  category: string;
+  city: string;
+  country: string;
+  language: string;
+  status: string;
+  totalResults: number;
+  creditsUsed: number;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface UserJobsCountResponse {
+  total: number;
+  completed: number;
+}
+
 class ScraperService {
   /**
    * 🔍 Varsayılan scraping endpoint (ChromeDriver destekli)
@@ -112,26 +131,61 @@ class ScraperService {
    * Excel dosyasını indir
    * @param jobId - İş ID'si
    * @param productName - Ürün ismi
+   * @param country - Ülke
+   * @param city - Şehir
    */
-  async downloadExcel(jobId: number, productName: string = 'Export'): Promise<void> {
+  async downloadExcel(jobId: number, productName: string = 'Export', country: string = '', city: string = ''): Promise<void> {
     try {
       const response = await apiClient.get(`/api/scraper/download/${jobId}`, {
         responseType: 'blob',
       });
 
+      // Dosya adı oluştur: FGStrade_UrunIsmi_Ulke_Sehir_jobId.xlsx
+      const sanitize = (str: string) => str.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_çğıöşüÇĞİÖŞÜ]/g, '');
+      const parts = ['FGStrade', sanitize(productName)];
+      if (country) parts.push(sanitize(country));
+      if (city) parts.push(sanitize(city));
+      parts.push(jobId.toString());
+      const fileName = `${parts.join('_')}.xlsx`;
+
       // Dosyayı indir
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.download = `FGStrade_${productName}_${jobId}.xlsx`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Excel indirme hatası:', error);
       throw new Error('Excel dosyası indirilemedi');
     }
+  }
+
+  /**
+   * Kullanıcının geçmiş aramalarını getir
+   * @param page - Sayfa numarası
+   * @param pageSize - Sayfa başına kayıt sayısı
+   */
+  async getMyJobs(page: number = 1, pageSize: number = 20): Promise<UserJob[]> {
+    const response = await apiClient.get<UserJob[]>(`/api/scraper/my-jobs?page=${page}&pageSize=${pageSize}`);
+    return response.data;
+  }
+
+  /**
+   * Kullanıcının toplam arama sayısını getir
+   */
+  async getMyJobsCount(): Promise<UserJobsCountResponse> {
+    const response = await apiClient.get<UserJobsCountResponse>('/api/scraper/my-jobs/count');
+    return response.data;
+  }
+
+  /**
+   * Geçmiş aramadan Excel indir
+   * @param job - Geçmiş arama bilgisi
+   */
+  async downloadExcelFromJob(job: UserJob): Promise<void> {
+    return this.downloadExcel(job.jobId, job.category, job.country, job.city);
   }
 }
 

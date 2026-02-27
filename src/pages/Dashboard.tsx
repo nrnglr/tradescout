@@ -22,6 +22,11 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Modal,
+  Fade,
+  Backdrop,
+  CircularProgress,
+  Divider,
 } from '@mui/material';
 
 // İkonlar
@@ -33,11 +38,16 @@ import DownloadIcon from '@mui/icons-material/Download'; // Excel için
 import LogoutIcon from '@mui/icons-material/Logout';
 import BoltIcon from '@mui/icons-material/Bolt'; // Kredi ikonu
 import BusinessIcon from '@mui/icons-material/Business'; // Firma sayısı için
+import HistoryIcon from '@mui/icons-material/History'; // Geçmiş ikonu
+import CloseIcon from '@mui/icons-material/Close'; // Kapatma ikonu
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Başarılı ikonu
+import ErrorIcon from '@mui/icons-material/Error'; // Hata ikonu
+import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'; // Bekliyor ikonu
 import ConstructionIcon from '@mui/icons-material/Construction'; // Yapım ikonu
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
 
 import { authService } from '../services/auth';
-import { scraperService, ScrapeResponse } from '../services/scraper';
+import { scraperService, ScrapeResponse, UserJob } from '../services/scraper';
 import { useLanguage } from '../i18n/LanguageContext';
 import { Country, State } from 'country-state-city';
 // Logo import - FGSTrade
@@ -252,6 +262,12 @@ const Dashboard = () => {
   const [searchResults, setSearchResults] = useState<ScrapeResponse | null>(null);
   const [error, setError] = useState<string>('');
 
+  // Geçmiş Aramalar Modal State'leri
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [historyData, setHistoryData] = useState<UserJob[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState<string>('');
+  const [downloadingJobId, setDownloadingJobId] = useState<number | null>(null);
   // Sayfa yüklendiğinde kullanıcıyı çek
   useEffect(() => {
     // Ülkeleri yükle
@@ -293,6 +309,98 @@ const Dashboard = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  // Geçmiş aramaları yükle
+  const loadSearchHistory = async () => {
+    setHistoryLoading(true);
+    setHistoryError('');
+    try {
+      const jobs = await scraperService.getMyJobs(1, 50);
+      setHistoryData(jobs);
+    } catch (err: any) {
+      // 404 hatası - endpoint henüz mevcut değil
+      if (err?.response?.status === 404) {
+        setHistoryError(
+          language === 'tr' 
+            ? 'Bu özellik henüz aktif değil. Yakında kullanılabilir olacak!' 
+            : 'This feature is not yet active. Coming soon!'
+        );
+      } else {
+        setHistoryError(
+          language === 'tr' 
+            ? 'Geçmiş aramalar yüklenirken bir hata oluştu.' 
+            : 'An error occurred while loading search history.'
+        );
+      }
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Modal açıldığında geçmişi yükle
+  const handleOpenHistoryModal = () => {
+    setHistoryModalOpen(true);
+    loadSearchHistory();
+    handleClose(); // Menüyü kapat
+  };
+
+  // Geçmiş aramadan Excel indir
+  const handleDownloadFromHistory = async (job: UserJob) => {
+    setDownloadingJobId(job.jobId);
+    try {
+      await scraperService.downloadExcelFromJob(job);
+    } catch (err: any) {
+      setHistoryError(
+        language === 'tr' 
+          ? 'Excel indirme sırasında bir hata oluştu.' 
+          : 'An error occurred while downloading Excel.'
+      );
+    } finally {
+      setDownloadingJobId(null);
+    }
+  };
+
+  // Tarihi formatla
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Durum badge rengi
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return '#2E7D32';
+      case 'pending':
+      case 'processing':
+        return '#ED6C02';
+      case 'failed':
+        return '#D32F2F';
+      default:
+        return '#757575';
+    }
+  };
+
+  // Durum ikonu
+  const getStatusIcon = (status: string): React.ReactElement | undefined => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return <CheckCircleIcon sx={{ fontSize: 16 }} />;
+      case 'pending':
+      case 'processing':
+        return <HourglassEmptyIcon sx={{ fontSize: 16 }} />;
+      case 'failed':
+        return <ErrorIcon sx={{ fontSize: 16 }} />;
+      default:
+        return undefined;
+    }
   };
 
   const handleSearch = async () => {
@@ -399,9 +507,11 @@ const Dashboard = () => {
 
   const handleExport = () => {
     if (searchResults) {
-      // Ürün ismini kullan (boşlukları alt çizgi ile değiştir)
-      const productName = searchParams.product.trim().replace(/\s+/g, '_');
-      scraperService.downloadExcel(searchResults.jobId, productName);
+      // Ürün ismi, ülke ve şehir bilgilerini kullan
+      const productName = searchParams.product.trim();
+      const country = searchParams.country;
+      const city = searchParams.city;
+      scraperService.downloadExcel(searchResults.jobId, productName, country, city);
     }
   };
 
@@ -506,8 +616,13 @@ const Dashboard = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
+                <MenuItem onClick={handleOpenHistoryModal}>
+                  <HistoryIcon fontSize="small" sx={{ mr: 1, color: BRAND_COLORS.primary }} />
+                  {t('dashboard.history.title')}
+                </MenuItem>
                 <MenuItem onClick={handleClose}>{t('dashboard.profile')}</MenuItem>
                 <MenuItem onClick={handleClose}>{t('dashboard.upgrade')}</MenuItem>
+                <Divider />
                 <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
                   <LogoutIcon fontSize="small" sx={{ mr: 1 }} /> {t('dashboard.logout')}
                 </MenuItem>
@@ -1307,6 +1422,242 @@ const Dashboard = () => {
         )}
 
       </Container>
+
+      {/* Geçmiş Aramalarım Modal */}
+      <Modal
+        open={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500,
+          sx: { backdropFilter: 'blur(4px)' }
+        }}
+      >
+        <Fade in={historyModalOpen}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: { xs: '95%', sm: '90%', md: '80%', lg: '900px' },
+              maxHeight: '85vh',
+              bgcolor: '#FFFFFF',
+              borderRadius: '20px',
+              boxShadow: '0 24px 80px rgba(21, 101, 192, 0.25)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {/* Modal Header */}
+            <Box
+              sx={{
+                background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)',
+                color: '#FFFFFF',
+                p: { xs: 2, sm: 3 },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <HistoryIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
+                <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.4rem' } }}>
+                  {t('dashboard.history.title')}
+                </Typography>
+              </Box>
+              <IconButton
+                onClick={() => setHistoryModalOpen(false)}
+                sx={{
+                  color: '#FFFFFF',
+                  bgcolor: 'rgba(255,255,255,0.15)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            {/* Modal Content */}
+            <Box
+              sx={{
+                p: { xs: 2, sm: 3 },
+                overflowY: 'auto',
+                flex: 1,
+                bgcolor: '#F8FAFC',
+              }}
+            >
+              {historyLoading ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8 }}>
+                  <CircularProgress size={50} sx={{ color: BRAND_COLORS.primary }} />
+                  <Typography sx={{ mt: 2, color: '#666' }}>{t('dashboard.history.loading')}</Typography>
+                </Box>
+              ) : historyError ? (
+                <Alert severity="error" sx={{ borderRadius: '12px' }}>
+                  {historyError}
+                </Alert>
+              ) : historyData.length === 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8 }}>
+                  <HistoryIcon sx={{ fontSize: 64, color: '#BBDEFB', mb: 2 }} />
+                  <Typography variant="h6" sx={{ color: '#666', textAlign: 'center' }}>
+                    {t('dashboard.history.noHistory')}
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Özet Bilgi */}
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: 2, 
+                    flexWrap: 'wrap',
+                    mb: 1 
+                  }}>
+                    <Chip
+                      icon={<SearchIcon />}
+                      label={`${t('dashboard.history.totalSearches')}: ${historyData.length}`}
+                      sx={{
+                        bgcolor: '#E3F2FD',
+                        color: BRAND_COLORS.primary,
+                        fontWeight: 600,
+                        px: 1,
+                      }}
+                    />
+                    <Chip
+                      icon={<CheckCircleIcon />}
+                      label={`${t('dashboard.history.completedSearches')}: ${historyData.filter(j => j.status.toLowerCase() === 'completed').length}`}
+                      sx={{
+                        bgcolor: '#E8F5E9',
+                        color: '#2E7D32',
+                        fontWeight: 600,
+                        px: 1,
+                      }}
+                    />
+                  </Box>
+
+                  {/* Arama Kartları */}
+                  {historyData.map((job) => (
+                    <Paper
+                      key={job.jobId}
+                      elevation={0}
+                      sx={{
+                        p: { xs: 2, sm: 2.5 },
+                        borderRadius: '14px',
+                        border: '1px solid #E0E0E0',
+                        bgcolor: '#FFFFFF',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          boxShadow: '0 4px 20px rgba(21, 101, 192, 0.12)',
+                          borderColor: BRAND_COLORS.lightBlue,
+                          transform: 'translateY(-2px)',
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { sm: 'center' }, justifyContent: 'space-between' }}>
+                        {/* Sol: Arama Bilgileri */}
+                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                          {/* Ürün ve Konum */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                            <ShoppingBagIcon sx={{ color: BRAND_COLORS.primary, fontSize: 20 }} />
+                            <Typography fontWeight="bold" sx={{ color: '#333', fontSize: { xs: '0.95rem', sm: '1rem' } }}>
+                              {job.category}
+                            </Typography>
+                            <Typography sx={{ color: '#999' }}>•</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <PublicIcon sx={{ fontSize: 16, color: '#666' }} />
+                              <Typography variant="body2" sx={{ color: '#666' }}>
+                                {job.city}, {job.country}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          
+                          {/* Alt Bilgiler */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                            {/* Tarih */}
+                            <Typography variant="caption" sx={{ color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              📅 {formatDate(job.createdAt)}
+                            </Typography>
+                            
+                            {/* Sonuç Sayısı */}
+                            {job.totalResults > 0 && (
+                              <Typography variant="caption" sx={{ color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <BusinessIcon sx={{ fontSize: 14 }} /> {job.totalResults} {t('dashboard.history.results')}
+                              </Typography>
+                            )}
+                            
+                            {/* Dil */}
+                            {job.language && (
+                              <Typography variant="caption" sx={{ color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <LanguageIcon sx={{ fontSize: 14 }} /> {job.language.toUpperCase()}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+
+                        {/* Sağ: Durum ve İndir Butonu */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+                          {/* Durum Badge */}
+                          <Chip
+                            icon={getStatusIcon(job.status)}
+                            label={
+                              job.status.toLowerCase() === 'completed' 
+                                ? t('dashboard.history.completed')
+                                : job.status.toLowerCase() === 'pending' || job.status.toLowerCase() === 'processing'
+                                  ? t('dashboard.history.pending')
+                                  : t('dashboard.history.failed')
+                            }
+                            size="small"
+                            sx={{
+                              bgcolor: `${getStatusColor(job.status)}15`,
+                              color: getStatusColor(job.status),
+                              fontWeight: 600,
+                              borderRadius: '8px',
+                              '& .MuiChip-icon': {
+                                color: getStatusColor(job.status),
+                              }
+                            }}
+                          />
+
+                          {/* İndir Butonu */}
+                          {job.status.toLowerCase() === 'completed' && job.totalResults > 0 && (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={downloadingJobId === job.jobId ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
+                              disabled={downloadingJobId === job.jobId}
+                              onClick={() => handleDownloadFromHistory(job)}
+                              sx={{
+                                borderRadius: '10px',
+                                textTransform: 'none',
+                                fontWeight: 'bold',
+                                bgcolor: BRAND_COLORS.success,
+                                boxShadow: '0 2px 8px rgba(46, 125, 50, 0.3)',
+                                '&:hover': {
+                                  bgcolor: '#1B5E20',
+                                },
+                                px: { xs: 1.5, sm: 2 },
+                                py: 0.75,
+                                fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                              }}
+                            >
+                              {downloadingJobId === job.jobId 
+                                ? (language === 'tr' ? 'İndiriliyor...' : 'Downloading...') 
+                                : t('dashboard.history.download')
+                              }
+                            </Button>
+                          )}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
+
     </PageContainer>
   );
 };
