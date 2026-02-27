@@ -27,6 +27,14 @@ import {
   Backdrop,
   CircularProgress,
   Divider,
+  Autocomplete,
+  Popper,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  FormControlLabel,
+  Checkbox,
+  Collapse,
 } from '@mui/material';
 
 // İkonlar
@@ -45,6 +53,9 @@ import ErrorIcon from '@mui/icons-material/Error'; // Hata ikonu
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'; // Bekliyor ikonu
 import ConstructionIcon from '@mui/icons-material/Construction'; // Yapım ikonu
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
+import LocationOnIcon from '@mui/icons-material/LocationOn'; // Konum ikonu
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Genişlet ikonu
+import PlaceIcon from '@mui/icons-material/Place'; // Bölge ikonu
 
 import { authService } from '../services/auth';
 import { scraperService, ScrapeResponse, UserJob } from '../services/scraper';
@@ -248,10 +259,15 @@ const Dashboard = () => {
   const [countries, setCountries] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   
+  // Bölge Detayları State'leri
+  const [showRegionDetails, setShowRegionDetails] = useState(false);
+  
   // Arama State'leri
   const [searchParams, setSearchParams] = useState({
     country: '',
     city: '',
+    district: '',    // İlçe
+    neighborhood: '', // Mahalle/Bölge
     language: 'tr',
     product: '',
     companyCount: '10'
@@ -268,6 +284,59 @@ const Dashboard = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string>('');
   const [downloadingJobId, setDownloadingJobId] = useState<number | null>(null);
+
+  // Son Arama Önerileri State'leri (localStorage'dan)
+  interface RecentSearch {
+    product: string;
+    country: string;
+    city: string;
+    timestamp: number;
+  }
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+
+  // LocalStorage'dan son aramaları yükle
+  useEffect(() => {
+    const saved = localStorage.getItem('recentSearches');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setRecentSearches(parsed);
+      } catch (e) {
+        console.error('Son aramalar yüklenemedi');
+      }
+    }
+  }, []);
+
+  // Yeni arama kaydet
+  const saveRecentSearch = (product: string, country: string, city: string) => {
+    const newSearch: RecentSearch = {
+      product,
+      country,
+      city,
+      timestamp: Date.now()
+    };
+    
+    // Aynı aramayı tekrar ekleme, en fazla 10 arama sakla
+    const filtered = recentSearches.filter(
+      s => !(s.product === product && s.country === country && s.city === city)
+    );
+    const updated = [newSearch, ...filtered].slice(0, 10);
+    setRecentSearches(updated);
+    localStorage.setItem('recentSearches', JSON.stringify(updated));
+  };
+
+  // Son ürün aramalarını getir (benzersiz)
+  const getRecentProducts = (): string[] => {
+    const products = recentSearches.map(s => s.product).filter(Boolean);
+    return Array.from(new Set(products)).slice(0, 5);
+  };
+
+  // Son şehir aramalarını getir (benzersiz)
+  const getRecentCities = (): string[] => {
+    const citiesFromHistory = recentSearches.map(s => s.city).filter(Boolean);
+    return Array.from(new Set(citiesFromHistory)).slice(0, 5);
+  };
+
   // Sayfa yüklendiğinde kullanıcıyı çek
   useEffect(() => {
     // Ülkeleri yükle
@@ -450,15 +519,27 @@ const Dashboard = () => {
       }
 
       // API isteği - Arka planda Gemini AI ile otomatik arama
+      // Bölge detayları varsa şehir bilgisine ekle
+      let locationQuery = searchParams.city;
+      if (searchParams.district) {
+        locationQuery += `, ${searchParams.district}`;
+      }
+      if (searchParams.neighborhood) {
+        locationQuery += `, ${searchParams.neighborhood}`;
+      }
+
       const response = await scraperService.scrape({
         category: searchParams.product,
-        city: searchParams.city,
+        city: locationQuery,
         country: searchParams.country || 'Türkiye',
         language: searchParams.language || 'tr',
         maxResults: companyCount,
       });
 
       setSearchResults(response);
+      
+      // Son aramayı kaydet (öneriler için)
+      saveRecentSearch(searchParams.product, searchParams.country, searchParams.city);
       
       // Kullanıcının kredi bilgisini güncelle - Her arama 1 kredi düşer (companyCount değil)
       const updatedUser = { ...user, credits: (user?.credits || 0) - 1 };
@@ -703,63 +784,216 @@ const Dashboard = () => {
           </Typography>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
-            {/* 1. Ürün İsmi (En önemlisi, geniş olsun) */}
+            {/* 1. Ürün İsmi (En önemlisi, geniş olsun) - Autocomplete ile son aramalar */}
             <Box sx={{ width: '100%' }}>
-              <StyledTextField
-                fullWidth
-                label={t('dashboard.search.product')}
-                placeholder={t('dashboard.search.productPlaceholder')}
+              <Autocomplete
+                freeSolo
+                options={getRecentProducts()}
                 value={searchParams.product}
-                onChange={(e) => setSearchParams({...searchParams, product: e.target.value})}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <ShoppingBagIcon color="primary" />
-                    </InputAdornment>
-                  ),
+                onChange={(event, newValue) => {
+                  setSearchParams({...searchParams, product: newValue || ''});
                 }}
+                onInputChange={(event, newInputValue) => {
+                  setSearchParams({...searchParams, product: newInputValue});
+                }}
+                renderInput={(params) => (
+                  <StyledTextField
+                    {...params}
+                    fullWidth
+                    label={t('dashboard.search.product')}
+                    placeholder={t('dashboard.search.productPlaceholder')}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <InputAdornment position="start">
+                            <ShoppingBagIcon color="primary" />
+                          </InputAdornment>
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <ListItem {...props} key={option}>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <HistoryIcon sx={{ color: '#9E9E9E', fontSize: 20 }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={option} 
+                      primaryTypographyProps={{ fontSize: '0.95rem' }}
+                    />
+                  </ListItem>
+                )}
+                ListboxProps={{
+                  sx: {
+                    '& .MuiAutocomplete-option': {
+                      py: 1,
+                      borderBottom: '1px solid #F0F0F0',
+                      '&:last-child': { borderBottom: 'none' }
+                    }
+                  }
+                }}
+                noOptionsText={language === 'tr' ? 'Henüz arama geçmişi yok' : 'No search history yet'}
               />
             </Box>
 
-            {/* 2-4. Ülke, Şehir, Dil */}
+            {/* 2-4. Ülke, Şehir */}
             <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
-              {/* 2. Ülke - Dropdown */}
+              {/* 2. Ülke - Autocomplete ile arama yapılabilir */}
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
-                <StyledFormControl fullWidth>
-                  <InputLabel>{t('dashboard.search.country')}</InputLabel>
-                  <Select
-                    label={t('dashboard.search.country')}
-                    value={searchParams.country}
-                    onChange={(e) => setSearchParams({...searchParams, country: e.target.value})}
-                  >
-                    {countries.map((country) => (
-                      <MenuItem key={country} value={country}>
-                        {country}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </StyledFormControl>
+                <Autocomplete
+                  options={countries}
+                  value={searchParams.country || null}
+                  onChange={(event, newValue) => {
+                    setSearchParams({...searchParams, country: newValue || '', city: '', district: '', neighborhood: ''});
+                    setShowRegionDetails(false);
+                  }}
+                  renderInput={(params) => (
+                    <StyledTextField
+                      {...params}
+                      label={t('dashboard.search.country')}
+                      placeholder={t('dashboard.search.countryPlaceholder')}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <PublicIcon color="primary" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  noOptionsText={language === 'tr' ? 'Ülke bulunamadı' : 'Country not found'}
+                  ListboxProps={{
+                    sx: { maxHeight: 250 }
+                  }}
+                />
               </Box>
 
-              {/* 3. Şehir - Dropdown (Ülke seçildikten sonra aktif) */}
+              {/* 3. Şehir - Autocomplete ile arama yapılabilir (Ülke seçildikten sonra aktif) */}
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
-                <StyledFormControl fullWidth disabled={!searchParams.country}>
-                  <InputLabel>{t('dashboard.search.city')}</InputLabel>
-                  <Select
-                    label={t('dashboard.search.city')}
-                    value={searchParams.city}
-                    onChange={(e) => setSearchParams({...searchParams, city: e.target.value})}
-                  >
-                    {cities.map((city) => (
-                      <MenuItem key={city} value={city}>
-                        {city}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </StyledFormControl>
+                <Autocomplete
+                  options={cities}
+                  value={searchParams.city || null}
+                  onChange={(event, newValue) => {
+                    setSearchParams({...searchParams, city: newValue || '', district: '', neighborhood: ''});
+                    setShowRegionDetails(false);
+                  }}
+                  disabled={!searchParams.country}
+                  renderInput={(params) => (
+                    <StyledTextField
+                      {...params}
+                      label={t('dashboard.search.city')}
+                      placeholder={searchParams.country ? t('dashboard.search.cityPlaceholder') : (language === 'tr' ? 'Önce ülke seçin' : 'Select country first')}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <LocationOnIcon color={searchParams.country ? "primary" : "disabled"} />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  noOptionsText={language === 'tr' ? 'Şehir bulunamadı' : 'City not found'}
+                  ListboxProps={{
+                    sx: { maxHeight: 250 }
+                  }}
+                />
               </Box>
+            </Box>
 
-              {/* 4. Dil - Dropdown */}
+            {/* Bölge Detayları Seçeneği - Şehir seçildiyse görünür */}
+            {searchParams.city && (
+              <Box sx={{ mt: -1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={showRegionDetails}
+                      onChange={(e) => {
+                        setShowRegionDetails(e.target.checked);
+                        if (!e.target.checked) {
+                          setSearchParams({...searchParams, district: '', neighborhood: ''});
+                        }
+                      }}
+                      sx={{
+                        color: BRAND_COLORS.primary,
+                        '&.Mui-checked': { color: BRAND_COLORS.primary },
+                      }}
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <PlaceIcon sx={{ fontSize: 18, color: BRAND_COLORS.primary }} />
+                      <Typography variant="body2" sx={{ color: '#666' }}>
+                        {t('dashboard.search.addRegionDetails')}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                
+                {/* Bölge Detayları Alanları */}
+                <Collapse in={showRegionDetails}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    gap: { xs: 2, sm: 3 }, 
+                    flexWrap: 'wrap',
+                    mt: 2,
+                    p: 2,
+                    bgcolor: 'rgba(21, 101, 192, 0.03)',
+                    borderRadius: '12px',
+                    border: '1px dashed rgba(21, 101, 192, 0.2)'
+                  }}>
+                    {/* İlçe */}
+                    <Box sx={{ flex: '1 1 100%', minWidth: { sm: '200px', md: '250px' } }}>
+                      <StyledTextField
+                        fullWidth
+                        label={t('dashboard.search.district')}
+                        placeholder={t('dashboard.search.districtPlaceholder')}
+                        value={searchParams.district}
+                        onChange={(e) => setSearchParams({...searchParams, district: e.target.value})}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <LocationOnIcon sx={{ color: BRAND_COLORS.primary }} />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+
+                    {/* Mahalle/Bölge */}
+                    <Box sx={{ flex: '1 1 100%', minWidth: { sm: '200px', md: '250px' } }}>
+                      <StyledTextField
+                        fullWidth
+                        label={t('dashboard.search.neighborhood')}
+                        placeholder={t('dashboard.search.neighborhoodPlaceholder')}
+                        value={searchParams.neighborhood}
+                        onChange={(e) => setSearchParams({...searchParams, neighborhood: e.target.value})}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <PlaceIcon sx={{ color: BRAND_COLORS.secondary }} />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </Collapse>
+              </Box>
+            )}
+
+            {/* 4. Dil ve Firma Sayısı */}
+            <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
               <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
                 <StyledFormControl fullWidth>
                   <InputLabel>{t('dashboard.search.language')}</InputLabel>
