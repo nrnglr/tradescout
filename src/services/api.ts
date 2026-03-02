@@ -18,8 +18,15 @@ export const apiClient = axios.create({
 // Request interceptor - Her istekte token ekle (login/register hariç)
 apiClient.interceptors.request.use(
   (config) => {
-    // Login ve Register endpoint'lerine token ekleme (public endpoints)
-    const publicEndpoints = ['/api/auth/login', '/api/auth/register'];
+    // Login, Register ve şifre sıfırlama endpoint'lerine token ekleme (public endpoints)
+    const publicEndpoints = [
+      '/api/auth/login', 
+      '/api/auth/register',
+      '/api/auth/reset-password-request',
+      '/api/auth/reset-password',
+      '/api/auth/send-verification',
+      '/api/auth/verify-email'
+    ];
     const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
     
     if (!isPublicEndpoint) {

@@ -186,7 +186,18 @@ export const translations = {
       hero2Title: "Mali Analiz & Hesaplama",
       hero2Subtitle: "Finansal raporlarınızı kolayca yönetin",
       errorEmpty: "Lütfen e-posta ve şifrenizi giriniz.",
-      errorFailed: "Giriş başarısız. Bilgilerinizi kontrol edin."
+      errorFailed: "Giriş başarısız. Bilgilerinizi kontrol edin.",
+      forgotPasswordTitle: "Şifremi Unuttum",
+      forgotPasswordSubtitle: "Şifrenizi sıfırlamak için e-posta adresinizi girin.",
+      sendResetLink: "Sıfırlama Bağlantısı Gönder",
+      resetLinkSent: "Şifre sıfırlama bağlantısı e-postanıza gönderildi.",
+      backToLogin: "Giriş Ekranına Dön",
+      verifyEmailTitle: "E-posta Doğrulama",
+      verifyEmailSubtitle: "E-posta adresinize gönderilen kodu girin.",
+      verificationCode: "Doğrulama Kodu",
+      verify: "Doğrula",
+      emailVerified: "E-posta adresiniz başarıyla doğrulandı!",
+      invalidCode: "Kod hatalı veya süresi dolmuş."
     },
     
     // Register
@@ -428,7 +439,18 @@ export const translations = {
       hero2Title: "Financial Analysis & Calculation",
       hero2Subtitle: "Manage your financial reports easily",
       errorEmpty: "Please enter your email and password.",
-      errorFailed: "Login failed. Please check your credentials."
+      errorFailed: "Login failed. Please check your credentials.",
+      forgotPasswordTitle: "Forgot Password",
+      forgotPasswordSubtitle: "Enter your email address to reset your password.",
+      sendResetLink: "Send Reset Link",
+      resetLinkSent: "Password reset link has been sent to your email.",
+      backToLogin: "Back to Login",
+      verifyEmailTitle: "Email Verification",
+      verifyEmailSubtitle: "Enter the code sent to your email address.",
+      verificationCode: "Verification Code",
+      verify: "Verify",
+      emailVerified: "Your email has been verified successfully!",
+      invalidCode: "Invalid or expired code."
     },
     
     // Register

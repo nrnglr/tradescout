@@ -49,6 +49,31 @@ export interface AuthResponse {
 }
 
 class AuthService {
+
+  /**
+   * Google ile giriş yap
+   */
+  async googleLogin(accessToken: string): Promise<AuthResponse> {
+    // Backend'in beklediği format (PascalCase)
+    const requestData = {
+      AccessToken: accessToken
+    };
+
+    // Senin kendi apiClient yapını kullanıyoruz
+    const response = await apiClient.post<AuthResponse>('http://localhost:5100/api/auth/google-login', requestData);
+    
+    // Başarılı girişte Token ve Kullanıcı bilgilerini kaydediyoruz (Mevcut login mantığınla aynı)
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify({
+      fullName: response.data.fullName,
+      email: response.data.email,
+      credits: response.data.credits,
+      role: response.data.role,
+      packageType: response.data.packageType,
+    }));
+    
+    return response.data;
+  }
   /**
    * Kullanıcı kaydı
    */
@@ -158,6 +183,49 @@ class AuthService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Şifre sıfırlama isteği - e-postaya kod gönderir
+   */
+  async resetPasswordRequest(email: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/api/auth/reset-password-request', {
+      Email: email
+    });
+    return response.data;
+  }
+
+  /**
+   * Şifre sıfırlama - kod ile yeni şifre belirleme
+   */
+  async resetPassword(email: string, code: string, newPassword: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/api/auth/reset-password', {
+      Email: email,
+      Code: code,
+      NewPassword: newPassword
+    });
+    return response.data;
+  }
+
+  /**
+   * E-posta doğrulama kodu gönder
+   */
+  async sendVerificationCode(email: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/api/auth/send-verification', {
+      Email: email
+    });
+    return response.data;
+  }
+
+  /**
+   * E-posta doğrulama - kod ile doğrulama
+   */
+  async verifyEmail(email: string, code: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/api/auth/verify-email', {
+      Email: email,
+      Code: code
+    });
+    return response.data;
   }
 }
 
