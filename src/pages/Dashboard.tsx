@@ -35,6 +35,8 @@ import {
   FormControlLabel,
   Checkbox,
   Collapse,
+  Tabs,
+  Tab,
 } from '@mui/material';
 
 // İkonlar
@@ -56,9 +58,12 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
 import LocationOnIcon from '@mui/icons-material/LocationOn'; // Konum ikonu
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Genişlet ikonu
 import PlaceIcon from '@mui/icons-material/Place'; // Bölge ikonu
+import DescriptionIcon from '@mui/icons-material/Description'; // PDF/Rapor ikonu
+import TrendingUpIcon from '@mui/icons-material/TrendingUp'; // Analiz ikonu
 
 import { authService } from '../services/auth';
 import { scraperService, ScrapeResponse, UserJob } from '../services/scraper';
+import { apiClient } from '../services/api';
 import { useLanguage } from '../i18n/LanguageContext';
 import { Country, State } from 'country-state-city';
 // Logo import - FGSTrade
@@ -158,15 +163,15 @@ const StyledTextField = styled(TextField)({
     borderRadius: '12px',
     backgroundColor: '#F8F9FA',
     transition: 'all 0.3s ease',
-    '& fieldset': { 
+    '& fieldset': {
       borderColor: '#BBDEFB',
       borderWidth: 2,
     },
-    '&:hover fieldset': { 
+    '&:hover fieldset': {
       borderColor: BRAND_COLORS.primary,
       borderWidth: 2,
     },
-    '&.Mui-focused fieldset': { 
+    '&.Mui-focused fieldset': {
       borderColor: BRAND_COLORS.primary,
       borderWidth: 2,
       boxShadow: '0 0 0 3px rgba(21, 101, 192, 0.1)',
@@ -183,15 +188,15 @@ const StyledFormControl = styled(FormControl)({
     borderRadius: '12px',
     backgroundColor: '#F8F9FA',
     transition: 'all 0.3s ease',
-    '& fieldset': { 
+    '& fieldset': {
       borderColor: '#BBDEFB',
       borderWidth: 2,
     },
-    '&:hover fieldset': { 
+    '&:hover fieldset': {
       borderColor: BRAND_COLORS.primary,
       borderWidth: 2,
     },
-    '&.Mui-focused fieldset': { 
+    '&.Mui-focused fieldset': {
       borderColor: BRAND_COLORS.primary,
       borderWidth: 2,
       boxShadow: '0 0 0 3px rgba(21, 101, 192, 0.1)',
@@ -254,14 +259,28 @@ const Dashboard = () => {
   const { language, t } = useLanguage();
   const [user, setUser] = useState<any>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  
+
+  // Tab State'i - 0: Firma Arama, 1: Pazar Analizi
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Pazar Analizi State'leri
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [analysisError, setAnalysisError] = useState<string>('');
+  const [analysisFormData, setAnalysisFormData] = useState({
+    hsCode: '',
+    productName: '',
+    targetCountry: '',
+    originCountry: 'Türkiye'
+  });
+
   // Ülke ve Şehir State'leri
   const [countries, setCountries] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
-  
+
   // Bölge Detayları State'leri
   const [showRegionDetails, setShowRegionDetails] = useState(false);
-  
+
   // Arama State'leri
   const [searchParams, setSearchParams] = useState({
     country: '',
@@ -315,7 +334,7 @@ const Dashboard = () => {
       city,
       timestamp: Date.now()
     };
-    
+
     // Aynı aramayı tekrar ekleme, en fazla 10 arama sakla
     const filtered = recentSearches.filter(
       s => !(s.product === product && s.country === country && s.city === city)
@@ -342,10 +361,10 @@ const Dashboard = () => {
     // Ülkeleri yükle
     const countryList = Country.getAllCountries().map(c => c.name);
     setCountries(countryList);
-    
+
     const storedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    
+
     if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
@@ -391,14 +410,14 @@ const Dashboard = () => {
       // 404 hatası - endpoint henüz mevcut değil
       if (err?.response?.status === 404) {
         setHistoryError(
-          language === 'tr' 
-            ? 'Bu özellik henüz aktif değil. Yakında kullanılabilir olacak!' 
+          language === 'tr'
+            ? 'Bu özellik henüz aktif değil. Yakında kullanılabilir olacak!'
             : 'This feature is not yet active. Coming soon!'
         );
       } else {
         setHistoryError(
-          language === 'tr' 
-            ? 'Geçmiş aramalar yüklenirken bir hata oluştu.' 
+          language === 'tr'
+            ? 'Geçmiş aramalar yüklenirken bir hata oluştu.'
             : 'An error occurred while loading search history.'
         );
       }
@@ -421,8 +440,8 @@ const Dashboard = () => {
       await scraperService.downloadExcelFromJob(job);
     } catch (err: any) {
       setHistoryError(
-        language === 'tr' 
-          ? 'Excel indirme sırasında bir hata oluştu.' 
+        language === 'tr'
+          ? 'Excel indirme sırasında bir hata oluştu.'
           : 'An error occurred while downloading Excel.'
       );
     } finally {
@@ -486,16 +505,16 @@ const Dashboard = () => {
       setError(language === 'tr' ? 'Lütfen şehir seçin!' : 'Please select a city!');
       return;
     }
-    
+
     const companyCount = parseInt(searchParams.companyCount);
     const isAdmin = user?.role?.toLowerCase() === 'admin';
-    
+
     // Admin değilse firma sayısı kontrolü yap (Max 10)
     if (!isAdmin && (companyCount < 1 || companyCount > 10)) {
       setError(`⚠️ ${language === 'tr' ? 'Free pakette maksimum 10 firma aranabilir.' : 'Maximum 10 companies per search in free plan.'} ${language === 'tr' ? 'Daha fazla arama için paket yükseltin!' : 'Upgrade your package to search more!'}`);
       return;
     }
-    
+
     // Admin ise sınır yok, normal kullanıcılar için minimum kontrol
     if (companyCount < 1) {
       setError(language === 'tr' ? 'Lütfen en az 1 firma seçin!' : 'Please select at least 1 company!');
@@ -510,7 +529,7 @@ const Dashboard = () => {
       // Kredi kontrolü (Admin için değil)
       const isAdmin = user?.role?.toLowerCase() === 'admin';
       const availableCredits = user?.credits || 0;
-      
+
       // Her arama 1 kredi kullanıyor
       if (!isAdmin && availableCredits < 1) {
         setError(`${language === 'tr' ? '❌ Yetersiz kredi!' : '❌ Insufficient credits!'} ${language === 'tr' ? 'Mevcut' : 'Available'}: ${availableCredits}`);
@@ -518,7 +537,7 @@ const Dashboard = () => {
         return;
       }
 
-      // API isteği - Arka planda Gemini AI ile otomatik arama
+      // API isteği - Arka planda otomatik arama
       // Bölge detayları varsa şehir bilgisine ekle
       let locationQuery = searchParams.city;
       if (searchParams.district) {
@@ -537,10 +556,10 @@ const Dashboard = () => {
       });
 
       setSearchResults(response);
-      
+
       // Son aramayı kaydet (öneriler için)
       saveRecentSearch(searchParams.product, searchParams.country, searchParams.city);
-      
+
       // Kullanıcının kredi bilgisini güncelle - Her arama 1 kredi düşer (companyCount değil)
       const updatedUser = { ...user, credits: (user?.credits || 0) - 1 };
       setUser(updatedUser);
@@ -549,7 +568,7 @@ const Dashboard = () => {
     } catch (err: any) {
       // Axios hata mesajını doğru şekilde yakala
       if (err.response) {
-        // Backend'den gelen hata mesajı - Gemini detaylarını gösterme
+        // Backend'den gelen hata mesajı - Detaylarını gösterme
         // Sadece genel bir hata mesajı göster
         if (err.response.status === 401) {
           setError(language === 'tr' ? '⚠️ Oturumunuz sona erdi. 3 saniye içinde giriş sayfasına yönlendirileceksiniz...' : '⚠️ Your session has expired. You will be redirected to login in 3 seconds...');
@@ -562,12 +581,12 @@ const Dashboard = () => {
           // Diğer hatalar için genel mesaj
           setError(language === 'tr' ? '❌ Arama başarısız oldu. Lütfen bilgilerinizi kontrol edip tekrar deneyin.' : '❌ Search failed. Please check your information and try again.');
         }
-        
+
         // Hata mesajına scroll yap
         setTimeout(() => {
           document.getElementById('error-message')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
-        
+
       } else if (err.request) {
         // İstek gönderildi ama cevap alınamadı (network hatası)
         setError(language === 'tr' ? '❌ Sunucuya bağlanılamıyor. İnternet bağlantınızı kontrol edin.' : '❌ Cannot connect to server. Please check your internet connection.');
@@ -596,6 +615,167 @@ const Dashboard = () => {
     }
   };
 
+  // PDF İndirme State'i
+  const [pdfDownloading, setPdfDownloading] = React.useState(false);
+
+  // Örnek HS Kodları ve Popüler Ülkeler (obje formatında)
+  interface HsCodeItem {
+    code: string;
+    description: string;
+    category: string;
+  }
+  const [sampleHsCodes, setSampleHsCodes] = React.useState<HsCodeItem[]>([]);
+  const [popularCountries, setPopularCountries] = React.useState<string[]>([]);
+
+  // Örnek HS Kodları ve Popüler Ülkeleri Yükle
+  React.useEffect(() => {
+    const fetchSampleData = async () => {
+      try {
+        const [hsResponse, countriesResponse] = await Promise.all([
+          apiClient.get('/api/tradeintelligence/sample-hs-codes'),
+          apiClient.get('/api/tradeintelligence/popular-countries')
+        ]);
+        
+        // HS Kodları - obje dizisi olarak gelir
+        if (hsResponse.data && Array.isArray(hsResponse.data)) {
+          setSampleHsCodes(hsResponse.data);
+        }
+        
+        // Popüler ülkeler - string dizisi veya obje dizisi olabilir
+        if (countriesResponse.data && Array.isArray(countriesResponse.data)) {
+          // Eğer obje dizisi ise name alanını al
+          if (typeof countriesResponse.data[0] === 'object') {
+            setPopularCountries(countriesResponse.data.map((c: any) => c.name || c.country || c));
+          } else {
+            setPopularCountries(countriesResponse.data);
+          }
+        }
+      } catch (err) {
+        console.log('Sample data fetch failed, using defaults');
+        // Varsayılan değerler
+        setSampleHsCodes([
+          { code: '87116000', description: 'Elektrikli Bisiklet', category: 'Taşıtlar' },
+          { code: '84713000', description: 'Dizüstü Bilgisayar', category: 'Elektronik' },
+          { code: '85044090', description: 'Güç Kaynakları', category: 'Elektronik' },
+          { code: '39269099', description: 'Plastik Ürünler', category: 'Plastik' },
+          { code: '61091000', description: 'Pamuklu Tişört', category: 'Tekstil' }
+        ]);
+        setPopularCountries(['Almanya', 'Hollanda', 'Fransa', 'İtalya', 'İspanya', 'Belçika', 'Polonya', 'Romanya', 'Bulgaristan', 'Yunanistan']);
+      }
+    };
+    fetchSampleData();
+  }, []);
+
+  // Mevcut Markdown'ı PDF'e Çevir (convert-to-pdf endpoint'i)
+  const handleDownloadPDF = async () => {
+    if (!analysisResult) return;
+    
+    setPdfDownloading(true);
+    try {
+      const response = await apiClient.post(
+        '/api/tradeintelligence/convert-to-pdf',
+        {
+          // Backend'in beklediği format
+          MarkdownContent: analysisResult,
+          HsCode: analysisFormData.hsCode,
+          ProductName: analysisFormData.productName,
+          TargetCountry: analysisFormData.targetCountry,
+          OriginCountry: analysisFormData.originCountry || 'Türkiye'
+        },
+        {
+          responseType: 'blob' // PDF için blob response
+        }
+      );
+
+      // PDF dosyasını indir
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Pazar_Analizi_${analysisFormData.productName}_${analysisFormData.targetCountry}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('PDF download error:', err);
+      
+      // Blob response ise text'e çevir
+      let errorDetail = '';
+      if (err.response?.data instanceof Blob) {
+        try {
+          errorDetail = await err.response.data.text();
+          console.error('Error detail (from blob):', errorDetail);
+        } catch (e) {
+          console.error('Could not read blob error');
+        }
+      } else if (err.response?.data) {
+        errorDetail = typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data);
+        console.error('Error detail:', errorDetail);
+      }
+      
+      setAnalysisError(language === 'tr' 
+        ? `❌ PDF indirme sırasında bir hata oluştu.`
+        : `❌ An error occurred while downloading PDF.`);
+    } finally {
+      setPdfDownloading(false);
+    }
+  };
+
+  // Pazar Analizi Raporu Oluştur
+  const handleGenerateAnalysis = async () => {
+    // Validasyon
+    if (!analysisFormData.hsCode.trim()) {
+      setAnalysisError(language === 'tr' ? 'Lütfen HS Code girin!' : 'Please enter HS Code!');
+      return;
+    }
+    if (!analysisFormData.productName.trim()) {
+      setAnalysisError(language === 'tr' ? 'Lütfen ürün ismi girin!' : 'Please enter product name!');
+      return;
+    }
+    if (!analysisFormData.targetCountry) {
+      setAnalysisError(language === 'tr' ? 'Lütfen hedef ülke seçin!' : 'Please select target country!');
+      return;
+    }
+
+    setAnalysisError('');
+    setAnalysisLoading(true);
+    setAnalysisResult(null);
+
+    try {
+      // Backend API'ye istek at
+      const response = await apiClient.post('/api/tradeintelligence/generate-report', {
+        hsCode: analysisFormData.hsCode,
+        productName: analysisFormData.productName,
+        targetCountry: analysisFormData.targetCountry,
+        originCountry: analysisFormData.originCountry || 'Türkiye'
+      });
+
+      if (response.data && response.data.reportContent) {
+        setAnalysisResult(response.data.reportContent);
+      } else if (response.data && response.data.report) {
+        setAnalysisResult(response.data.report);
+      } else {
+        setAnalysisError(language === 'tr' 
+          ? '❌ Rapor içeriği alınamadı. Lütfen tekrar deneyin.'
+          : '❌ Could not retrieve report content. Please try again.');
+      }
+    } catch (err: any) {
+      console.error('Analysis error:', err);
+      const errorMessage = err.response?.data?.message || (language === 'tr' 
+        ? '❌ Rapor oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.'
+        : '❌ An error occurred while generating the report. Please try again.');
+      setAnalysisError(errorMessage);
+    } finally {
+      setAnalysisLoading(false);
+    }
+  };
+
+  // Tab değişim handler'ı
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
   return (
     <PageContainer>
       {/* --- HEADER (Navbar) --- */}
@@ -603,12 +783,12 @@ const Dashboard = () => {
         <Container maxWidth="xl">
           <Toolbar disableGutters sx={{ justifyContent: 'space-between', minHeight: { xs: 56, sm: 64 } }}>
             {/* Logo ve Başlık */}
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: { xs: 1, sm: 1.5 }, 
-                cursor: 'pointer' 
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 1, sm: 1.5 },
+                cursor: 'pointer'
               }}
               onClick={() => navigate('/')}
             >
@@ -626,10 +806,10 @@ const Dashboard = () => {
                   }
                 }}
               />
-              <Typography 
-                variant="h5" 
-                fontWeight="800" 
-                sx={{ 
+              <Typography
+                variant="h5"
+                fontWeight="800"
+                sx={{
                   color: '#1565C0',
                   textShadow: '0 1px 2px rgba(255,255,255,0.3)',
                   fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' }
@@ -643,12 +823,12 @@ const Dashboard = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
               {/* Kredi Göstergesi / Admin Badge */}
               {user?.role?.toLowerCase() === 'admin' ? (
-                <Chip 
-                  icon={<BoltIcon sx={{ color: '#FFD700 !important' }} />} 
-                  label="🔑 Admin" 
-                  sx={{ 
-                    fontWeight: 'bold', 
-                    bgcolor: 'rgba(255, 215, 0, 0.3)', 
+                <Chip
+                  icon={<BoltIcon sx={{ color: '#FFD700 !important' }} />}
+                  label="🔑 Admin"
+                  sx={{
+                    fontWeight: 'bold',
+                    bgcolor: 'rgba(255, 215, 0, 0.3)',
                     color: '#FFD700',
                     border: '2px solid rgba(255, 215, 0, 0.6)',
                     height: { xs: 32, sm: 40 },
@@ -658,15 +838,15 @@ const Dashboard = () => {
                     '&:hover': {
                       bgcolor: 'rgba(255, 215, 0, 0.4)',
                     }
-                  }} 
+                  }}
                 />
               ) : (
-                <Chip 
-                  icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />} 
-                  label={`${user?.credits || 0} ${t('dashboard.credits')}`} 
-                  sx={{ 
-                    fontWeight: 'bold', 
-                    bgcolor: 'rgba(255, 255, 255, 0.2)', 
+                <Chip
+                  icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />}
+                  label={`${user?.credits || 0} ${t('dashboard.credits')}`}
+                  sx={{
+                    fontWeight: 'bold',
+                    bgcolor: 'rgba(255, 255, 255, 0.2)',
                     color: '#FFFFFF',
                     border: '2px solid rgba(255, 255, 255, 0.3)',
                     height: { xs: 32, sm: 40 },
@@ -676,7 +856,7 @@ const Dashboard = () => {
                     '&:hover': {
                       bgcolor: 'rgba(255, 255, 255, 0.3)',
                     }
-                  }} 
+                  }}
                 />
               )}
 
@@ -715,7 +895,7 @@ const Dashboard = () => {
 
       {/* --- ANA İÇERİK --- */}
       <Container maxWidth="lg" sx={{ mt: { xs: 3, sm: 4, md: 6 }, pb: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 }, position: 'relative', zIndex: 1 }}>
-        
+
         {/* Karşılama Başlığı */}
         <Box mb={{ xs: 2, sm: 3, md: 4 }}>
           <Typography variant="h4" fontWeight="bold" sx={{ color: '#FFFFFF', textShadow: '0 2px 4px rgba(0,0,0,0.3)', fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
@@ -727,10 +907,10 @@ const Dashboard = () => {
         </Box>
 
         {/* Yapım Aşaması & Erken Yatırım Bildirimi */}
-        <Alert 
-          severity="info" 
+        <Alert
+          severity="info"
           icon={<ConstructionIcon fontSize="large" />}
-          sx={{ 
+          sx={{
             mb: 3,
             borderRadius: '16px',
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(227, 242, 253, 0.95) 100%)',
@@ -750,14 +930,14 @@ const Dashboard = () => {
             <Typography variant="body1" sx={{ mb: 2, color: '#333', lineHeight: 1.6, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
               {t('dashboard.notification.betaDesc')}
             </Typography>
-            <Box 
-              sx={{ 
-                display: 'flex', 
+            <Box
+              sx={{
+                display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' },
                 alignItems: { xs: 'flex-start', sm: 'center' },
-                gap: 1.5, 
-                bgcolor: 'rgba(255, 193, 7, 0.15)', 
-                p: { xs: 2, sm: 2.5 }, 
+                gap: 1.5,
+                bgcolor: 'rgba(255, 193, 7, 0.15)',
+                p: { xs: 2, sm: 2.5 },
                 borderRadius: '12px',
                 border: '2px solid #FFC107',
                 mt: 2
@@ -776,7 +956,55 @@ const Dashboard = () => {
           </Box>
         </Alert>
 
-        {/* Arama Paneli (Beyaz Kart) */}
+        {/* Tab Navigasyonu */}
+        <Paper 
+          elevation={0} 
+          sx={{ 
+            mb: 3, 
+            borderRadius: '16px', 
+            bgcolor: 'rgba(255, 255, 255, 0.95)',
+            border: '1px solid rgba(21, 101, 192, 0.1)',
+            overflow: 'hidden'
+          }}
+        >
+          <Tabs 
+            value={activeTab} 
+            onChange={handleTabChange}
+            variant="fullWidth"
+            sx={{
+              '& .MuiTab-root': {
+                py: 2,
+                fontSize: { xs: '0.85rem', sm: '1rem' },
+                fontWeight: 600,
+                textTransform: 'none',
+                color: '#666',
+                '&.Mui-selected': {
+                  color: BRAND_COLORS.primary,
+                },
+              },
+              '& .MuiTabs-indicator': {
+                height: 3,
+                borderRadius: '3px 3px 0 0',
+                backgroundColor: BRAND_COLORS.primary,
+              }
+            }}
+          >
+            <Tab 
+              icon={<SearchIcon sx={{ fontSize: 20 }} />} 
+              iconPosition="start" 
+              label={language === 'tr' ? '🔍 Firma Arama' : '🔍 Company Search'} 
+            />
+            <Tab 
+              icon={<TrendingUpIcon sx={{ fontSize: 20 }} />} 
+              iconPosition="start" 
+              label={language === 'tr' ? '📊 Pazar Analizi' : '📊 Market Analysis'} 
+            />
+          </Tabs>
+        </Paper>
+
+        {/* TAB 0: Firma Arama Paneli */}
+        {activeTab === 0 && (
+        <Box>
         <SearchCard elevation={3}>
           <Typography variant="h6" fontWeight="bold" mb={3} sx={{ display: 'flex', alignItems: 'center', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
             <SearchIcon sx={{ mr: 1, color: BRAND_COLORS.primary }} />
@@ -791,10 +1019,10 @@ const Dashboard = () => {
                 options={getRecentProducts()}
                 value={searchParams.product}
                 onChange={(event, newValue) => {
-                  setSearchParams({...searchParams, product: newValue || ''});
+                  setSearchParams({ ...searchParams, product: newValue || '' });
                 }}
                 onInputChange={(event, newInputValue) => {
-                  setSearchParams({...searchParams, product: newInputValue});
+                  setSearchParams({ ...searchParams, product: newInputValue });
                 }}
                 renderInput={(params) => (
                   <StyledTextField
@@ -820,8 +1048,8 @@ const Dashboard = () => {
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <HistoryIcon sx={{ color: '#9E9E9E', fontSize: 20 }} />
                     </ListItemIcon>
-                    <ListItemText 
-                      primary={option} 
+                    <ListItemText
+                      primary={option}
                       primaryTypographyProps={{ fontSize: '0.95rem' }}
                     />
                   </ListItem>
@@ -847,7 +1075,7 @@ const Dashboard = () => {
                   options={countries}
                   value={searchParams.country || null}
                   onChange={(event, newValue) => {
-                    setSearchParams({...searchParams, country: newValue || '', city: '', district: '', neighborhood: ''});
+                    setSearchParams({ ...searchParams, country: newValue || '', city: '', district: '', neighborhood: '' });
                     setShowRegionDetails(false);
                   }}
                   renderInput={(params) => (
@@ -881,7 +1109,7 @@ const Dashboard = () => {
                   options={cities}
                   value={searchParams.city || null}
                   onChange={(event, newValue) => {
-                    setSearchParams({...searchParams, city: newValue || '', district: '', neighborhood: ''});
+                    setSearchParams({ ...searchParams, city: newValue || '', district: '', neighborhood: '' });
                     setShowRegionDetails(false);
                   }}
                   disabled={!searchParams.country}
@@ -921,7 +1149,7 @@ const Dashboard = () => {
                       onChange={(e) => {
                         setShowRegionDetails(e.target.checked);
                         if (!e.target.checked) {
-                          setSearchParams({...searchParams, district: '', neighborhood: ''});
+                          setSearchParams({ ...searchParams, district: '', neighborhood: '' });
                         }
                       }}
                       sx={{
@@ -939,12 +1167,12 @@ const Dashboard = () => {
                     </Box>
                   }
                 />
-                
+
                 {/* Bölge Detayları Alanları */}
                 <Collapse in={showRegionDetails}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    gap: { xs: 2, sm: 3 }, 
+                  <Box sx={{
+                    display: 'flex',
+                    gap: { xs: 2, sm: 3 },
                     flexWrap: 'wrap',
                     mt: 2,
                     p: 2,
@@ -959,7 +1187,7 @@ const Dashboard = () => {
                         label={t('dashboard.search.district')}
                         placeholder={t('dashboard.search.districtPlaceholder')}
                         value={searchParams.district}
-                        onChange={(e) => setSearchParams({...searchParams, district: e.target.value})}
+                        onChange={(e) => setSearchParams({ ...searchParams, district: e.target.value })}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -977,7 +1205,7 @@ const Dashboard = () => {
                         label={t('dashboard.search.neighborhood')}
                         placeholder={t('dashboard.search.neighborhoodPlaceholder')}
                         value={searchParams.neighborhood}
-                        onChange={(e) => setSearchParams({...searchParams, neighborhood: e.target.value})}
+                        onChange={(e) => setSearchParams({ ...searchParams, neighborhood: e.target.value })}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
@@ -1000,7 +1228,7 @@ const Dashboard = () => {
                   <Select
                     label={t('dashboard.search.language')}
                     value={searchParams.language}
-                    onChange={(e) => setSearchParams({...searchParams, language: e.target.value})}
+                    onChange={(e) => setSearchParams({ ...searchParams, language: e.target.value })}
                     startAdornment={
                       <InputAdornment position="start" sx={{ ml: 1 }}>
                         <LanguageIcon color="action" />
@@ -1027,15 +1255,15 @@ const Dashboard = () => {
                   onChange={(e) => {
                     const value = parseInt(e.target.value) || 0;
                     const isAdmin = user?.role?.toLowerCase() === 'admin';
-                    
+
                     // Admin değilse 10'a sınırla ve uyar
                     if (!isAdmin && value > 10) {
                       setError(`⚠️ ${language === 'tr' ? 'Free pakette maksimum 10 firma aranabilir.' : 'Maximum 10 companies per search in free plan.'} ${language === 'tr' ? 'Daha fazla arama için paket yükseltin!' : 'Upgrade your package to search more!'}`);
                       setTimeout(() => setError(''), 5000);
-                      setSearchParams({...searchParams, companyCount: '10'});
+                      setSearchParams({ ...searchParams, companyCount: '10' });
                     } else {
                       // Admin ise sınır yok, değeri direkt kaydet
-                      setSearchParams({...searchParams, companyCount: value.toString()});
+                      setSearchParams({ ...searchParams, companyCount: value.toString() });
                     }
                   }}
                   InputProps={{
@@ -1044,9 +1272,9 @@ const Dashboard = () => {
                         <BusinessIcon color="action" />
                       </InputAdornment>
                     ),
-                    inputProps: { 
-                      min: 1, 
-                      max: user?.role?.toLowerCase() === 'admin' ? 1000 : 10 
+                    inputProps: {
+                      min: 1,
+                      max: user?.role?.toLowerCase() === 'admin' ? 1000 : 10
                     }
                   }}
                   helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : "Min 1, max 10 companies"}
@@ -1058,12 +1286,12 @@ const Dashboard = () => {
 
             {/* Hata Mesajı */}
             {error && (
-              <Box 
+              <Box
                 id="error-message"
-                sx={{ 
-                  mt: 2, 
-                  p: 2.5, 
-                  bgcolor: '#ffebee', 
+                sx={{
+                  mt: 2,
+                  p: 2.5,
+                  bgcolor: '#ffebee',
                   borderRadius: '12px',
                   border: '2px solid #ef5350',
                   boxShadow: '0 4px 12px rgba(239, 83, 80, 0.3)',
@@ -1083,9 +1311,9 @@ const Dashboard = () => {
 
             {/* Loading Mesajı - Modern Animasyon */}
             {isLoading && (
-              <Box sx={{ 
-                mt: 2, 
-                p: 3, 
+              <Box sx={{
+                mt: 2,
+                p: 3,
                 bgcolor: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
                 borderRadius: '12px',
                 textAlign: 'center',
@@ -1093,9 +1321,9 @@ const Dashboard = () => {
                 boxShadow: '0 4px 20px rgba(21, 101, 192, 0.2)'
               }}>
                 {/* Animasyonlu Dönen Dünya */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   mb: 3,
                   position: 'relative',
@@ -1131,11 +1359,11 @@ const Dashboard = () => {
                     opacity: 0.3,
                     animation: 'pulse 2s ease-in-out infinite',
                     '@keyframes pulse': {
-                      '0%, 100%': { 
+                      '0%, 100%': {
                         transform: 'scale(1)',
                         opacity: 0.3
                       },
-                      '50%': { 
+                      '50%': {
                         transform: 'scale(1.1)',
                         opacity: 0.1
                       }
@@ -1155,9 +1383,9 @@ const Dashboard = () => {
 
             {/* BUTONLAR */}
             <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: { xs: 'center', sm: 'flex-end' }, flexWrap: 'wrap' }}>
-               {/* Excel Butonu (Sadece sonuç varsa aktif) */}
-               <ExcelButton 
-                variant="contained" 
+              {/* Excel Butonu (Sadece sonuç varsa aktif) */}
+              <ExcelButton
+                variant="contained"
                 onClick={handleExport}
                 startIcon={<DownloadIcon />}
                 disabled={!searchResults || isLoading}
@@ -1166,8 +1394,8 @@ const Dashboard = () => {
               </ExcelButton>
 
               {/* Ara Butonu */}
-              <ActionButton 
-                variant="contained" 
+              <ActionButton
+                variant="contained"
                 onClick={handleSearch}
                 startIcon={<SearchIcon />}
                 disabled={isLoading}
@@ -1181,8 +1409,8 @@ const Dashboard = () => {
 
         {/* Sonuç Alanı */}
         {searchResults ? (
-          <Box sx={{ 
-            mt: { xs: 4, sm: 5, md: 6 }, 
+          <Box sx={{
+            mt: { xs: 4, sm: 5, md: 6 },
             bgcolor: 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(10px)',
             borderRadius: { xs: '16px', sm: '20px' },
@@ -1194,11 +1422,11 @@ const Dashboard = () => {
               <Typography variant="h5" fontWeight="bold" sx={{ color: BRAND_COLORS.primary }}>
                 ✅ {searchResults.totalResults} Firma Bulundu!
               </Typography>
-              <Chip 
+              <Chip
                 label={`1 kredi kullanıldı`}
-                sx={{ 
-                  bgcolor: '#4caf50', 
-                  color: 'white', 
+                sx={{
+                  bgcolor: '#4caf50',
+                  color: 'white',
                   fontWeight: 'bold',
                   fontSize: '0.9rem'
                 }}
@@ -1206,7 +1434,7 @@ const Dashboard = () => {
             </Box>
 
             {/* Firma Tablosu - Profesyonel Responsive Data Table */}
-            <Box sx={{ 
+            <Box sx={{
               overflowX: 'auto',
               borderRadius: { xs: '12px', sm: '16px' },
               border: `1px solid ${BRAND_COLORS.primary}20`,
@@ -1229,7 +1457,7 @@ const Dashboard = () => {
               }
             }}>
               {/* Sabit Grid Sütun Yapısı - Header ve Satırlar İçin */}
-              <Box sx={{ 
+              <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 bgcolor: '#FFFFFF',
@@ -1238,7 +1466,7 @@ const Dashboard = () => {
                 minWidth: '1530px',
               }}>
                 {/* Tablo Header - Sticky & Fixed */}
-                <Box sx={{ 
+                <Box sx={{
                   display: 'grid',
                   gridTemplateColumns: '200px 250px 180px 160px 130px 130px 110px 110px 180px 180px',
                   gap: 0,
@@ -1262,9 +1490,9 @@ const Dashboard = () => {
                     'Social Media',
                     'Notes'
                   ].map((label, idx) => (
-                    <Box 
+                    <Box
                       key={idx}
-                      sx={{ 
+                      sx={{
                         p: '14px 12px',
                         fontWeight: 'bold',
                         color: BRAND_COLORS.primary,
@@ -1291,9 +1519,9 @@ const Dashboard = () => {
 
                 {/* Tablo Satırları */}
                 {searchResults.businesses.map((business, index) => (
-                  <Box 
+                  <Box
                     key={index}
-                    sx={{ 
+                    sx={{
                       display: 'grid',
                       gridTemplateColumns: '200px 250px 180px 160px 130px 130px 110px 110px 180px 180px',
                       gap: 0,
@@ -1310,7 +1538,7 @@ const Dashboard = () => {
                     }}
                   >
                     {/* Firma Adı */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1322,8 +1550,8 @@ const Dashboard = () => {
                       bgcolor: '#FFFFFF',
                       boxShadow: '2px 0 4px rgba(21, 101, 192, 0.08)'
                     }}>
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           fontWeight: 600,
                           color: BRAND_COLORS.primary,
                           fontSize: { xs: '0.75rem', sm: '0.85rem' },
@@ -1341,15 +1569,15 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Adres */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
                       borderRight: `1px solid ${BRAND_COLORS.primary}15`,
                       minHeight: '50px'
                     }}>
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: '#555',
                           fontSize: { xs: '0.75rem', sm: '0.85rem' },
                           lineHeight: 1.3,
@@ -1366,7 +1594,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Website */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1374,12 +1602,12 @@ const Dashboard = () => {
                       minHeight: '50px'
                     }}>
                       {business.website ? (
-                        <Typography 
+                        <Typography
                           component="a"
                           href={business.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          sx={{ 
+                          sx={{
                             color: '#1976d2',
                             textDecoration: 'none',
                             fontSize: { xs: '0.75rem', sm: '0.85rem' },
@@ -1399,7 +1627,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* E-mail */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1407,10 +1635,10 @@ const Dashboard = () => {
                       minHeight: '50px'
                     }}>
                       {business.email ? (
-                        <Typography 
+                        <Typography
                           component="a"
                           href={`mailto:${business.email}`}
-                          sx={{ 
+                          sx={{
                             color: '#1976d2',
                             textDecoration: 'none',
                             fontSize: { xs: '0.75rem', sm: '0.85rem' },
@@ -1430,7 +1658,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Telefon */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1438,10 +1666,10 @@ const Dashboard = () => {
                       minHeight: '50px'
                     }}>
                       {business.phone ? (
-                        <Typography 
+                        <Typography
                           component="a"
                           href={`tel:${business.phone}`}
-                          sx={{ 
+                          sx={{
                             color: '#1976d2',
                             textDecoration: 'none',
                             fontSize: { xs: '0.75rem', sm: '0.85rem' },
@@ -1460,7 +1688,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Mobil */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1468,10 +1696,10 @@ const Dashboard = () => {
                       minHeight: '50px'
                     }}>
                       {business.mobile ? (
-                        <Typography 
+                        <Typography
                           component="a"
                           href={`tel:${business.mobile}`}
-                          sx={{ 
+                          sx={{
                             color: '#1976d2',
                             textDecoration: 'none',
                             fontSize: { xs: '0.75rem', sm: '0.85rem' },
@@ -1490,7 +1718,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Şehir */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1503,7 +1731,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Ülke */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1516,7 +1744,7 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Sosyal Medya */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
@@ -1524,12 +1752,12 @@ const Dashboard = () => {
                       minHeight: '50px'
                     }}>
                       {business.socialMedia ? (
-                        <Typography 
+                        <Typography
                           component="a"
                           href={business.socialMedia}
                           target="_blank"
                           rel="noopener noreferrer"
-                          sx={{ 
+                          sx={{
                             color: '#1976d2',
                             textDecoration: 'none',
                             fontSize: { xs: '0.75rem', sm: '0.85rem' },
@@ -1549,14 +1777,14 @@ const Dashboard = () => {
                     </Box>
 
                     {/* Notlar/Yorum */}
-                    <Box sx={{ 
+                    <Box sx={{
                       p: { xs: '10px 12px', sm: '12px 14px' },
                       display: 'flex',
                       alignItems: 'center',
                       minHeight: '50px'
                     }}>
-                      <Typography 
-                        sx={{ 
+                      <Typography
+                        sx={{
                           color: '#555',
                           fontSize: { xs: '0.75rem', sm: '0.85rem' },
                           overflow: 'hidden',
@@ -1576,7 +1804,7 @@ const Dashboard = () => {
             </Box>
 
             {/* Bilgi Mesajı */}
-            <Box sx={{ 
+            <Box sx={{
               bgcolor: 'rgba(21, 101, 192, 0.05)',
               border: `1px solid ${BRAND_COLORS.primary}30`,
               borderRadius: '12px',
@@ -1590,8 +1818,9 @@ const Dashboard = () => {
             </Box>
 
             {/* Excel İndirme Butonu */}
+            {/* Excel İndirme Butonu ve Alternatif Link */}
             <Box sx={{ mt: 4, textAlign: 'center' }}>
-              <ExcelButton 
+              <ExcelButton
                 variant="contained"
                 onClick={handleExport}
                 startIcon={<DownloadIcon />}
@@ -1599,14 +1828,36 @@ const Dashboard = () => {
               >
                 📥 Excel Dosyasını İndir
               </ExcelButton>
+
+              {/* Alternatif İndirme Bağlantısı */}
+              <Box sx={{ mt: 3, p: 2, borderTop: '1px dashed #ccc' }}>
+                <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+                  {language === 'tr'
+                    ? "Buton çalışmıyor mu? Alternatif bağlantıyı deneyin:"
+                    : "Button not working? Try the alternative link:"}
+                </Typography>
+                <Button
+                  variant="text"
+                  onClick={handleExport}
+                  sx={{
+                    textDecoration: 'underline',
+                    color: BRAND_COLORS.primary,
+                    fontWeight: 'bold',
+                    '&:hover': { textDecoration: 'none', bgcolor: 'transparent' }
+                  }}
+                >
+                  {searchParams.product}_{searchParams.city}.xlsx
+                </Button>
+              </Box>
+
               <Typography variant="body2" sx={{ color: '#666', mt: 2, fontSize: '0.85rem', fontStyle: 'italic' }}>
                 💡 Tüm firma bilgilerini detaylı şekilde Excel formatında indirebilirsiniz.
               </Typography>
             </Box>
           </Box>
         ) : (
-          <Box sx={{ 
-            mt: { xs: 4, sm: 5, md: 6 }, 
+          <Box sx={{
+            mt: { xs: 4, sm: 5, md: 6 },
             textAlign: 'center',
             bgcolor: 'rgba(255, 255, 255, 0.7)',
             backdropFilter: 'blur(10px)',
@@ -1616,10 +1867,10 @@ const Dashboard = () => {
             boxShadow: '0 4px 20px rgba(21, 101, 192, 0.08)',
             transition: 'all 0.3s ease',
           }}>
-            <Box sx={{ 
-              width: { xs: 80, sm: 100, md: 120 }, 
-              height: { xs: 80, sm: 100, md: 120 }, 
-              borderRadius: '50%', 
+            <Box sx={{
+              width: { xs: 80, sm: 100, md: 120 },
+              height: { xs: 80, sm: 100, md: 120 },
+              borderRadius: '50%',
               bgcolor: 'rgba(21, 101, 192, 0.1)',
               display: 'flex',
               alignItems: 'center',
@@ -1628,31 +1879,411 @@ const Dashboard = () => {
               mb: { xs: 2, sm: 3 },
             }}>
               <SearchIcon sx={{ fontSize: { xs: 40, sm: 50, md: 60 }, color: BRAND_COLORS.primary, opacity: 0.5 }} />
+            </Box>
+
+            <Typography variant="h5" fontWeight="600" sx={{ color: BRAND_COLORS.primary, mb: 2, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
+              Henüz Arama Yapılmadı
+            </Typography>
+
+            <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: '500px', margin: '0 auto', lineHeight: 1.8, fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 2, sm: 0 } }}>
+              Kriterlerinizi yukarıdaki formu kullanarak girin ve <strong>"Firma Ara"</strong> butonuna basarak potansiyel müşterilerinizi listeleyin.
+            </Typography>
+
+            <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', gap: { xs: 1.5, sm: 2 }, justifyContent: 'center', flexWrap: 'wrap', px: { xs: 1, sm: 0 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: BRAND_COLORS.primary }}>
+                <PublicIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                <Typography variant="body2" fontWeight="500" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Global Erişim</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: BRAND_COLORS.primary }}>
+                <ShoppingBagIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                <Typography variant="body2" fontWeight="500" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Sektör Bazlı</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: BRAND_COLORS.primary }}>
+                <DownloadIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                <Typography variant="body2" fontWeight="500" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Excel İndirme</Typography>
+              </Box>
+            </Box>
           </Box>
-          
-          <Typography variant="h5" fontWeight="600" sx={{ color: BRAND_COLORS.primary, mb: 2, fontSize: { xs: '1.25rem', sm: '1.5rem' } }}>
-            Henüz Arama Yapılmadı
-          </Typography>
-          
-          <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: '500px', margin: '0 auto', lineHeight: 1.8, fontSize: { xs: '0.9rem', sm: '1rem' }, px: { xs: 2, sm: 0 } }}>
-            Kriterlerinizi yukarıdaki formu kullanarak girin ve <strong>"Firma Ara"</strong> butonuna basarak potansiyel müşterilerinizi listeleyin.
-          </Typography>
-          
-          <Box sx={{ mt: { xs: 3, sm: 4 }, display: 'flex', gap: { xs: 1.5, sm: 2 }, justifyContent: 'center', flexWrap: 'wrap', px: { xs: 1, sm: 0 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: BRAND_COLORS.primary }}>
-              <PublicIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
-              <Typography variant="body2" fontWeight="500" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Global Erişim</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: BRAND_COLORS.primary }}>
-              <ShoppingBagIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
-              <Typography variant="body2" fontWeight="500" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Sektör Bazlı</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: BRAND_COLORS.primary }}>
-              <DownloadIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
-              <Typography variant="body2" fontWeight="500" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>Excel İndirme</Typography>
-            </Box>
-          </Box>
+        )}
         </Box>
+        )}
+
+        {/* TAB 1: Pazar Analizi Paneli */}
+        {activeTab === 1 && (
+          <SearchCard elevation={3}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+              <Box sx={{ 
+                p: 2, 
+                bgcolor: 'rgba(21, 101, 192, 0.1)', 
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <TrendingUpIcon sx={{ color: BRAND_COLORS.primary, fontSize: 28 }} />
+              </Box>
+              <Box>
+                <Typography variant="h5" fontWeight="bold" sx={{ color: '#333', fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
+                  {language === 'tr' ? 'Pazar Analizi' : 'Market Analysis'}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#666', mt: 0.5 }}>
+                  {language === 'tr' 
+                    ? 'Detaylı pazar raporu oluşturun'
+                    : 'Generate detailed market reports'}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+              {/* HS Code Girişi - Autocomplete ile örnek kodlar */}
+              <Box>
+                <Typography variant="body2" fontWeight="600" sx={{ color: '#555', mb: 1 }}>
+                  {language === 'tr' ? 'HS Code (GTIP)' : 'HS Code'}
+                </Typography>
+                <Autocomplete
+                  freeSolo
+                  options={sampleHsCodes}
+                  getOptionLabel={(option) => typeof option === 'string' ? option : option.code}
+                  value={analysisFormData.hsCode}
+                  onChange={(event, newValue) => {
+                    if (typeof newValue === 'string') {
+                      setAnalysisFormData({...analysisFormData, hsCode: newValue});
+                    } else if (newValue) {
+                      setAnalysisFormData({...analysisFormData, hsCode: newValue.code});
+                    } else {
+                      setAnalysisFormData({...analysisFormData, hsCode: ''});
+                    }
+                  }}
+                  onInputChange={(event, newInputValue) => {
+                    setAnalysisFormData({...analysisFormData, hsCode: newInputValue});
+                  }}
+                  renderInput={(params) => (
+                    <StyledTextField
+                      {...params}
+                      fullWidth
+                      placeholder={language === 'tr' ? 'Örn: 87116000' : 'E.g: 87116000'}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <DescriptionIcon color="primary" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <ListItem {...props} key={typeof option === 'string' ? option : option.code}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <DescriptionIcon sx={{ color: '#1565C0', fontSize: 20 }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={typeof option === 'string' ? option : option.code}
+                        secondary={typeof option === 'string' ? '' : `${option.description} (${option.category})`}
+                        primaryTypographyProps={{ fontSize: '0.95rem', fontFamily: 'monospace', fontWeight: 600 }}
+                        secondaryTypographyProps={{ fontSize: '0.8rem', color: '#666' }}
+                      />
+                    </ListItem>
+                  )}
+                  noOptionsText={language === 'tr' ? 'HS Code girin' : 'Enter HS Code'}
+                />
+                <Typography variant="caption" sx={{ color: '#888', mt: 0.5, display: 'block' }}>
+                  {language === 'tr' ? '💡 Örnek kodlardan seçebilir veya kendiniz girebilirsiniz' : '💡 Select from examples or enter your own'}
+                </Typography>
+              </Box>
+
+              {/* Ürün İsmi */}
+              <Box>
+                <Typography variant="body2" fontWeight="600" sx={{ color: '#555', mb: 1 }}>
+                  {language === 'tr' ? 'Ürün İsmi' : 'Product Name'}
+                </Typography>
+                <StyledTextField
+                  fullWidth
+                  placeholder={language === 'tr' ? 'Örn: Elektrikli Bisiklet' : 'E.g: Electric Bicycle'}
+                  value={analysisFormData.productName}
+                  onChange={(e) => setAnalysisFormData({...analysisFormData, productName: e.target.value})}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <ShoppingBagIcon color="primary" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              {/* Hedef Ülke */}
+              {/* Hedef Ülke - Popüler ülkeler öne çıkarılmış */}
+              <Box>
+                <Typography variant="body2" fontWeight="600" sx={{ color: '#555', mb: 1 }}>
+                  {language === 'tr' ? 'Hedef Ülke' : 'Target Country'}
+                </Typography>
+                <Autocomplete
+                  options={[...popularCountries, ...countries.filter(c => !popularCountries.includes(c))]}
+                  groupBy={(option) => popularCountries.includes(option) 
+                    ? (language === 'tr' ? '⭐ Popüler Ülkeler' : '⭐ Popular Countries')
+                    : (language === 'tr' ? '🌍 Tüm Ülkeler' : '🌍 All Countries')}
+                  value={analysisFormData.targetCountry || null}
+                  onChange={(event, newValue) => {
+                    setAnalysisFormData({...analysisFormData, targetCountry: newValue || ''});
+                  }}
+                  renderInput={(params) => (
+                    <StyledTextField
+                      {...params}
+                      placeholder={language === 'tr' ? 'Ülke seçin...' : 'Select country...'}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <PublicIcon color="primary" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderGroup={(params) => (
+                    <Box key={params.key}>
+                      <Typography
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          color: '#1565C0',
+                          bgcolor: '#E3F2FD',
+                          px: 2,
+                          py: 1,
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 1
+                        }}
+                      >
+                        {params.group}
+                      </Typography>
+                      {params.children}
+                    </Box>
+                  )}
+                  noOptionsText={language === 'tr' ? 'Ülke bulunamadı' : 'Country not found'}
+                />
+              </Box>
+
+              {/* Menşei Ülke */}
+              <Box>
+                <Typography variant="body2" fontWeight="600" sx={{ color: '#555', mb: 1 }}>
+                  {language === 'tr' ? 'Menşei Ülke' : 'Origin Country'}
+                </Typography>
+                <StyledFormControl fullWidth>
+                  <Select
+                    value={analysisFormData.originCountry}
+                    onChange={(e) => setAnalysisFormData({...analysisFormData, originCountry: e.target.value})}
+                    startAdornment={
+                      <InputAdornment position="start" sx={{ ml: 1 }}>
+                        <LocationOnIcon color="action" />
+                      </InputAdornment>
+                    }
+                  >
+                    <MenuItem value="Türkiye">🇹🇷 Türkiye</MenuItem>
+                    <MenuItem value="China">🇨🇳 China</MenuItem>
+                    <MenuItem value="Germany">🇩🇪 Germany</MenuItem>
+                    <MenuItem value="USA">🇺🇸 USA</MenuItem>
+                    <MenuItem value="India">🇮🇳 India</MenuItem>
+                    <MenuItem value="Japan">🇯🇵 Japan</MenuItem>
+                    <MenuItem value="South Korea">🇰🇷 South Korea</MenuItem>
+                    <MenuItem value="Italy">🇮🇹 Italy</MenuItem>
+                    <MenuItem value="France">🇫🇷 France</MenuItem>
+                    <MenuItem value="Spain">🇪🇸 Spain</MenuItem>
+                  </Select>
+                </StyledFormControl>
+              </Box>
+            </Box>
+
+            {/* Hata Mesajı */}
+            {analysisError && (
+              <Box
+                sx={{
+                  mt: 3,
+                  p: 2.5,
+                  bgcolor: '#ffebee',
+                  borderRadius: '12px',
+                  border: '2px solid #ef5350',
+                }}
+              >
+                <Typography sx={{ color: '#c62828', fontWeight: 600 }}>
+                  {analysisError}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Loading */}
+            {analysisLoading && (
+              <Box sx={{
+                mt: 3,
+                p: 3,
+                bgcolor: 'rgba(21, 101, 192, 0.05)',
+                borderRadius: '12px',
+                textAlign: 'center',
+                border: '2px solid #42A5F5',
+              }}>
+                <CircularProgress size={40} sx={{ color: BRAND_COLORS.primary, mb: 2 }} />
+                <Typography sx={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
+                  {language === 'tr' ? '📊 Rapor Hazırlanıyor...' : '📊 Generating Report...'}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#666', mt: 1 }}>
+                  {language === 'tr' 
+                    ? 'Pazar verileri analiz ediliyor...'
+                    : 'Analyzing market data...'}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Sonuç - Detaylı Rapor Gösterimi */}
+            {analysisResult && (
+              <Box sx={{
+                mt: 3,
+                p: 3,
+                bgcolor: 'rgba(46, 125, 50, 0.05)',
+                borderRadius: '12px',
+                border: '2px solid #4caf50',
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography sx={{ color: '#2E7D32', fontWeight: 700, fontSize: '1.1rem' }}>
+                    ✅ {language === 'tr' ? 'Pazar Analizi Raporu Hazır' : 'Market Analysis Report Ready'}
+                  </Typography>
+                </Box>
+                
+                {/* Rapor İçeriği */}
+                <Box 
+                  sx={{ 
+                    bgcolor: '#fff', 
+                    borderRadius: 2, 
+                    p: 3,
+                    maxHeight: '500px',
+                    overflow: 'auto',
+                    border: '1px solid #e0e0e0',
+                    '& h1': { color: '#1565C0', borderBottom: '2px solid #e3f2fd', pb: 1, mb: 2, fontSize: '1.4rem' },
+                    '& h2': { color: '#1976D2', borderBottom: '1px solid #e3f2fd', pb: 0.5, mb: 1.5, fontSize: '1.2rem', mt: 2 },
+                    '& h3': { color: '#1E88E5', mb: 1, fontSize: '1rem', mt: 1.5 },
+                    '& p': { mb: 1, lineHeight: 1.7 },
+                    '& ul, & ol': { pl: 3, mb: 1 },
+                    '& li': { mb: 0.5 },
+                    '& strong': { color: '#1565C0' },
+                    '& table': { 
+                      width: '100%', 
+                      borderCollapse: 'collapse', 
+                      mb: 2,
+                      '& th, & td': { 
+                        border: '1px solid #e0e0e0', 
+                        p: 1, 
+                        textAlign: 'left',
+                        fontSize: '0.9rem'
+                      },
+                      '& th': { bgcolor: '#f5f5f5', fontWeight: 600 },
+                      '& tr:nth-of-type(even)': { bgcolor: '#fafafa' }
+                    }
+                  }}
+                >
+                  <div 
+                    dangerouslySetInnerHTML={{ 
+                      __html: analysisResult
+                        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/^- (.+)$/gm, '<li>$1</li>')
+                        .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+                        .replace(/((<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>')
+                        .replace(/\n\n/g, '</p><p>')
+                        .replace(/\n/g, '<br/>')
+                        .replace(/^(.+)$/gm, (match) => {
+                          if (match.startsWith('<')) return match;
+                          return `<p>${match}</p>`;
+                        })
+                    }} 
+                  />
+                </Box>
+
+                {/* PDF İndirme Butonu */}
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleDownloadPDF}
+                    disabled={pdfDownloading}
+                    startIcon={pdfDownloading ? <CircularProgress size={20} color="inherit" /> : <DownloadIcon />}
+                    sx={{
+                      bgcolor: '#D32F2F',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      borderRadius: '12px',
+                      px: 4,
+                      py: 1.5,
+                      textTransform: 'none',
+                      boxShadow: '0 4px 12px rgba(211, 47, 47, 0.3)',
+                      '&:hover': {
+                        bgcolor: '#B71C1C',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 6px 16px rgba(211, 47, 47, 0.4)',
+                      },
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    {pdfDownloading 
+                      ? (language === 'tr' ? 'PDF Hazırlanıyor...' : 'Preparing PDF...') 
+                      : (language === 'tr' ? '📄 PDF Olarak İndir' : '📄 Download as PDF')}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            {/* Buton */}
+            <Button
+              onClick={handleGenerateAnalysis}
+              disabled={analysisLoading}
+              fullWidth
+              sx={{
+                mt: 4,
+                py: 2,
+                borderRadius: '12px',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                textTransform: 'none',
+                background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)',
+                color: '#fff',
+                boxShadow: '0 4px 15px rgba(21, 101, 192, 0.4)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 50%, #1976D2 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(21, 101, 192, 0.5)',
+                },
+                '&:disabled': {
+                  background: '#ccc',
+                  color: '#999',
+                },
+                transition: 'all 0.3s ease',
+              }}
+            >
+              {analysisLoading ? (
+                <>
+                  <CircularProgress size={20} sx={{ color: '#fff', mr: 1 }} />
+                  {language === 'tr' ? 'Rapor Hazırlanıyor...' : 'Generating Report...'}
+                </>
+              ) : (
+                <>
+                  <DescriptionIcon sx={{ mr: 1 }} />
+                  {language === 'tr' ? 'Detaylı Pazar Analizi Oluştur (PDF)' : 'Generate Detailed Market Analysis (PDF)'}
+                </>
+              )}
+            </Button>
+
+            <Typography sx={{ mt: 3, textAlign: 'center', fontSize: '0.85rem', color: '#999', fontStyle: 'italic' }}>
+              * {language === 'tr' 
+                ? 'Bu analiz güncel ticaret verileri kullanılarak hazırlanmaktadır.'
+                : 'This analysis is prepared using current trade data.'}
+            </Typography>
+          </SearchCard>
         )}
 
       </Container>
@@ -1742,11 +2373,11 @@ const Dashboard = () => {
               ) : (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {/* Özet Bilgi */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    gap: 2, 
+                  <Box sx={{
+                    display: 'flex',
+                    gap: 2,
                     flexWrap: 'wrap',
-                    mb: 1 
+                    mb: 1
                   }}>
                     <Chip
                       icon={<SearchIcon />}
@@ -1805,21 +2436,21 @@ const Dashboard = () => {
                               </Typography>
                             </Box>
                           </Box>
-                          
+
                           {/* Alt Bilgiler */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                             {/* Tarih */}
                             <Typography variant="caption" sx={{ color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               📅 {formatDate(job.createdAt)}
                             </Typography>
-                            
+
                             {/* Sonuç Sayısı */}
                             {job.totalResults > 0 && (
                               <Typography variant="caption" sx={{ color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <BusinessIcon sx={{ fontSize: 14 }} /> {job.totalResults} {t('dashboard.history.results')}
                               </Typography>
                             )}
-                            
+
                             {/* Dil */}
                             {job.language && (
                               <Typography variant="caption" sx={{ color: '#888', display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -1835,7 +2466,7 @@ const Dashboard = () => {
                           <Chip
                             icon={getStatusIcon(job.status)}
                             label={
-                              job.status.toLowerCase() === 'completed' 
+                              job.status.toLowerCase() === 'completed'
                                 ? t('dashboard.history.completed')
                                 : job.status.toLowerCase() === 'pending' || job.status.toLowerCase() === 'processing'
                                   ? t('dashboard.history.pending')
@@ -1875,8 +2506,8 @@ const Dashboard = () => {
                                 fontSize: { xs: '0.75rem', sm: '0.8rem' },
                               }}
                             >
-                              {downloadingJobId === job.jobId 
-                                ? (language === 'tr' ? 'İndiriliyor...' : 'Downloading...') 
+                              {downloadingJobId === job.jobId
+                                ? (language === 'tr' ? 'İndiriliyor...' : 'Downloading...')
                                 : t('dashboard.history.download')
                               }
                             </Button>
