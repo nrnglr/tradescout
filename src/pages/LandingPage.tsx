@@ -28,7 +28,8 @@ import {
   FormControl,
   InputLabel,
   Snackbar,
-  Alert
+  Alert,
+  Badge
 } from '@mui/material';
 
 import BusinessIcon from '@mui/icons-material/Business';
@@ -50,12 +51,15 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 // Iyzico ödeme logoları (beyaz versiyonlar)
 import payWithIyzicoWhite from '../assent/pay_with_iyzico_white.png';
 import cardLogosWhite from '../assent/logo_band_white@2x.png';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useCart } from '../context/CartContext';
 
 // --- STİL TANIMLAMALARI ---
 
@@ -314,6 +318,7 @@ const SubmitButton = styled(Button)({
 const LandingPage = () => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
+  const { addToCart, openCart, itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('');
   const [fullName, setFullName] = useState('');
@@ -324,6 +329,68 @@ const LandingPage = () => {
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [feedbackError, setFeedbackError] = useState('');
+
+  // Paket bilgileri
+  const packages = {
+    starter: {
+      id: 'starter',
+      name: t('packages.starter.name'),
+      price: 15,
+      yearlyPrice: 99,
+      searchLimit: t('packages.starter.searchLimit'),
+      features: [
+        t('packages.starter.feature1'),
+        t('packages.starter.feature2'),
+        t('packages.starter.feature3'),
+        t('packages.starter.feature4'),
+        t('packages.starter.feature5'),
+        t('packages.starter.feature6'),
+        t('packages.starter.feature7'),
+        t('packages.starter.feature8'),
+      ]
+    },
+    professional: {
+      id: 'professional',
+      name: t('packages.professional.name'),
+      price: 39,
+      yearlyPrice: 299,
+      searchLimit: t('packages.professional.searchLimit'),
+      features: [
+        t('packages.professional.feature1'),
+        t('packages.professional.feature2'),
+        t('packages.professional.feature3'),
+        t('packages.professional.feature4'),
+        t('packages.professional.feature5'),
+      ]
+    },
+    enterprise: {
+      id: 'enterprise',
+      name: t('packages.enterprise.name'),
+      price: 79,
+      yearlyPrice: 599,
+      searchLimit: t('packages.enterprise.searchLimit'),
+      features: [
+        t('packages.enterprise.feature1'),
+        t('packages.enterprise.feature2'),
+        t('packages.enterprise.feature3'),
+        t('packages.enterprise.feature4'),
+        t('packages.enterprise.feature5'),
+      ]
+    }
+  };
+
+  const handleAddToCart = (packageType: 'starter' | 'professional' | 'enterprise') => {
+    const pkg = packages[packageType];
+    addToCart({
+      id: pkg.id,
+      name: pkg.name,
+      price: pkg.price,
+      yearlyPrice: pkg.yearlyPrice,
+      period: 'monthly',
+      searchLimit: pkg.searchLimit,
+      features: pkg.features
+    });
+  };
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -532,6 +599,20 @@ const LandingPage = () => {
               </ToggleButtonGroup>
             </Box>
 
+            {/* Sepet Butonu (Desktop) */}
+            <IconButton
+              onClick={openCart}
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                color: '#FFFFFF',
+                ml: 1,
+              }}
+            >
+              <Badge badgeContent={itemCount} color="error">
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
+
             {/* Giriş Yap Butonu (Desktop) */}
             <LoginButton 
               onClick={() => navigate('/login')}
@@ -705,6 +786,33 @@ const LandingPage = () => {
 
         {/* Alt Butonlar */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Sepet Butonu (Mobil) */}
+          <Button
+            variant="outlined"
+            fullWidth
+            startIcon={
+              <Badge badgeContent={itemCount} color="error">
+                <ShoppingCartIcon />
+              </Badge>
+            }
+            onClick={() => { openCart(); setMobileMenuOpen(false); }}
+            sx={{
+              borderColor: '#FFFFFF',
+              color: '#FFFFFF',
+              borderRadius: '12px',
+              py: 1.5,
+              fontWeight: 'bold',
+              fontSize: '1rem',
+              textTransform: 'none',
+              '&:hover': {
+                borderColor: '#E3F2FD',
+                bgcolor: 'rgba(255,255,255,0.1)',
+              },
+            }}
+          >
+            {language === 'tr' ? 'Sepetim' : 'My Cart'}
+          </Button>
+          
           <Button
             variant="contained"
             fullWidth
@@ -1038,36 +1146,67 @@ const LandingPage = () => {
                     </Typography>
                   </Box>
                   <List sx={{ flexGrow: 1 }}>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.starter.searchLimit')} primaryTypographyProps={{ fontWeight: 'bold' }} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature1')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature2')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature3')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature4')} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.starter.feature5')} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.starter.feature6')} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.starter.feature7')} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.starter.feature8')} />
                     </ListItem>
                   </List>
                   <Button
                     variant="outlined"
                     fullWidth
                     size="large"
-                    onClick={() => navigate('/login')}
+                    startIcon={<AddShoppingCartIcon />}
+                    onClick={() => handleAddToCart('starter')}
                     sx={{
                       mt: 3,
                       borderColor: '#1565C0',
@@ -1083,7 +1222,7 @@ const LandingPage = () => {
                       },
                     }}
                   >
-                    {t('packages.startNow')}
+                    {t('packages.addToCart')}
                   </Button>
                 </CardContent>
               </FeatureCard>
@@ -1135,31 +1274,37 @@ const LandingPage = () => {
                     </Typography>
                   </Box>
                   <List sx={{ flexGrow: 1 }}>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.professional.searchLimit')} primaryTypographyProps={{ fontWeight: 'bold' }} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature1')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature2')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature3')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature4')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
@@ -1170,7 +1315,8 @@ const LandingPage = () => {
                     variant="contained"
                     fullWidth
                     size="large"
-                    onClick={() => navigate('/login')}
+                    startIcon={<AddShoppingCartIcon />}
+                    onClick={() => handleAddToCart('professional')}
                     sx={{
                       mt: 3,
                       bgcolor: '#1565C0',
@@ -1185,7 +1331,7 @@ const LandingPage = () => {
                       },
                     }}
                   >
-                    {t('packages.startNow')}
+                    {t('packages.addToCart')}
                   </Button>
                 </CardContent>
               </FeatureCard>
@@ -1213,48 +1359,49 @@ const LandingPage = () => {
                     </Typography>
                   </Box>
                   <List sx={{ flexGrow: 1 }}>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
+                      </ListItemIcon>
+                      <ListItemText primary={t('packages.enterprise.searchLimit')} primaryTypographyProps={{ fontWeight: 'bold' }} />
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature1')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature2')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature3')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature4')} />
                     </ListItem>
-                    <ListItem sx={{ px: 0 }}>
+                    <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <CheckCircleIcon sx={{ color: '#1565C0' }} />
                       </ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature5')} />
-                    </ListItem>
-                    <ListItem sx={{ px: 0 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
-                      <ListItemText primary={t('packages.enterprise.feature6')} />
                     </ListItem>
                   </List>
                   <Button
                     variant="outlined"
                     fullWidth
                     size="large"
-                    onClick={() => navigate('/login')}
+                    startIcon={<AddShoppingCartIcon />}
+                    onClick={() => handleAddToCart('enterprise')}
                     sx={{
                       mt: 3,
                       borderColor: '#1565C0',
@@ -1270,7 +1417,7 @@ const LandingPage = () => {
                       },
                     }}
                   >
-                    {t('packages.startNow')}
+                    {t('packages.addToCart')}
                   </Button>
                 </CardContent>
               </FeatureCard>
@@ -1567,8 +1714,90 @@ const LandingPage = () => {
             </Box>
           </Box>
 
-          {/* Alt kısım - Copyright ve Güvenli Ödeme */}
+          {/* Alt kısım - Yasal Linkler, Copyright ve Güvenli Ödeme */}
           <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', my: 2 }} />
+          
+          {/* Yasal Linkler */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: { xs: 1.5, md: 3 },
+            mb: 2
+          }}>
+            <Typography 
+              component="a" 
+              href="#about" 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.8, 
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'inherit',
+                '&:hover': { opacity: 1, textDecoration: 'underline' }
+              }}
+            >
+              {t('footer.about')}
+            </Typography>
+            <Typography 
+              component="a" 
+              href="#privacy" 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.8, 
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'inherit',
+                '&:hover': { opacity: 1, textDecoration: 'underline' }
+              }}
+            >
+              {t('footer.privacy')}
+            </Typography>
+            <Typography 
+              component="a" 
+              href="#terms" 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.8, 
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'inherit',
+                '&:hover': { opacity: 1, textDecoration: 'underline' }
+              }}
+            >
+              {t('footer.terms')}
+            </Typography>
+            <Typography 
+              component="a" 
+              href="#refund" 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.8, 
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'inherit',
+                '&:hover': { opacity: 1, textDecoration: 'underline' }
+              }}
+            >
+              {t('footer.refund')}
+            </Typography>
+            <Typography 
+              component="a" 
+              href="#distance-sales" 
+              variant="body2" 
+              sx={{ 
+                opacity: 0.8, 
+                cursor: 'pointer',
+                textDecoration: 'none',
+                color: 'inherit',
+                '&:hover': { opacity: 1, textDecoration: 'underline' }
+              }}
+            >
+              {t('footer.distanceSales')}
+            </Typography>
+          </Box>
+          
+          {/* Copyright ve Güvenli Ödeme */}
           <Box sx={{ 
             display: 'flex', 
             flexDirection: { xs: 'column', md: 'row' },

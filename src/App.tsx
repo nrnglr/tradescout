@@ -5,24 +5,30 @@ import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard'; // Dashboard import
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { CartProvider } from './context/CartContext';
+import CartDrawer from './components/CartDrawer';
+
 function App() {
   return (
     <GoogleOAuthProvider clientId="409416631532-mu8gjhj2cv08mvuriqonb714av36crcg.apps.googleusercontent.com">
-      <Router>
-        <Routes>
-          {/* Ana Sayfa (Landing Page) - Site açılınca burası gelecek */}
-          <Route path="/" element={<LandingPage />} />
+      <CartProvider>
+        <Router>
+          <Routes>
+            {/* Ana Sayfa (Landing Page) - Site açılınca burası gelecek */}
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Login Sayfası - Butona basınca buraya gidecek */}
-          <Route path="/login" element={<Login />} />
-        
-        {/* Kayıt Ol Sayfası */}
-        <Route path="/register" element={<Register />} />
-        
-        {/* Dashboard - Kullanıcı giriş yaptıktan sonra */}
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </Router>
+            {/* Login Sayfası - Butona basınca buraya gidecek */}
+            <Route path="/login" element={<Login />} />
+          
+            {/* Kayıt Ol Sayfası */}
+            <Route path="/register" element={<Register />} />
+          
+            {/* Dashboard - Kullanıcı giriş yaptıktan sonra */}
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Routes>
+          <CartDrawer />
+        </Router>
+      </CartProvider>
     </GoogleOAuthProvider>
   );
 }
