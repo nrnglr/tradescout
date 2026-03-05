@@ -2,6 +2,9 @@
 
 export const translations = {
   tr: {
+    // Genel
+    back: "Geri",
+    
     // Navbar
     navbar: {
       features: "Özellikler",
@@ -274,6 +277,9 @@ export const translations = {
   },
   
   en: {
+    // General
+    back: "Back",
+    
     // Navbar
     navbar: {
       features: "Features",

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'; // Dashboard import
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/CartDrawer';
+import { ReturnPolicy, Privacy, SalesAgreement, About, TermsOfUse } from './pages/Terms';
 
 function App() {
   return (
@@ -25,6 +26,13 @@ function App() {
           
             {/* Dashboard - Kullanıcı giriş yaptıktan sonra */}
             <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* Yasal Sayfalar */}
+            <Route path="/iade-politikasi" element={<ReturnPolicy />} />
+            <Route path="/gizlilik" element={<Privacy />} />
+            <Route path="/mesafeli-satis" element={<SalesAgreement />} />
+            <Route path="/hakkimizda" element={<About />} />
+            <Route path="/kullanim-sartlari" element={<TermsOfUse />} />
           </Routes>
           <CartDrawer />
         </Router>

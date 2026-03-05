@@ -1,5 +1,5 @@
 {
-  "short_name": "FGS",
+  "short_name": "FGS Trade",
   "name": "FGS Trade - Ticari İstihbarat Platformu",
   "icons": [
     {
@@ -8,9 +8,10 @@
       "type": "image/png"
     },
     {
-      "src": "logo192.png",
+      "src": "fgs-logo.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",

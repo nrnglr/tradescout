@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Drawer,
   Box,
@@ -13,6 +13,9 @@ import {
   Chip,
   ToggleButton,
   ToggleButtonGroup,
+  Checkbox,
+  FormControlLabel,
+  Link as MuiLink,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,6 +23,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PaymentIcon from '@mui/icons-material/Payment';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../i18n/LanguageContext';
+import { Link } from 'react-router-dom';
 
 const CartDrawer: React.FC = () => {
   const { 
@@ -33,6 +37,13 @@ const CartDrawer: React.FC = () => {
     setBillingPeriod
   } = useCart();
   const { language } = useLanguage();
+  
+  // Sözleşme onay durumları
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
+  const [salesAccepted, setSalesAccepted] = useState(false);
+
+  const allAccepted = termsAccepted && privacyAccepted && salesAccepted;
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
@@ -50,6 +61,11 @@ const CartDrawer: React.FC = () => {
         perMonth: '/ay',
         perYear: '/yıl',
         savePercent: '%45 tasarruf',
+        termsLabel: 'Kullanım Şartları',
+        privacyLabel: 'Gizlilik Sözleşmesi',
+        salesLabel: 'Mesafeli Satış Sözleşmesi',
+        readAndAccept: 'okudum ve kabul ediyorum',
+        acceptRequired: 'Devam etmek için tüm sözleşmeleri onaylayın',
       },
       en: {
         cartTitle: 'My Cart',
@@ -65,6 +81,11 @@ const CartDrawer: React.FC = () => {
         perMonth: '/month',
         perYear: '/year',
         savePercent: 'Save 45%',
+        termsLabel: 'Terms of Use',
+        privacyLabel: 'Privacy Policy',
+        salesLabel: 'Distance Sales Agreement',
+        readAndAccept: 'I have read and accept',
+        acceptRequired: 'Please accept all agreements to continue',
       }
     };
     return translations[language]?.[key] || key;
@@ -228,6 +249,91 @@ const CartDrawer: React.FC = () => {
               ${totalPrice}{billingPeriod === 'yearly' ? t('perYear') : t('perMonth')}
             </Typography>
           </Box>
+
+          {/* Sözleşme Onayları */}
+          <Box sx={{ 
+            bgcolor: '#f5f5f5', 
+            borderRadius: 2, 
+            p: 1.5, 
+            mb: 2,
+            border: !allAccepted ? '1px solid #ffb74d' : '1px solid #4caf50'
+          }}>
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={termsAccepted} 
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  size="small"
+                  sx={{ color: '#1565C0', '&.Mui-checked': { color: '#1565C0' } }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                  <Link 
+                    to="/kullanim-sartlari" 
+                    onClick={closeCart}
+                    style={{ color: '#1565C0', fontWeight: 'bold' }}
+                  >
+                    {t('termsLabel')}
+                  </Link>
+                  {language === 'tr' ? "'nı " : " "}{t('readAndAccept')}
+                </Typography>
+              }
+              sx={{ m: 0, width: '100%' }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={privacyAccepted} 
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  size="small"
+                  sx={{ color: '#1565C0', '&.Mui-checked': { color: '#1565C0' } }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                  <Link 
+                    to="/gizlilik" 
+                    onClick={closeCart}
+                    style={{ color: '#1565C0', fontWeight: 'bold' }}
+                  >
+                    {t('privacyLabel')}
+                  </Link>
+                  {language === 'tr' ? "'ni " : " "}{t('readAndAccept')}
+                </Typography>
+              }
+              sx={{ m: 0, width: '100%' }}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={salesAccepted} 
+                  onChange={(e) => setSalesAccepted(e.target.checked)}
+                  size="small"
+                  sx={{ color: '#1565C0', '&.Mui-checked': { color: '#1565C0' } }}
+                />
+              }
+              label={
+                <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                  <Link 
+                    to="/mesafeli-satis" 
+                    onClick={closeCart}
+                    style={{ color: '#1565C0', fontWeight: 'bold' }}
+                  >
+                    {t('salesLabel')}
+                  </Link>
+                  {language === 'tr' ? "'ni " : " "}{t('readAndAccept')}
+                </Typography>
+              }
+              sx={{ m: 0, width: '100%' }}
+            />
+          </Box>
+
+          {!allAccepted && (
+            <Typography variant="caption" color="warning.main" sx={{ display: 'block', textAlign: 'center', mb: 1 }}>
+              ⚠️ {t('acceptRequired')}
+            </Typography>
+          )}
           
           <Button
             variant="contained"
@@ -235,18 +341,23 @@ const CartDrawer: React.FC = () => {
             size="large"
             startIcon={<PaymentIcon />}
             onClick={handleCheckout}
+            disabled={!allAccepted}
             sx={{
-              bgcolor: '#1565C0',
+              bgcolor: allAccepted ? '#1565C0' : '#bdbdbd',
               py: 1.5,
               borderRadius: 2,
               fontWeight: 'bold',
               fontSize: '1rem',
-              boxShadow: '0 4px 12px rgba(21, 101, 192, 0.4)',
+              boxShadow: allAccepted ? '0 4px 12px rgba(21, 101, 192, 0.4)' : 'none',
               '&:hover': {
-                bgcolor: '#0D47A1',
-                transform: 'translateY(-2px)',
-                boxShadow: '0 6px 16px rgba(21, 101, 192, 0.5)',
+                bgcolor: allAccepted ? '#0D47A1' : '#bdbdbd',
+                transform: allAccepted ? 'translateY(-2px)' : 'none',
+                boxShadow: allAccepted ? '0 6px 16px rgba(21, 101, 192, 0.5)' : 'none',
               },
+              '&.Mui-disabled': {
+                bgcolor: '#e0e0e0',
+                color: '#9e9e9e',
+              }
             }}
           >
             {t('checkout')}

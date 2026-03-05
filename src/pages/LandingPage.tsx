@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
   Box,
@@ -1725,76 +1725,71 @@ const LandingPage = () => {
             gap: { xs: 1.5, md: 3 },
             mb: 2
           }}>
-            <Typography 
-              component="a" 
-              href="#about" 
-              variant="body2" 
-              sx={{ 
+            <Link 
+              to="/hakkimizda" 
+              style={{ 
                 opacity: 0.8, 
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { opacity: 1, textDecoration: 'underline' }
               }}
             >
-              {t('footer.about')}
-            </Typography>
-            <Typography 
-              component="a" 
-              href="#privacy" 
-              variant="body2" 
-              sx={{ 
+              <Typography variant="body2" sx={{ '&:hover': { opacity: 1, textDecoration: 'underline' } }}>
+                {t('footer.about')}
+              </Typography>
+            </Link>
+            <Link 
+              to="/gizlilik" 
+              style={{ 
                 opacity: 0.8, 
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { opacity: 1, textDecoration: 'underline' }
               }}
             >
-              {t('footer.privacy')}
-            </Typography>
-            <Typography 
-              component="a" 
-              href="#terms" 
-              variant="body2" 
-              sx={{ 
+              <Typography variant="body2" sx={{ '&:hover': { opacity: 1, textDecoration: 'underline' } }}>
+                {t('footer.privacy')}
+              </Typography>
+            </Link>
+            <Link 
+              to="/kullanim-sartlari" 
+              style={{ 
                 opacity: 0.8, 
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { opacity: 1, textDecoration: 'underline' }
               }}
             >
-              {t('footer.terms')}
-            </Typography>
-            <Typography 
-              component="a" 
-              href="#refund" 
-              variant="body2" 
-              sx={{ 
+              <Typography variant="body2" sx={{ '&:hover': { opacity: 1, textDecoration: 'underline' } }}>
+                {t('footer.terms')}
+              </Typography>
+            </Link>
+            <Link 
+              to="/iade-politikasi" 
+              style={{ 
                 opacity: 0.8, 
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { opacity: 1, textDecoration: 'underline' }
               }}
             >
-              {t('footer.refund')}
-            </Typography>
-            <Typography 
-              component="a" 
-              href="#distance-sales" 
-              variant="body2" 
-              sx={{ 
+              <Typography variant="body2" sx={{ '&:hover': { opacity: 1, textDecoration: 'underline' } }}>
+                {t('footer.refund')}
+              </Typography>
+            </Link>
+            <Link 
+              to="/mesafeli-satis" 
+              style={{ 
                 opacity: 0.8, 
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
-                '&:hover': { opacity: 1, textDecoration: 'underline' }
               }}
             >
-              {t('footer.distanceSales')}
-            </Typography>
+              <Typography variant="body2" sx={{ '&:hover': { opacity: 1, textDecoration: 'underline' } }}>
+                {t('footer.distanceSales')}
+              </Typography>
+            </Link>
           </Box>
           
           {/* Copyright ve Güvenli Ödeme */}
