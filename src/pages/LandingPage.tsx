@@ -52,6 +52,9 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
+// Iyzico ödeme logoları (beyaz versiyonlar)
+import payWithIyzicoWhite from '../assent/pay_with_iyzico_white.png';
+import cardLogosWhite from '../assent/logo_band_white@2x.png';
 import { useLanguage } from '../i18n/LanguageContext';
 
 // --- STİL TANIMLAMALARI ---
@@ -1517,7 +1520,8 @@ const LandingPage = () => {
       {/* --- FOOTER --- */}
       <Footer>
         <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
-          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
+            {/* Sol taraf - FGS TRADE Logo ve Tagline */}
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <Box 
@@ -1537,11 +1541,50 @@ const LandingPage = () => {
                 {t('footer.tagline')}
               </Typography>
             </Box>
-            <Box sx={{ flex: 1, minWidth: '200px', textAlign: { md: 'right' } }}>
-              <Typography variant="body2" sx={{ opacity: 0.6 }}>
-                © 2026 FGS TRADE. {t('footer.rights')}
-              </Typography>
+            
+            {/* Sağ taraf - Iyzico Logoları (FGS TRADE ile aynı hizada) */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: { xs: 'center', md: 'flex-end' } }}>
+              <Box 
+                component="img"
+                src={payWithIyzicoWhite}
+                alt="Pay with Iyzico"
+                sx={{ 
+                  height: { xs: 40, sm: 50, md: 55 }, 
+                  width: 'auto',
+                  objectFit: 'contain',
+                }}
+              />
+              <Box 
+                component="img"
+                src={cardLogosWhite}
+                alt="Desteklenen Kartlar - Visa, Mastercard, American Express, Troy"
+                sx={{ 
+                  height: { xs: 24, sm: 30, md: 35 }, 
+                  width: 'auto',
+                  objectFit: 'contain',
+                }}
+              />
             </Box>
+          </Box>
+
+          {/* Alt kısım - Copyright ve Güvenli Ödeme */}
+          <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', my: 2 }} />
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 1
+          }}>
+            {/* Sol - Copyright */}
+            <Typography variant="body2" sx={{ opacity: 0.6 }}>
+              © 2026 FGS TRADE. {t('footer.rights')}
+            </Typography>
+            
+            {/* Sağ - Güvenli Ödeme */}
+            <Typography variant="body2" sx={{ opacity: 0.7, fontSize: '0.85rem' }}>
+              🔒 {language === 'tr' ? 'Güvenli ödeme altyapısı' : 'Secure payment infrastructure'} - SSL 256-bit
+            </Typography>
           </Box>
         </Container>
       </Footer>
