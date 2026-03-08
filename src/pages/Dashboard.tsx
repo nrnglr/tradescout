@@ -103,6 +103,151 @@ const ALL_LANGUAGES = [
   { code: 'ms', name: 'Malay', native: 'Bahasa Melayu' },
 ];
 
+// Tüm Dünya Ülkeleri Listesi (Bayraklı)
+const ALL_COUNTRIES = [
+  // Popüler Ülkeler (En Üstte)
+  { name: 'Türkiye', flag: '🇹🇷', popular: true },
+  { name: 'Germany', flag: '🇩🇪', popular: true },
+  { name: 'USA', flag: '🇺🇸', popular: true },
+  { name: 'China', flag: '🇨🇳', popular: true },
+  { name: 'United Kingdom', flag: '🇬🇧', popular: true },
+  { name: 'France', flag: '🇫🇷', popular: true },
+  { name: 'Italy', flag: '🇮🇹', popular: true },
+  { name: 'Netherlands', flag: '🇳🇱', popular: true },
+  { name: 'Spain', flag: '🇪🇸', popular: true },
+  { name: 'Russia', flag: '🇷🇺', popular: true },
+  { name: 'Japan', flag: '🇯🇵', popular: true },
+  { name: 'South Korea', flag: '🇰🇷', popular: true },
+  { name: 'India', flag: '🇮🇳', popular: true },
+  { name: 'Brazil', flag: '🇧🇷', popular: true },
+  { name: 'UAE', flag: '🇦🇪', popular: true },
+  
+  // Avrupa
+  { name: 'Austria', flag: '🇦🇹', popular: false },
+  { name: 'Belgium', flag: '🇧🇪', popular: false },
+  { name: 'Bulgaria', flag: '🇧🇬', popular: false },
+  { name: 'Croatia', flag: '🇭🇷', popular: false },
+  { name: 'Czech Republic', flag: '🇨🇿', popular: false },
+  { name: 'Denmark', flag: '🇩🇰', popular: false },
+  { name: 'Finland', flag: '🇫🇮', popular: false },
+  { name: 'Greece', flag: '🇬🇷', popular: false },
+  { name: 'Hungary', flag: '🇭🇺', popular: false },
+  { name: 'Ireland', flag: '🇮🇪', popular: false },
+  { name: 'Norway', flag: '🇳🇴', popular: false },
+  { name: 'Poland', flag: '🇵🇱', popular: false },
+  { name: 'Portugal', flag: '🇵🇹', popular: false },
+  { name: 'Romania', flag: '🇷🇴', popular: false },
+  { name: 'Serbia', flag: '🇷🇸', popular: false },
+  { name: 'Slovakia', flag: '🇸🇰', popular: false },
+  { name: 'Slovenia', flag: '🇸🇮', popular: false },
+  { name: 'Sweden', flag: '🇸🇪', popular: false },
+  { name: 'Switzerland', flag: '🇨🇭', popular: false },
+  { name: 'Ukraine', flag: '🇺🇦', popular: false },
+  { name: 'Belarus', flag: '🇧🇾', popular: false },
+  { name: 'Moldova', flag: '🇲🇩', popular: false },
+  { name: 'Albania', flag: '🇦🇱', popular: false },
+  { name: 'Bosnia and Herzegovina', flag: '🇧🇦', popular: false },
+  { name: 'North Macedonia', flag: '🇲🇰', popular: false },
+  { name: 'Montenegro', flag: '🇲🇪', popular: false },
+  { name: 'Kosovo', flag: '🇽🇰', popular: false },
+  { name: 'Iceland', flag: '🇮🇸', popular: false },
+  { name: 'Luxembourg', flag: '🇱🇺', popular: false },
+  { name: 'Malta', flag: '🇲🇹', popular: false },
+  { name: 'Cyprus', flag: '🇨🇾', popular: false },
+  { name: 'Estonia', flag: '🇪🇪', popular: false },
+  { name: 'Latvia', flag: '🇱🇻', popular: false },
+  { name: 'Lithuania', flag: '🇱🇹', popular: false },
+  
+  // Asya
+  { name: 'Taiwan', flag: '🇹🇼', popular: false },
+  { name: 'Hong Kong', flag: '🇭🇰', popular: false },
+  { name: 'Singapore', flag: '🇸🇬', popular: false },
+  { name: 'Malaysia', flag: '🇲🇾', popular: false },
+  { name: 'Thailand', flag: '🇹🇭', popular: false },
+  { name: 'Vietnam', flag: '🇻🇳', popular: false },
+  { name: 'Indonesia', flag: '🇮🇩', popular: false },
+  { name: 'Philippines', flag: '🇵🇭', popular: false },
+  { name: 'Pakistan', flag: '🇵🇰', popular: false },
+  { name: 'Bangladesh', flag: '🇧🇩', popular: false },
+  { name: 'Sri Lanka', flag: '🇱🇰', popular: false },
+  { name: 'Nepal', flag: '🇳🇵', popular: false },
+  { name: 'Myanmar', flag: '🇲🇲', popular: false },
+  { name: 'Cambodia', flag: '🇰🇭', popular: false },
+  { name: 'Kazakhstan', flag: '🇰🇿', popular: false },
+  { name: 'Uzbekistan', flag: '🇺🇿', popular: false },
+  { name: 'Azerbaijan', flag: '🇦🇿', popular: false },
+  { name: 'Georgia', flag: '🇬🇪', popular: false },
+  { name: 'Armenia', flag: '🇦🇲', popular: false },
+  { name: 'Mongolia', flag: '🇲🇳', popular: false },
+  { name: 'Afghanistan', flag: '🇦🇫', popular: false },
+  
+  // Orta Doğu
+  { name: 'Saudi Arabia', flag: '🇸🇦', popular: false },
+  { name: 'Qatar', flag: '🇶🇦', popular: false },
+  { name: 'Kuwait', flag: '🇰🇼', popular: false },
+  { name: 'Bahrain', flag: '🇧🇭', popular: false },
+  { name: 'Oman', flag: '🇴🇲', popular: false },
+  { name: 'Jordan', flag: '🇯🇴', popular: false },
+  { name: 'Lebanon', flag: '🇱🇧', popular: false },
+  { name: 'Iraq', flag: '🇮🇶', popular: false },
+  { name: 'Iran', flag: '🇮🇷', popular: false },
+  { name: 'Israel', flag: '🇮🇱', popular: false },
+  { name: 'Palestine', flag: '🇵🇸', popular: false },
+  { name: 'Syria', flag: '🇸🇾', popular: false },
+  { name: 'Yemen', flag: '🇾🇪', popular: false },
+  
+  // Afrika
+  { name: 'Egypt', flag: '🇪🇬', popular: false },
+  { name: 'South Africa', flag: '🇿🇦', popular: false },
+  { name: 'Morocco', flag: '🇲🇦', popular: false },
+  { name: 'Algeria', flag: '🇩🇿', popular: false },
+  { name: 'Tunisia', flag: '🇹🇳', popular: false },
+  { name: 'Libya', flag: '🇱🇾', popular: false },
+  { name: 'Nigeria', flag: '🇳🇬', popular: false },
+  { name: 'Kenya', flag: '🇰🇪', popular: false },
+  { name: 'Ethiopia', flag: '🇪🇹', popular: false },
+  { name: 'Ghana', flag: '🇬🇭', popular: false },
+  { name: 'Tanzania', flag: '🇹🇿', popular: false },
+  { name: 'Uganda', flag: '🇺🇬', popular: false },
+  { name: 'Sudan', flag: '🇸🇩', popular: false },
+  { name: 'Senegal', flag: '🇸🇳', popular: false },
+  { name: 'Ivory Coast', flag: '🇨🇮', popular: false },
+  { name: 'Cameroon', flag: '🇨🇲', popular: false },
+  { name: 'Angola', flag: '🇦🇴', popular: false },
+  { name: 'Mozambique', flag: '🇲🇿', popular: false },
+  { name: 'Zimbabwe', flag: '🇿🇼', popular: false },
+  { name: 'Zambia', flag: '🇿🇲', popular: false },
+  { name: 'Rwanda', flag: '🇷🇼', popular: false },
+  { name: 'DR Congo', flag: '🇨🇩', popular: false },
+  
+  // Amerika
+  { name: 'Canada', flag: '🇨🇦', popular: false },
+  { name: 'Mexico', flag: '🇲🇽', popular: false },
+  { name: 'Argentina', flag: '🇦🇷', popular: false },
+  { name: 'Chile', flag: '🇨🇱', popular: false },
+  { name: 'Colombia', flag: '🇨🇴', popular: false },
+  { name: 'Peru', flag: '🇵🇪', popular: false },
+  { name: 'Venezuela', flag: '🇻🇪', popular: false },
+  { name: 'Ecuador', flag: '🇪🇨', popular: false },
+  { name: 'Uruguay', flag: '🇺🇾', popular: false },
+  { name: 'Paraguay', flag: '🇵🇾', popular: false },
+  { name: 'Bolivia', flag: '🇧🇴', popular: false },
+  { name: 'Cuba', flag: '🇨🇺', popular: false },
+  { name: 'Dominican Republic', flag: '🇩🇴', popular: false },
+  { name: 'Guatemala', flag: '🇬🇹', popular: false },
+  { name: 'Costa Rica', flag: '🇨🇷', popular: false },
+  { name: 'Panama', flag: '🇵🇦', popular: false },
+  { name: 'Puerto Rico', flag: '🇵🇷', popular: false },
+  { name: 'Jamaica', flag: '🇯🇲', popular: false },
+  { name: 'Trinidad and Tobago', flag: '🇹🇹', popular: false },
+  
+  // Okyanusya
+  { name: 'Australia', flag: '🇦🇺', popular: false },
+  { name: 'New Zealand', flag: '🇳🇿', popular: false },
+  { name: 'Fiji', flag: '🇫🇯', popular: false },
+  { name: 'Papua New Guinea', flag: '🇵🇬', popular: false },
+];
+
 // --- STİLLER (Mavi tema ağırlıklı) ---
 const BRAND_COLORS = {
   primary: '#1565C0',
@@ -271,7 +416,8 @@ const Dashboard = () => {
     hsCode: '',
     productName: '',
     targetCountry: '',
-    originCountry: 'Türkiye'
+    originCountry: 'Türkiye',
+    reportLanguage: 'tr'
   });
 
   // Ülke ve Şehir State'leri
@@ -748,7 +894,8 @@ const Dashboard = () => {
         hsCode: analysisFormData.hsCode,
         productName: analysisFormData.productName,
         targetCountry: analysisFormData.targetCountry,
-        originCountry: analysisFormData.originCountry || 'Türkiye'
+        originCountry: analysisFormData.originCountry || 'Türkiye',
+        language: analysisFormData.reportLanguage || 'tr'
       });
 
       if (response.data && response.data.reportContent) {
@@ -2022,13 +2169,14 @@ const Dashboard = () => {
                   {language === 'tr' ? 'Hedef Ülke' : 'Target Country'}
                 </Typography>
                 <Autocomplete
-                  options={[...popularCountries, ...countries.filter(c => !popularCountries.includes(c))]}
-                  groupBy={(option) => popularCountries.includes(option) 
+                  options={ALL_COUNTRIES}
+                  getOptionLabel={(option) => `${option.flag} ${option.name}`}
+                  groupBy={(option) => option.popular 
                     ? (language === 'tr' ? '⭐ Popüler Ülkeler' : '⭐ Popular Countries')
                     : (language === 'tr' ? '🌍 Tüm Ülkeler' : '🌍 All Countries')}
-                  value={analysisFormData.targetCountry || null}
+                  value={ALL_COUNTRIES.find(c => c.name === analysisFormData.targetCountry) || null}
                   onChange={(event, newValue) => {
-                    setAnalysisFormData({...analysisFormData, targetCountry: newValue || ''});
+                    setAnalysisFormData({...analysisFormData, targetCountry: newValue?.name || ''});
                   }}
                   renderInput={(params) => (
                     <StyledTextField
@@ -2046,6 +2194,11 @@ const Dashboard = () => {
                         ),
                       }}
                     />
+                  )}
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props} key={option.name}>
+                      <Typography>{option.flag} {option.name}</Typography>
+                    </Box>
                   )}
                   renderGroup={(params) => (
                     <Box key={params.key}>
@@ -2076,26 +2229,144 @@ const Dashboard = () => {
                 <Typography variant="body2" fontWeight="600" sx={{ color: '#555', mb: 1 }}>
                   {language === 'tr' ? 'Menşei Ülke' : 'Origin Country'}
                 </Typography>
+                <Autocomplete
+                  options={ALL_COUNTRIES}
+                  getOptionLabel={(option) => `${option.flag} ${option.name}`}
+                  groupBy={(option) => option.popular 
+                    ? (language === 'tr' ? '⭐ Popüler Ülkeler' : '⭐ Popular Countries')
+                    : (language === 'tr' ? '🌍 Tüm Ülkeler' : '🌍 All Countries')}
+                  value={ALL_COUNTRIES.find(c => c.name === analysisFormData.originCountry) || null}
+                  onChange={(event, newValue) => {
+                    setAnalysisFormData({...analysisFormData, originCountry: newValue?.name || ''});
+                  }}
+                  renderInput={(params) => (
+                    <StyledTextField
+                      {...params}
+                      placeholder={language === 'tr' ? 'Ülke seçin...' : 'Select country...'}
+                      InputProps={{
+                        ...params.InputProps,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start">
+                              <LocationOnIcon color="action" />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props} key={option.name}>
+                      <Typography>{option.flag} {option.name}</Typography>
+                    </Box>
+                  )}
+                  renderGroup={(params) => (
+                    <Box key={params.key}>
+                      <Typography
+                        sx={{
+                          fontWeight: 'bold',
+                          fontSize: '0.85rem',
+                          color: '#1565C0',
+                          bgcolor: '#E3F2FD',
+                          px: 2,
+                          py: 1,
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 1
+                        }}
+                      >
+                        {params.group}
+                      </Typography>
+                      {params.children}
+                    </Box>
+                  )}
+                  noOptionsText={language === 'tr' ? 'Ülke bulunamadı' : 'Country not found'}
+                />
+              </Box>
+
+              {/* Rapor Dili */}
+              <Box>
+                <Typography variant="body2" fontWeight="600" sx={{ color: '#555', mb: 1 }}>
+                  {language === 'tr' ? 'Rapor Dili' : 'Report Language'}
+                </Typography>
                 <StyledFormControl fullWidth>
                   <Select
-                    value={analysisFormData.originCountry}
-                    onChange={(e) => setAnalysisFormData({...analysisFormData, originCountry: e.target.value})}
+                    value={analysisFormData.reportLanguage}
+                    onChange={(e) => setAnalysisFormData({...analysisFormData, reportLanguage: e.target.value})}
                     startAdornment={
                       <InputAdornment position="start" sx={{ ml: 1 }}>
-                        <LocationOnIcon color="action" />
+                        <LanguageIcon color="action" />
                       </InputAdornment>
                     }
+                    MenuProps={{
+                      PaperProps: {
+                        sx: { maxHeight: 400 }
+                      }
+                    }}
                   >
-                    <MenuItem value="Türkiye">🇹🇷 Türkiye</MenuItem>
-                    <MenuItem value="China">🇨🇳 China</MenuItem>
-                    <MenuItem value="Germany">🇩🇪 Germany</MenuItem>
-                    <MenuItem value="USA">🇺🇸 USA</MenuItem>
-                    <MenuItem value="India">🇮🇳 India</MenuItem>
-                    <MenuItem value="Japan">🇯🇵 Japan</MenuItem>
-                    <MenuItem value="South Korea">🇰🇷 South Korea</MenuItem>
-                    <MenuItem value="Italy">🇮🇹 Italy</MenuItem>
-                    <MenuItem value="France">🇫🇷 France</MenuItem>
-                    <MenuItem value="Spain">🇪🇸 Spain</MenuItem>
+                    {/* Popüler Diller */}
+                    <MenuItem disabled sx={{ fontWeight: 'bold', color: '#1565C0', bgcolor: '#E3F2FD' }}>
+                      ⭐ {language === 'tr' ? 'Popüler Diller' : 'Popular Languages'}
+                    </MenuItem>
+                    <MenuItem value="tr">🇹🇷 Türkçe</MenuItem>
+                    <MenuItem value="en">🇬🇧 English</MenuItem>
+                    <MenuItem value="de">🇩🇪 Deutsch</MenuItem>
+                    <MenuItem value="fr">🇫🇷 Français</MenuItem>
+                    <MenuItem value="es">🇪🇸 Español</MenuItem>
+                    <MenuItem value="ar">🇸🇦 العربية (Arapça)</MenuItem>
+                    <MenuItem value="zh">🇨🇳 中文 (Çince)</MenuItem>
+                    <MenuItem value="ru">🇷🇺 Русский (Rusça)</MenuItem>
+                    
+                    {/* Avrupa Dilleri */}
+                    <MenuItem disabled sx={{ fontWeight: 'bold', color: '#1565C0', bgcolor: '#E3F2FD', mt: 1 }}>
+                      🌍 {language === 'tr' ? 'Avrupa Dilleri' : 'European Languages'}
+                    </MenuItem>
+                    <MenuItem value="it">🇮🇹 Italiano (İtalyanca)</MenuItem>
+                    <MenuItem value="pt">🇵🇹 Português (Portekizce)</MenuItem>
+                    <MenuItem value="nl">🇳🇱 Nederlands (Hollandaca)</MenuItem>
+                    <MenuItem value="pl">🇵🇱 Polski (Lehçe)</MenuItem>
+                    <MenuItem value="sv">🇸🇪 Svenska (İsveççe)</MenuItem>
+                    <MenuItem value="da">🇩🇰 Dansk (Danca)</MenuItem>
+                    <MenuItem value="no">🇳🇴 Norsk (Norveççe)</MenuItem>
+                    <MenuItem value="fi">🇫🇮 Suomi (Fince)</MenuItem>
+                    <MenuItem value="el">🇬🇷 Ελληνικά (Yunanca)</MenuItem>
+                    <MenuItem value="cs">🇨🇿 Čeština (Çekçe)</MenuItem>
+                    <MenuItem value="hu">🇭🇺 Magyar (Macarca)</MenuItem>
+                    <MenuItem value="ro">🇷🇴 Română (Romence)</MenuItem>
+                    <MenuItem value="bg">🇧🇬 Български (Bulgarca)</MenuItem>
+                    <MenuItem value="uk">🇺🇦 Українська (Ukraynaca)</MenuItem>
+                    <MenuItem value="hr">🇭🇷 Hrvatski (Hırvatça)</MenuItem>
+                    <MenuItem value="sk">🇸🇰 Slovenčina (Slovakça)</MenuItem>
+                    <MenuItem value="sl">🇸🇮 Slovenščina (Slovence)</MenuItem>
+                    <MenuItem value="sr">🇷🇸 Srpski (Sırpça)</MenuItem>
+                    
+                    {/* Asya Dilleri */}
+                    <MenuItem disabled sx={{ fontWeight: 'bold', color: '#1565C0', bgcolor: '#E3F2FD', mt: 1 }}>
+                      🌏 {language === 'tr' ? 'Asya Dilleri' : 'Asian Languages'}
+                    </MenuItem>
+                    <MenuItem value="ja">🇯🇵 日本語 (Japonca)</MenuItem>
+                    <MenuItem value="ko">🇰🇷 한국어 (Korece)</MenuItem>
+                    <MenuItem value="hi">🇮🇳 हिन्दी (Hintçe)</MenuItem>
+                    <MenuItem value="th">🇹🇭 ไทย (Tayca)</MenuItem>
+                    <MenuItem value="vi">🇻🇳 Tiếng Việt (Vietnamca)</MenuItem>
+                    <MenuItem value="id">🇮🇩 Bahasa Indonesia (Endonezce)</MenuItem>
+                    <MenuItem value="ms">🇲🇾 Bahasa Melayu (Malayca)</MenuItem>
+                    <MenuItem value="tl">🇵🇭 Filipino (Filipince)</MenuItem>
+                    <MenuItem value="bn">🇧🇩 বাংলা (Bengalce)</MenuItem>
+                    <MenuItem value="ur">🇵🇰 اردو (Urduca)</MenuItem>
+                    
+                    {/* Diğer Diller */}
+                    <MenuItem disabled sx={{ fontWeight: 'bold', color: '#1565C0', bgcolor: '#E3F2FD', mt: 1 }}>
+                      🌐 {language === 'tr' ? 'Diğer Diller' : 'Other Languages'}
+                    </MenuItem>
+                    <MenuItem value="he">🇮🇱 עברית (İbranice)</MenuItem>
+                    <MenuItem value="fa">🇮🇷 فارسی (Farsça)</MenuItem>
+                    <MenuItem value="sw">🇰🇪 Kiswahili (Svahili)</MenuItem>
+                    <MenuItem value="az">🇦🇿 Azərbaycan (Azerice)</MenuItem>
+                    <MenuItem value="ka">🇬🇪 ქართული (Gürcüce)</MenuItem>
+                    <MenuItem value="kk">🇰🇿 Қазақ (Kazakça)</MenuItem>
+                    <MenuItem value="uz">🇺🇿 Oʻzbek (Özbekçe)</MenuItem>
                   </Select>
                 </StyledFormControl>
               </Box>
