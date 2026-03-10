@@ -908,13 +908,39 @@ const Dashboard = () => {
     setAnalysisResult(null);
 
     try {
+      // ChartData JSON formatı için ek talimat
+      const chartDataInstruction = `
+Analiz raporunu hazırlarken tüm sayısal verileri standart Markdown tabloları halinde sun.
+Ayrıca raporun en sonuna, frontend grafiklerini beslemek için aşağıdaki JSON formatında bir ChartData bloğu ekle.
+Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD) doldur.
+
+\`\`\`json
+{
+  "importTrend": {
+    "labels": ["2023", "2024", "2025"],
+    "datasets": [950, 980, 1050]
+  },
+  "marketShare": {
+    "labels": ["Country1", "Country2", "Country3", "Country4"],
+    "values": [18, 15, 12, 8]
+  },
+  "priceSegments": {
+    "labels": ["Economy", "Mid-Range", "Premium"],
+    "min": [600, 751, 951],
+    "max": [750, 950, 1200]
+  }
+}
+\`\`\`
+`;
+
       // Backend API'ye istek at
       const response = await apiClient.post('/api/tradeintelligence/generate-report', {
         hsCode: analysisFormData.hsCode,
         productName: analysisFormData.productName,
         targetCountry: analysisFormData.targetCountry,
         originCountry: analysisFormData.originCountry || 'Türkiye',
-        language: analysisFormData.reportLanguage || 'tr'
+        language: analysisFormData.reportLanguage || 'tr',
+        additionalInstructions: chartDataInstruction
       });
 
       if (response.data && response.data.reportContent) {
