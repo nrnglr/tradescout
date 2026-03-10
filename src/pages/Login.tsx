@@ -1,5 +1,5 @@
 import React, { useState, FormEvent, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
   Box,
@@ -258,7 +258,26 @@ const SocialButton = styled(Button)(({ theme }) => ({
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t, language } = useLanguage();
+
+  // URL'den redirect parametresini al
+  const redirectTo = searchParams.get('redirect');
+  const packageId = searchParams.get('package');
+
+  // Login sonrası yönlendirme fonksiyonu
+  const handlePostLoginRedirect = () => {
+    if (redirectTo === 'checkout') {
+      // Sepet sayfasına dön - sepet drawer'ını açmak için state ile
+      navigate('/dashboard', { state: { openCart: true } });
+    } else if (redirectTo === 'pricing') {
+      // Pricing sayfasına dön
+      navigate(packageId ? `/pricing?package=${packageId}` : '/pricing');
+    } else {
+      // Varsayılan: Dashboard
+      navigate('/dashboard');
+    }
+  };
 
   // Mod Yönetimi: 'login' | 'forgot' | 'resetCode' | 'verify'
   type ViewMode = 'login' | 'forgot' | 'resetCode' | 'verify';
@@ -272,8 +291,8 @@ const Login = () => {
       // Artık authService içinde bu metod var!
       await authService.googleLogin(tokenResponse.access_token);
       
-      // Başarılı olursa yönlendir
-      navigate('/dashboard');
+      // Başarılı olursa yönlendir (redirect parametresine göre)
+      handlePostLoginRedirect();
     } catch (err: any) {
       setError(language === 'tr' ? 'Google ile giriş başarısız.' : 'Google login failed.');
     } finally {
@@ -325,7 +344,8 @@ const Login = () => {
         localStorage.removeItem('rememberedEmail');
       }
 
-      navigate('/dashboard');
+      // Başarılı olursa yönlendir (redirect parametresine göre)
+      handlePostLoginRedirect();
 
     } catch (err: any) {
       setError(err.message || t('login.errorFailed'));

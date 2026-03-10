@@ -4,10 +4,13 @@ import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard'; // Dashboard import
+import Pricing from './pages/Pricing'; // Pricing import
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/CartDrawer';
 import { ReturnPolicy, Privacy, SalesAgreement, About, TermsOfUse } from './pages/Terms';
+import PaymentFailed from './pages/Paymentfailed';
+import PaymentSuccess from './pages/Paymentsuccess';
 
 function App() {
   return (
@@ -27,12 +30,17 @@ function App() {
             {/* Dashboard - Kullanıcı giriş yaptıktan sonra */}
             <Route path="/dashboard" element={<Dashboard />} />
 
+            {/* Pricing - Fiyatlandırma Sayfası */}
+            <Route path="/pricing" element={<Pricing />} />
+
             {/* Yasal Sayfalar */}
             <Route path="/iade-politikasi" element={<ReturnPolicy />} />
             <Route path="/gizlilik" element={<Privacy />} />
             <Route path="/mesafeli-satis" element={<SalesAgreement />} />
             <Route path="/hakkimizda" element={<About />} />
             <Route path="/kullanim-sartlari" element={<TermsOfUse />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+<Route path="/payment/failed"  element={<PaymentFailed />} />
           </Routes>
           <CartDrawer />
         </Router>

@@ -331,12 +331,14 @@ const LandingPage = () => {
   const [feedbackError, setFeedbackError] = useState('');
 
   // Paket bilgileri
+  // ⚠️ TEST FİYATLARI: starter aylık=1TL, yıllık=2TL (backend PriceTry ile belirlenir)
+  // Canlıya geçince: price: 15, yearlyPrice: 99 yap
   const packages = {
     starter: {
       id: 'starter',
       name: t('packages.starter.name'),
-      price: 15,
-      yearlyPrice: 99,
+      price: 15,       // gösterim USD — gerçek çekim backend PriceTry=100 (1TL)
+      yearlyPrice: 99, // gösterim USD — gerçek çekim backend PriceTry=200 (2TL)
       searchLimit: t('packages.starter.searchLimit'),
       features: [
         t('packages.starter.feature1'),

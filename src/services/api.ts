@@ -53,9 +53,16 @@ apiClient.interceptors.response.use(
     // 401 hatası - Token geçersiz veya eksik
     if (error.response?.status === 401) {
       console.warn('⚠️ 401 Unauthorized - Token geçersiz veya eksik');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Ödeme endpoint'lerinde otomatik yönlendirme yapma
+      // Bu sayede CartDrawer ve Pricing kendi hata mesajlarını gösterebilir
+      const isPaymentEndpoint = error.config?.url?.includes('/api/payment');
+      
+      if (!isPaymentEndpoint) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

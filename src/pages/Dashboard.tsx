@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import {
   Box,
@@ -55,6 +55,8 @@ import ErrorIcon from '@mui/icons-material/Error'; // Hata ikonu
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'; // Bekliyor ikonu
 import ConstructionIcon from '@mui/icons-material/Construction'; // Yapım ikonu
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'; // Hediye ikonu
+import AddCardIcon from '@mui/icons-material/AddCard'; // Kredi satın al ikonu
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'; // Sepet ikonu
 import LocationOnIcon from '@mui/icons-material/LocationOn'; // Konum ikonu
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'; // Genişlet ikonu
 import PlaceIcon from '@mui/icons-material/Place'; // Bölge ikonu
@@ -68,6 +70,9 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { Country, State } from 'country-state-city';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
+
+// Cart Context
+import { useCart } from '../context/CartContext';
 
 // Tüm diller listesi
 const ALL_LANGUAGES = [
@@ -401,9 +406,27 @@ const ExcelButton = styled(Button)(({ theme }: { theme?: any }) => ({
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { language, t } = useLanguage();
+  const { openCart } = useCart();
   const [user, setUser] = useState<any>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Login sonrası redirect ile geldiyse sepeti aç
+  useEffect(() => {
+    const state = location.state as { openCart?: boolean } | null;
+    console.log('Dashboard location.state:', state);
+    if (state?.openCart) {
+      console.log('Opening cart from redirect...');
+      // Biraz gecikme ile aç (component mount olduktan sonra)
+      setTimeout(() => {
+        openCart();
+      }, 100);
+      // State'i temizle (geri tuşunda tekrar açılmasın)
+      window.history.replaceState({}, document.title);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   // Tab State'i - 0: Firma Arama, 1: Pazar Analizi
   const [activeTab, setActiveTab] = useState(0);
@@ -458,6 +481,8 @@ const Dashboard = () => {
     timestamp: number;
   }
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
+  const [creditModalOpen, setCreditModalOpen] = useState(false);
+  const [buyingCredit, setBuyingCredit] = useState<string | null>(null);
 
   // LocalStorage'dan son aramaları yükle
   useEffect(() => {
@@ -471,6 +496,24 @@ const Dashboard = () => {
       }
     }
   }, []);
+
+  // Kredi satın al
+  const handleBuyCredit = async (productCode: string) => {
+    setBuyingCredit(productCode);
+    try {
+      const response = await apiClient.post('/api/payment/initialize', {
+        productCode,
+        installment: 1,
+        currency: 'USD',
+      });
+      const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
+      if (paymentUrl) window.location.href = paymentUrl;
+    } catch (err: any) {
+      setError(err.response?.data?.message ?? (language === 'tr' ? 'Ödeme başlatılamadı.' : 'Payment failed.'));
+    } finally {
+      setBuyingCredit(null);
+    }
+  };
 
   // Yeni arama kaydet
   const saveRecentSearch = (product: string, country: string, city: string) => {
@@ -678,7 +721,10 @@ const Dashboard = () => {
 
       // Her arama 1 kredi kullanıyor
       if (!isAdmin && availableCredits < 1) {
-        setError(`${language === 'tr' ? '❌ Yetersiz kredi!' : '❌ Insufficient credits!'} ${language === 'tr' ? 'Mevcut' : 'Available'}: ${availableCredits}`);
+        setError(language === 'tr'
+          ? `❌ Yetersiz kredi! Mevcut: ${availableCredits}. Kredi satın almak için sağ üstteki kredi ikonuna tıklayın.`
+          : `❌ Insufficient credits! Available: ${availableCredits}. Click the credit icon to buy more.`);
+        setCreditModalOpen(true);
         setIsLoading(false);
         return;
       }
@@ -770,47 +816,20 @@ const Dashboard = () => {
     description: string;
     category: string;
   }
-  const [sampleHsCodes, setSampleHsCodes] = React.useState<HsCodeItem[]>([]);
-  const [popularCountries, setPopularCountries] = React.useState<string[]>([]);
+  const [sampleHsCodes, setSampleHsCodes] = React.useState<HsCodeItem[]>([
+    { code: '87116000', description: 'Elektrikli Bisiklet', category: 'Taşıtlar' },
+    { code: '84713000', description: 'Dizüstü Bilgisayar', category: 'Elektronik' },
+    { code: '85044090', description: 'Güç Kaynakları', category: 'Elektronik' },
+    { code: '39269099', description: 'Plastik Ürünler', category: 'Plastik' },
+    { code: '61091000', description: 'Pamuklu Tişört', category: 'Tekstil' }
+  ]);
+  const [popularCountries, setPopularCountries] = React.useState<string[]>([
+    'Almanya', 'Hollanda', 'Fransa', 'İtalya', 'İspanya', 
+    'Belçika', 'Polonya', 'Romanya', 'Bulgaristan', 'Yunanistan'
+  ]);
 
-  // Örnek HS Kodları ve Popüler Ülkeleri Yükle
-  React.useEffect(() => {
-    const fetchSampleData = async () => {
-      try {
-        const [hsResponse, countriesResponse] = await Promise.all([
-          apiClient.get('/api/tradeintelligence/sample-hs-codes'),
-          apiClient.get('/api/tradeintelligence/popular-countries')
-        ]);
-        
-        // HS Kodları - obje dizisi olarak gelir
-        if (hsResponse.data && Array.isArray(hsResponse.data)) {
-          setSampleHsCodes(hsResponse.data);
-        }
-        
-        // Popüler ülkeler - string dizisi veya obje dizisi olabilir
-        if (countriesResponse.data && Array.isArray(countriesResponse.data)) {
-          // Eğer obje dizisi ise name alanını al
-          if (typeof countriesResponse.data[0] === 'object') {
-            setPopularCountries(countriesResponse.data.map((c: any) => c.name || c.country || c));
-          } else {
-            setPopularCountries(countriesResponse.data);
-          }
-        }
-      } catch (err) {
-        console.log('Sample data fetch failed, using defaults');
-        // Varsayılan değerler
-        setSampleHsCodes([
-          { code: '87116000', description: 'Elektrikli Bisiklet', category: 'Taşıtlar' },
-          { code: '84713000', description: 'Dizüstü Bilgisayar', category: 'Elektronik' },
-          { code: '85044090', description: 'Güç Kaynakları', category: 'Elektronik' },
-          { code: '39269099', description: 'Plastik Ürünler', category: 'Plastik' },
-          { code: '61091000', description: 'Pamuklu Tişört', category: 'Tekstil' }
-        ]);
-        setPopularCountries(['Almanya', 'Hollanda', 'Fransa', 'İtalya', 'İspanya', 'Belçika', 'Polonya', 'Romanya', 'Bulgaristan', 'Yunanistan']);
-      }
-    };
-    fetchSampleData();
-  }, []);
+  // Örnek HS Kodları ve Popüler Ülkeler artık statik olarak tanımlandı (yukarıda)
+  // Backend endpoint'leri hazır olduğunda dinamik yükleme eklenebilir
 
   // Mevcut Markdown'ı PDF'e Çevir (convert-to-pdf endpoint'i)
   const handleDownloadPDF = async () => {
@@ -988,32 +1007,69 @@ const Dashboard = () => {
                   }}
                 />
               ) : (
-                <Chip
-                  icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />}
-                  label={`${user?.credits || 0} ${t('dashboard.credits')}`}
-                  sx={{
-                    fontWeight: 'bold',
-                    bgcolor: 'rgba(255, 255, 255, 0.2)',
-                    color: '#FFFFFF',
-                    border: '2px solid rgba(255, 255, 255, 0.3)',
-                    height: { xs: 32, sm: 40 },
-                    borderRadius: '10px',
-                    backdropFilter: 'blur(10px)',
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.3)',
-                    }
-                  }}
-                />
+                <Tooltip title={language === 'tr' ? 'Ekstra kredi almak için tıklayın' : 'Click to buy extra credits'}>
+                  <Chip
+                    icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />}
+                    label={`${user?.credits || 0} ${t('dashboard.credits')}`}
+                    onClick={() => setCreditModalOpen(true)}
+                    sx={{
+                      fontWeight: 'bold',
+                      bgcolor: 'rgba(255, 255, 255, 0.2)',
+                      color: '#FFFFFF',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
+                      height: { xs: 32, sm: 40 },
+                      borderRadius: '10px',
+                      backdropFilter: 'blur(10px)',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      cursor: 'pointer',
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 193, 7, 0.4)',
+                        borderColor: '#FFC107',
+                      }
+                    }}
+                  />
+                </Tooltip>
               )}
 
-              {/* Profil Menüsü */}
-              <Tooltip title="Hesap Ayarları">
-                <IconButton onClick={handleMenu} sx={{ p: 0 }}>
-                  <Avatar sx={{ bgcolor: BRAND_COLORS.primary, width: { xs: 36, sm: 40 }, height: { xs: 36, sm: 40 } }}>
+              {/* Profil Menüsü - Ad Soyad gösterimi */}
+              <Tooltip title={language === 'tr' ? 'Hesap Ayarları' : 'Account Settings'}>
+                <Box 
+                  onClick={handleMenu} 
+                  sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 1, 
+                    cursor: 'pointer',
+                    px: { xs: 1, sm: 1.5 },
+                    py: 0.5,
+                    borderRadius: '10px',
+                    bgcolor: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.2)',
+                      borderColor: 'rgba(255, 255, 255, 0.4)',
+                    }
+                  }}
+                >
+                  <Avatar sx={{ bgcolor: BRAND_COLORS.primary, width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 }, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
                     {user?.fullName?.charAt(0) || 'U'}
                   </Avatar>
-                </IconButton>
+                  <Typography 
+                    sx={{ 
+                      color: '#FFFFFF', 
+                      fontWeight: 600, 
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      display: { xs: 'none', sm: 'block' },
+                      maxWidth: '120px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {user?.fullName || 'Kullanıcı'}
+                  </Typography>
+                </Box>
               </Tooltip>
               <Menu
                 id="menu-appbar"
@@ -2794,6 +2850,82 @@ const Dashboard = () => {
         </Fade>
       </Modal>
 
+      {/* ── Kredi Satın Al Modal ─────────────────────────────────────────── */}
+      <Modal open={creditModalOpen} onClose={() => setCreditModalOpen(false)} closeAfterTransition slots={{ backdrop: Backdrop }} slotProps={{ backdrop: { timeout: 300 } }}>
+        <Fade in={creditModalOpen}>
+          <Box sx={{
+            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: { xs: '95vw', sm: 480 }, bgcolor: 'white', borderRadius: 3,
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)', p: 4, outline: 'none',
+          }}>
+            {/* Başlık */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <BoltIcon sx={{ color: '#FFC107', fontSize: 32 }} />
+                <Box>
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                    {language === 'tr' ? 'Ekstra Kredi Satın Al' : 'Buy Extra Credits'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {language === 'tr' ? `Mevcut krediniz: ${user?.credits || 0}` : `Current credits: ${user?.credits || 0}`}
+                  </Typography>
+                </Box>
+              </Box>
+              <IconButton onClick={() => setCreditModalOpen(false)} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            {/* Kredi paketleri */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
+              {[
+                { code: '1274710', credits: 10,  price: '$10',  label: '10 Kredi',  labelEn: '10 Credits'  },
+                { code: '1274725', credits: 25,  price: '$20',  label: '25 Kredi',  labelEn: '25 Credits'  },
+                { code: '1274750', credits: 50,  price: '$35',  label: '50 Kredi',  labelEn: '50 Credits'  },
+                { code: '1247100', credits: 100, price: '$60',  label: '100 Kredi', labelEn: '100 Credits' },
+              ].map(pkg => (
+                <Box
+                  key={pkg.code}
+                  sx={{
+                    border: '2px solid #e3f2fd', borderRadius: 2, p: 2, textAlign: 'center',
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    '&:hover': { borderColor: '#1565C0', bgcolor: '#e3f2fd', transform: 'translateY(-2px)' },
+                  }}
+                >
+                  <BoltIcon sx={{ color: '#FFC107', fontSize: 28, mb: 0.5 }} />
+                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                    {language === 'tr' ? pkg.label : pkg.labelEn}
+                  </Typography>
+                  <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 1.5 }}>
+                    {pkg.price}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="small"
+                    disabled={buyingCredit === pkg.code}
+                    onClick={() => handleBuyCredit(pkg.code)}
+                    startIcon={buyingCredit === pkg.code ? <CircularProgress size={14} color="inherit" /> : <AddCardIcon />}
+                    sx={{
+                      background: 'linear-gradient(135deg, #1565C0, #1976D2)',
+                      borderRadius: 1.5, fontWeight: 700, textTransform: 'none',
+                      '&:hover': { background: 'linear-gradient(135deg, #0D47A1, #1565C0)' },
+                    }}
+                  >
+                    {buyingCredit === pkg.code
+                      ? (language === 'tr' ? 'İşleniyor...' : 'Processing...')
+                      : (language === 'tr' ? 'Satın Al' : 'Buy')}
+                  </Button>
+                </Box>
+              ))}
+            </Box>
+
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
+              🔒 {language === 'tr' ? 'Güvenli ödeme · Tosla Sanal POS · Krediler süresizdir' : 'Secure payment · Tosla Virtual POS · Credits never expire'}
+            </Typography>
+          </Box>
+        </Fade>
+      </Modal>
     </PageContainer>
   );
 };
