@@ -17,7 +17,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LanguageIcon from '@mui/icons-material/Language';
 import HomeIcon from '@mui/icons-material/Home';
-import { authService } from '../services/auth';
+import { authService, getUserFriendlyErrorMessage } from '../services/auth';
 import { useLanguage } from '../i18n/LanguageContext';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
@@ -250,7 +250,7 @@ const StyledSelect = styled(FormControl)(({ theme }) => ({
 // --- COMPONENT ---
 const Register = () => {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -280,7 +280,9 @@ const Register = () => {
     setError('');
     
     if (!formData.fullName || !formData.email || !formData.password) {
-      setError('Lütfen zorunlu alanları doldurun.');
+      setError(language === 'tr' 
+        ? 'Lütfen zorunlu alanları doldurun (Ad Soyad, E-posta, Şifre).' 
+        : 'Please fill in the required fields (Full Name, Email, Password).');
       return;
     }
 
@@ -294,7 +296,7 @@ const Register = () => {
       setTimeout(() => navigate('/login'), 2000);
       
     } catch (err: any) {
-      setError(err.message);
+      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
     } finally {
       setLoading(false);
     }

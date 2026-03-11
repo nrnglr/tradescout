@@ -1,6 +1,148 @@
 // Authentication Service
 import { apiClient } from './api';
 
+// Kullanıcı dostu hata mesajları için yardımcı fonksiyon
+export const getUserFriendlyErrorMessage = (error: any, language: 'tr' | 'en' = 'tr'): string => {
+  // HTTP status koduna göre mesaj
+  const statusCode = error?.response?.status;
+  const backendMessage = error?.response?.data?.message || error?.response?.data?.Message || '';
+  
+  // Türkçe ve İngilizce mesaj eşlemeleri
+  const messages = {
+    tr: {
+      // Genel hatalar
+      network: 'Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.',
+      server: 'Sunucu hatası. Lütfen daha sonra tekrar deneyin.',
+      unknown: 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.',
+      
+      // Login hataları
+      invalidCredentials: 'E-posta veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.',
+      accountLocked: 'Hesabınız geçici olarak kilitlendi. Lütfen birkaç dakika sonra tekrar deneyin.',
+      accountNotFound: 'Bu e-posta adresiyle kayıtlı bir hesap bulunamadı.',
+      emailNotVerified: 'E-posta adresiniz henüz doğrulanmamış. Lütfen e-postanızı kontrol edin.',
+      
+      // Register hataları
+      emailExists: 'Bu e-posta adresi zaten kullanılıyor. Farklı bir e-posta deneyin veya giriş yapın.',
+      weakPassword: 'Şifreniz çok zayıf. En az 6 karakter, bir büyük harf ve bir rakam içermelidir.',
+      invalidEmail: 'Geçersiz e-posta adresi. Lütfen doğru formatta girin.',
+      invalidPhone: 'Geçersiz telefon numarası formatı.',
+      invalidWebsite: 'Geçersiz web sitesi adresi. Örnek: https://example.com',
+      
+      // Şifre sıfırlama hataları
+      resetCodeInvalid: 'Doğrulama kodu hatalı veya süresi dolmuş.',
+      resetCodeExpired: 'Doğrulama kodunun süresi doldu. Lütfen yeni kod isteyin.',
+      tooManyRequests: 'Çok fazla deneme yaptınız. Lütfen birkaç dakika bekleyin.',
+    },
+    en: {
+      // General errors
+      network: 'Connection error. Please check your internet connection.',
+      server: 'Server error. Please try again later.',
+      unknown: 'An unexpected error occurred. Please try again.',
+      
+      // Login errors
+      invalidCredentials: 'Invalid email or password. Please check your credentials.',
+      accountLocked: 'Your account is temporarily locked. Please try again in a few minutes.',
+      accountNotFound: 'No account found with this email address.',
+      emailNotVerified: 'Your email has not been verified yet. Please check your inbox.',
+      
+      // Register errors
+      emailExists: 'This email is already registered. Try a different email or login.',
+      weakPassword: 'Password is too weak. Must contain at least 6 characters, one uppercase letter, and one number.',
+      invalidEmail: 'Invalid email address format.',
+      invalidPhone: 'Invalid phone number format.',
+      invalidWebsite: 'Invalid website URL. Example: https://example.com',
+      
+      // Password reset errors
+      resetCodeInvalid: 'Invalid or expired verification code.',
+      resetCodeExpired: 'Verification code has expired. Please request a new one.',
+      tooManyRequests: 'Too many attempts. Please wait a few minutes.',
+    }
+  };
+  
+  const msg = messages[language];
+  
+  // Network hatası kontrolü
+  if (!error?.response || error?.code === 'ERR_NETWORK' || error?.code === 'ECONNABORTED') {
+    return msg.network;
+  }
+  
+  // HTTP status koduna göre mesaj belirle
+  switch (statusCode) {
+    case 400:
+      // Bad Request - Backend'den gelen mesaja bakarak karar ver
+      const errorLower = backendMessage.toLowerCase();
+      
+      if (errorLower.includes('email') && (errorLower.includes('exist') || errorLower.includes('already') || errorLower.includes('kayıtlı') || errorLower.includes('zaten') || errorLower.includes('registered') || errorLower.includes('taken'))) {
+        return msg.emailExists;
+      }
+      if (errorLower.includes('password') || errorLower.includes('şifre')) {
+        if (errorLower.includes('weak') || errorLower.includes('zayıf') || errorLower.includes('short') || errorLower.includes('kısa') || errorLower.includes('least') || errorLower.includes('minimum') || errorLower.includes('character')) {
+          return msg.weakPassword;
+        }
+        return msg.weakPassword; // Şifre ile ilgili herhangi bir hata
+      }
+      if (errorLower.includes('email') && (errorLower.includes('invalid') || errorLower.includes('geçersiz') || errorLower.includes('format') || errorLower.includes('valid'))) {
+        return msg.invalidEmail;
+      }
+      if (errorLower.includes('phone') || errorLower.includes('telefon')) {
+        return msg.invalidPhone;
+      }
+      if (errorLower.includes('website') || errorLower.includes('url') || errorLower.includes('web')) {
+        return msg.invalidWebsite;
+      }
+      if (errorLower.includes('name') || errorLower.includes('isim') || errorLower.includes('ad')) {
+        return language === 'tr' ? 'Lütfen geçerli bir ad soyad giriniz.' : 'Please enter a valid name.';
+      }
+      if (errorLower.includes('required') || errorLower.includes('zorunlu') || errorLower.includes('empty') || errorLower.includes('boş')) {
+        return language === 'tr' ? 'Lütfen tüm zorunlu alanları doldurunuz.' : 'Please fill in all required fields.';
+      }
+      // Genel 400 hatası - backend mesajını da ekleyelim (debug için faydalı)
+      console.warn('400 Backend Error:', backendMessage); // Geliştirici için log
+      return language === 'tr' 
+        ? 'Girdiğiniz bilgilerde bir hata var. Lütfen tüm alanları kontrol edip tekrar deneyin.' 
+        : 'There is an error in the information you entered. Please check all fields and try again.';
+      
+    case 401:
+      // Unauthorized - Giriş hataları
+      if (backendMessage.toLowerCase().includes('verified') || backendMessage.toLowerCase().includes('doğrulan')) {
+        return msg.emailNotVerified;
+      }
+      return msg.invalidCredentials;
+      
+    case 403:
+      // Forbidden - Hesap kilitli
+      return msg.accountLocked;
+      
+    case 404:
+      // Not Found - Hesap bulunamadı
+      return msg.accountNotFound;
+      
+    case 409:
+      // Conflict - Email zaten var
+      return msg.emailExists;
+      
+    case 422:
+      // Unprocessable Entity - Validation hatası
+      if (backendMessage.toLowerCase().includes('code') || backendMessage.toLowerCase().includes('kod')) {
+        return msg.resetCodeInvalid;
+      }
+      return msg.unknown;
+      
+    case 429:
+      // Too Many Requests
+      return msg.tooManyRequests;
+      
+    case 500:
+    case 502:
+    case 503:
+      // Server errors
+      return msg.server;
+      
+    default:
+      return msg.unknown;
+  }
+}
+
 export interface RegisterData {
   fullName: string;
   email: string;

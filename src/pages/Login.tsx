@@ -30,7 +30,7 @@ import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import logoImage from '../assent/fgs-logo.png';
 import loginIllustration from '../assent/login-illustration.png';
 import login2Illustration from '../assent/login2-illustration.png';
-import { authService } from '../services/auth';
+import { authService, getUserFriendlyErrorMessage } from '../services/auth';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useGoogleLogin } from '@react-oauth/google';
 
@@ -294,12 +294,12 @@ const Login = () => {
       // Başarılı olursa yönlendir (redirect parametresine göre)
       handlePostLoginRedirect();
     } catch (err: any) {
-      setError(language === 'tr' ? 'Google ile giriş başarısız.' : 'Google login failed.');
+      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
     } finally {
       setLoading(false);
     }
   },
-  onError: () => setError('Google Login Error'),
+  onError: () => setError(language === 'tr' ? 'Google ile giriş başarısız.' : 'Google login failed.'),
 });
   // State Yönetimi
   const [email, setEmail] = useState('');
@@ -348,7 +348,7 @@ const Login = () => {
       handlePostLoginRedirect();
 
     } catch (err: any) {
-      setError(err.message || t('login.errorFailed'));
+      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
     } finally {
       setLoading(false);
     }
@@ -381,15 +381,7 @@ const Login = () => {
       }, 2000);
 
     } catch (err: any) {
-      // 404 hatası = backend endpoint'i henüz hazır değil
-      if (err.response?.status === 404) {
-        setError(language === 'tr'
-          ? 'Bu özellik şu anda kullanılamıyor. Lütfen destek ile iletişime geçin.'
-          : 'This feature is currently unavailable. Please contact support.');
-      } else {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg || (language === 'tr' ? 'İşlem başarısız.' : 'Operation failed.'));
-      }
+      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
     } finally {
       setLoading(false);
     }
@@ -437,15 +429,7 @@ const Login = () => {
       }, 2000);
 
     } catch (err: any) {
-      // 404 hatası = backend endpoint'i henüz hazır değil
-      if (err.response?.status === 404) {
-        setError(language === 'tr'
-          ? 'Bu özellik şu anda kullanılamıyor. Lütfen destek ile iletişime geçin.'
-          : 'This feature is currently unavailable. Please contact support.');
-      } else {
-        const errorMsg = err.response?.data?.message || err.message;
-        setError(errorMsg || (language === 'tr' ? 'Kod hatalı veya süresi dolmuş.' : 'Invalid or expired code.'));
-      }
+      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
     } finally {
       setLoading(false);
     }
@@ -475,14 +459,7 @@ const Login = () => {
       setVerificationCode('');
 
     } catch (err: any) {
-      // 404 hatası = backend endpoint'i henüz hazır değil
-      if (err.response?.status === 404) {
-        setError(language === 'tr'
-          ? 'Bu özellik şu anda kullanılamıyor. Lütfen destek ile iletişime geçin.'
-          : 'This feature is currently unavailable. Please contact support.');
-      } else {
-        setError(err.response?.data?.message || err.message || (language === 'tr' ? 'Kod hatalı veya süresi dolmuş.' : 'Invalid or expired code.'));
-      }
+      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
     } finally {
       setLoading(false);
     }
