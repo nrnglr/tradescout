@@ -498,12 +498,13 @@ const Dashboard = () => {
   }, []);
 
   // Kredi satın al
-  const handleBuyCredit = async (productCode: string) => {
+  const handleBuyCredit = async (productCode: string, amount: number) => {
     setBuyingCredit(productCode);
     try {
       const response = await apiClient.post('/api/payment/initialize', {
         productCode,
         installment: 1,
+        amount,
         currency: 'USD',
       });
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
@@ -2905,10 +2906,10 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
             {/* Kredi paketleri */}
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
               {[
-                { code: '1274710', credits: 10,  price: '$10',  label: '10 Kredi',  labelEn: '10 Credits'  },
-                { code: '1274725', credits: 25,  price: '$20',  label: '25 Kredi',  labelEn: '25 Credits'  },
-                { code: '1274750', credits: 50,  price: '$35',  label: '50 Kredi',  labelEn: '50 Credits'  },
-                { code: '1247100', credits: 100, price: '$60',  label: '100 Kredi', labelEn: '100 Credits' },
+                { code: '1274710', credits: 10,  priceUsd: 10,  priceDisplay: '$10',  label: '10 Kredi',  labelEn: '10 Credits'  },
+                { code: '1274725', credits: 25,  priceUsd: 20,  priceDisplay: '$20',  label: '25 Kredi',  labelEn: '25 Credits'  },
+                { code: '1274750', credits: 50,  priceUsd: 35,  priceDisplay: '$35',  label: '50 Kredi',  labelEn: '50 Credits'  },
+                { code: '1247100', credits: 100, priceUsd: 60,  priceDisplay: '$60',  label: '100 Kredi', labelEn: '100 Credits' },
               ].map(pkg => (
                 <Box
                   key={pkg.code}
@@ -2923,14 +2924,14 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                     {language === 'tr' ? pkg.label : pkg.labelEn}
                   </Typography>
                   <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 1.5 }}>
-                    {pkg.price}
+                    {pkg.priceDisplay}
                   </Typography>
                   <Button
                     variant="contained"
                     fullWidth
                     size="small"
                     disabled={buyingCredit === pkg.code}
-                    onClick={() => handleBuyCredit(pkg.code)}
+                    onClick={() => handleBuyCredit(pkg.code, pkg.priceUsd)}
                     startIcon={buyingCredit === pkg.code ? <CircularProgress size={14} color="inherit" /> : <AddCardIcon />}
                     sx={{
                       background: 'linear-gradient(135deg, #1565C0, #1976D2)',

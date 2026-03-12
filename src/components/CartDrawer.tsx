@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Drawer, Box, Typography, IconButton, Button, List, ListItem,
   Chip, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel,
@@ -47,9 +47,53 @@ const CartDrawer: React.FC = () => {
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
   const [installmentChoice,  setInstallmentChoice]  = useState<'1' | '9' | '12'>('1');
+  const [isAuthenticated,    setIsAuthenticated]    = useState(false);
 
   const allAccepted = termsAccepted && privacyAccepted && salesAccepted;
 
+  // Login durumunu izle ve otomatik güncelle
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      const newAuthState = !!token;
+      
+      // Eğer auth durumu değiştiyse (login olmuşsa)
+      if (newAuthState !== isAuthenticated) {
+        setIsAuthenticated(newAuthState);
+        
+        // Login olmuşsa hata mesajını temizle
+        if (newAuthState && paymentError) {
+          setPaymentError(null);
+        }
+      }
+    };
+
+    // İlk yüklemede kontrol et
+    checkAuth();
+
+    // Sepet her açıldığında kontrol et
+    if (isCartOpen) {
+      checkAuth();
+    }
+
+    // localStorage değişikliklerini dinle (başka tab'da login olma durumu için)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [isCartOpen, isAuthenticated, paymentError]);
+
+  const isLoggedIn = () => isAuthenticated;
+
+  // Translations
   const tr: Record<string, string> = {
     cartTitle:        'Sepetim',
     emptyCart:        'Sepetiniz boş',
@@ -97,8 +141,6 @@ const CartDrawer: React.FC = () => {
     approx:           'Approx.',
   };
   const t = (key: string) => (language === 'tr' ? tr : en)[key] ?? key;
-
-  const isLoggedIn = () => !!localStorage.getItem('token');
 
   // Frontend'den gelen kısa isimleri normalize et
   // "professional" → "pro", "enterprise" → "enterprise" vb.

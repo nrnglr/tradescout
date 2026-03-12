@@ -169,7 +169,7 @@ const Pricing: React.FC = () => {
   const isLoggedIn = () => !!localStorage.getItem('token');
 
   // ── Ödeme başlat ──────────────────────────────────────────────────────────
-  const handlePurchase = async (productCode: string, installment: number, label: string) => {
+  const handlePurchase = async (productCode: string, installment: number, amount: number, label: string) => {
     if (!isLoggedIn()) {
       setError(t(
         'Ödeme yapabilmek için giriş yapmanız gerekmektedir.',
@@ -186,6 +186,8 @@ const Pricing: React.FC = () => {
       const response = await apiClient.post('/api/payment/initialize', {
         productCode,
         installment,
+        amount,
+        currency: 'USD',
       });
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
@@ -342,7 +344,7 @@ const Pricing: React.FC = () => {
                   <BuyBtn
                     fullWidth
                     featured={isFeatured ? 'true' : 'false'}
-                    onClick={() => handlePurchase(plan.code, isYearly ? 12 : 1, `${language === 'tr' ? pkg.name : pkg.nameEn} ${isYearly ? t('Yıllık','Yearly') : t('Aylık','Monthly')}`)}
+                    onClick={() => handlePurchase(plan.code, isYearly ? 12 : 1, price, `${language === 'tr' ? pkg.name : pkg.nameEn} ${isYearly ? t('Yıllık','Yearly') : t('Aylık','Monthly')}`)}
                     disabled={loading === plan.code}
                   >
                     {loading === plan.code
@@ -395,7 +397,7 @@ const Pricing: React.FC = () => {
                     variant="contained"
                     fullWidth
                     size="small"
-                    onClick={() => handlePurchase(cr.code, 1, cr.label)}
+                    onClick={() => handlePurchase(cr.code, 1, cr.price, cr.label)}
                     disabled={loading === cr.code}
                     sx={{ background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)', borderRadius: 2, fontWeight: 700, textTransform: 'none' }}
                   >
