@@ -6,6 +6,7 @@ import ErrorIcon       from '@mui/icons-material/Error';
 import ReplayIcon      from '@mui/icons-material/Replay';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import logoImage       from '../assent/fgs-logo.png';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const PageContainer = styled(Box)({
   minHeight: '100vh',
@@ -22,25 +23,27 @@ const StyledAppBar = styled(AppBar)({
   backdropFilter: 'blur(10px)',
 });
 
-// Yaygın hata kodları için Türkçe mesajlar
-const ERROR_MESSAGES: Record<string, string> = {
-  '51':  'Kartınızda yeterli limit bulunmuyor.',
-  '05':  'İşlem bankanız tarafından reddedildi.',
-  '14':  'Kart numarası hatalı.',
-  '54':  'Kartınızın son kullanma tarihi geçmiş.',
-  '57':  'Bu kart bu tür işlemler için kullanılamaz.',
-  '61':  'Kart haftalık işlem limitini aştı.',
-  '65':  'Kart günlük işlem sayısı limitini aştı.',
-  '91':  'Bankanız şu anda hizmet veremiyor, lütfen tekrar deneyin.',
-  '96':  'Sistem hatası, lütfen tekrar deneyin.',
+// Yaygın hata kodları için Türkçe ve İngilizce mesajlar
+const ERROR_MESSAGES: Record<string, { tr: string; en: string }> = {
+  '51':  { tr: 'Kartınızda yeterli limit bulunmuyor.', en: 'Insufficient funds on your card.' },
+  '05':  { tr: 'İşlem bankanız tarafından reddedildi.', en: 'Transaction declined by your bank.' },
+  '14':  { tr: 'Kart numarası hatalı.', en: 'Invalid card number.' },
+  '54':  { tr: 'Kartınızın son kullanma tarihi geçmiş.', en: 'Card expired.' },
+  '57':  { tr: 'Bu kart bu tür işlemler için kullanılamaz.', en: 'Card not allowed for this transaction type.' },
+  '61':  { tr: 'Kart haftalık işlem limitini aştı.', en: 'Card exceeded weekly transaction limit.' },
+  '65':  { tr: 'Kart günlük işlem sayısı limitini aştı.', en: 'Card exceeded daily transaction count limit.' },
+  '91':  { tr: 'Bankanız şu anda hizmet veremiyor, lütfen tekrar deneyin.', en: 'Your bank is currently unavailable, please try again.' },
+  '96':  { tr: 'Sistem hatası, lütfen tekrar deneyin.', en: 'System error, please try again.' },
 };
 
 const PaymentFailed: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { language } = useLanguage();
   const orderId   = searchParams.get('orderId')   ?? '';
   const errorCode = searchParams.get('errorCode') ?? '';
-  const errorMsg  = ERROR_MESSAGES[errorCode] ?? 'Ödeme işlemi tamamlanamadı. Lütfen tekrar deneyin.';
+  const errorMsg  = ERROR_MESSAGES[errorCode]?.[language as 'tr' | 'en'] 
+    ?? (language === 'tr' ? 'Ödeme işlemi tamamlanamadı. Lütfen tekrar deneyin.' : 'Payment could not be completed. Please try again.');
 
   return (
     <PageContainer>
@@ -61,7 +64,7 @@ const PaymentFailed: React.FC = () => {
           </Box>
 
           <Typography variant="h4" fontWeight="bold" sx={{ color: '#c62828', mb: 1 }}>
-            Ödeme Başarısız
+            {language === 'tr' ? 'Ödeme Başarısız' : 'Payment Failed'}
           </Typography>
           <Typography variant="h6" sx={{ color: '#555', mb: 3, fontWeight: 400 }}>
             {errorMsg}
@@ -72,12 +75,12 @@ const PaymentFailed: React.FC = () => {
             <Box sx={{ bgcolor: '#fff3e0', borderRadius: 2, p: 2, mb: 4, border: '1px solid #ffcc80', textAlign: 'left' }}>
               {orderId && (
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#e65100', mb: 0.5 }}>
-                  Sipariş No: {orderId}
+                  {language === 'tr' ? 'Sipariş No' : 'Order ID'}: {orderId}
                 </Typography>
               )}
               {errorCode && (
                 <Typography variant="body2" sx={{ fontFamily: 'monospace', color: '#e65100' }}>
-                  Hata Kodu: {errorCode}
+                  {language === 'tr' ? 'Hata Kodu' : 'Error Code'}: {errorCode}
                 </Typography>
               )}
             </Box>
@@ -86,14 +89,19 @@ const PaymentFailed: React.FC = () => {
           {/* Öneriler */}
           <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 2, p: 2.5, mb: 4, textAlign: 'left' }}>
             <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1, color: '#1565C0' }}>
-              Ne yapabilirsiniz?
+              {language === 'tr' ? 'Ne yapabilirsiniz?' : 'What can you do?'}
             </Typography>
-            {[
+            {(language === 'tr' ? [
               'Kart bilgilerinizi kontrol edin',
               'Farklı bir kart ile tekrar deneyin',
               'Bankanızı arayarak limit kontrolü yapın',
               'Sorun devam ederse destek ekibimizle iletişime geçin',
-            ].map((item, i) => (
+            ] : [
+              'Check your card information',
+              'Try again with a different card',
+              'Contact your bank for limit verification',
+              'If the problem persists, contact our support team',
+            ]).map((item, i) => (
               <Typography key={i} variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                 • {item}
               </Typography>
@@ -107,7 +115,7 @@ const PaymentFailed: React.FC = () => {
               size="large"
               fullWidth
               startIcon={<ReplayIcon />}
-              onClick={() => navigate('/#packages')}
+              onClick={() => navigate('/pricing')}
               sx={{
                 background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
                 borderRadius: 2, fontWeight: 700, py: 1.5,
@@ -115,7 +123,7 @@ const PaymentFailed: React.FC = () => {
                 '&:hover': { background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 100%)', transform: 'translateY(-2px)' },
               }}
             >
-              Tekrar Dene
+              {language === 'tr' ? 'Tekrar Dene' : 'Try Again'}
             </Button>
             <Button
               variant="outlined"
@@ -129,7 +137,7 @@ const PaymentFailed: React.FC = () => {
                 '&:hover': { bgcolor: '#e3f2fd', borderColor: '#0D47A1' },
               }}
             >
-              Destek Al
+              {language === 'tr' ? 'Destek Al' : 'Get Support'}
             </Button>
           </Box>
         </Box>
@@ -137,7 +145,7 @@ const PaymentFailed: React.FC = () => {
 
       <Box sx={{ textAlign: 'center', py: 3 }}>
         <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-          🔒 256-bit SSL ile güvenli ödeme · Tosla Sanal POS
+          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Tosla Sanal POS
         </Typography>
       </Box>
     </PageContainer>
