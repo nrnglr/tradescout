@@ -48,32 +48,61 @@ const PaymentSuccess: React.FC = () => {
 
   const verifyPayment = async (orderId: string) => {
     try {
-      console.log('🔍 Ödeme doğrulanıyor...', orderId);
+      console.log('🔍 Ödeme doğrulanıyor ve krediler yükleniyor...', orderId);
       
-      const response = await apiClient.post(`/api/payment/verify/${orderId}`, {}, {
+      // Backend'e GET isteği (RESTful)
+      const response = await apiClient.get(`/api/payment/verify/${orderId}`, {
         timeout: 30000 // 30 saniye
       });
 
-      console.log('✅ Ödeme doğrulandı:', response.data);
+      console.log('✅ Ödeme doğrulandı ve krediler yüklendi:', response.data);
       setVerificationResult(response.data);
       setVerifying(false);
 
       // Başarılıysa geri sayımı başlat
       if (response.data.success) {
         // Kullanıcı bilgilerini güncelle (localStorage)
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (response.data.creditsAdded) {
-          user.credits = (user.credits || 0) + response.data.creditsAdded;
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            
+            // Kredileri güncelle
+            if (response.data.creditsAdded > 0) {
+              user.credits = (user.credits || 0) + response.data.creditsAdded;
+              console.log('💰 Krediler güncellendi:', user.credits);
+            }
+            
+            // Paket bilgisini güncelle
+            if (response.data.packageName) {
+              user.packageType = response.data.packageName;
+              console.log('📦 Paket güncellendi:', user.packageType);
+            }
+            
+            // Üyelik bitiş tarihini güncelle
+            if (response.data.membershipEnd) {
+              user.membershipEnd = response.data.membershipEnd;
+              console.log('📅 Üyelik bitiş tarihi:', user.membershipEnd);
+            }
+            
+            localStorage.setItem('user', JSON.stringify(user));
+            console.log('✅ LocalStorage güncellendi');
+          } catch (parseErr) {
+            console.error('❌ LocalStorage parse hatası:', parseErr);
+          }
         }
-        if (response.data.packageName) {
-          user.packageType = response.data.packageName;
-        }
-        localStorage.setItem('user', JSON.stringify(user));
       }
 
     } catch (err: any) {
       console.error('❌ Ödeme doğrulama hatası:', err);
-      setError(err.response?.data?.message || (language === 'tr' ? 'Ödeme doğrulanamadı' : 'Payment verification failed'));
+      
+      // Daha detaylı hata mesajı
+      const errorMessage = err.response?.data?.message 
+        || err.response?.data?.error
+        || err.message
+        || (language === 'tr' ? 'Ödeme doğrulanamadı. Lütfen destek ekibiyle iletişime geçin.' : 'Payment verification failed. Please contact support.');
+      
+      setError(errorMessage);
       setVerifying(false);
     }
   };
@@ -100,13 +129,38 @@ const PaymentSuccess: React.FC = () => {
           {/* Doğrulama Aşaması */}
           {verifying && (
             <>
-              <CircularProgress size={80} thickness={4} sx={{ color: '#1565C0', mb: 3 }} />
-              <Typography variant="h5" fontWeight="bold" sx={{ color: '#1565C0', mb: 2 }}>
+              <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
+                <CircularProgress size={100} thickness={4} sx={{ color: '#1565C0' }} />
+                <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Typography variant="h4" sx={{ color: '#1565C0', fontWeight: 'bold' }}>
+                    💳
+                  </Typography>
+                </Box>
+              </Box>
+              
+              <Typography variant="h4" fontWeight="bold" sx={{ color: '#1565C0', mb: 2 }}>
                 {language === 'tr' ? 'Ödemeniz Doğrulanıyor...' : 'Verifying Your Payment...'}
               </Typography>
-              <Typography variant="body1" color="text.secondary">
-                {language === 'tr' ? 'Lütfen bekleyin, bu işlem birkaç saniye sürebilir.' : 'Please wait, this may take a few seconds.'}
+              
+              <Typography variant="h6" sx={{ color: '#1976D2', mb: 3, fontWeight: 600 }}>
+                {language === 'tr' 
+                  ? '💰 Kredileriniz yükleniyor, lütfen bekleyin...' 
+                  : '💰 Loading your credits, please wait...'}
               </Typography>
+              
+              <Box sx={{ bgcolor: '#e3f2fd', borderRadius: 2, p: 2, mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  {language === 'tr' 
+                    ? '⏳ Bu işlem genellikle 5-10 saniye sürer.' 
+                    : '⏳ This process usually takes 5-10 seconds.'}
+                </Typography>
+              </Box>
+              
+              {orderId && (
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', display: 'block', mt: 2 }}>
+                  {language === 'tr' ? 'Sipariş No' : 'Order ID'}: {orderId}
+                </Typography>
+              )}
             </>
           )}
 
@@ -165,23 +219,27 @@ const PaymentSuccess: React.FC = () => {
                 </Box>
               </Box>
 
-              <Typography variant="h4" fontWeight="bold" sx={{ color: '#1565C0', mb: 1 }}>
-                {language === 'tr' ? 'Ödeme Başarılı!' : 'Payment Successful!'} 🎉
+              <Typography variant="h4" fontWeight="bold" sx={{ color: '#2e7d32', mb: 2 }}>
+                {language === 'tr' ? '✅ Kredileriniz Başarıyla Yüklendi!' : '✅ Credits Loaded Successfully!'} 
               </Typography>
 
               {verificationResult.isAlreadyProcessed ? (
                 <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 600 }}>
-                  {language === 'tr' ? 'Bu ödeme daha önce işlenmiş' : 'This payment was already processed'}
+                  ⚠️ {language === 'tr' ? 'Bu ödeme daha önce işlenmiş' : 'This payment was already processed'}
                 </Typography>
               ) : (
-                <Typography variant="h6" sx={{ color: '#2e7d32', mb: 2, fontWeight: 600 }}>
-                  {language === 'tr' ? 'Üyeliğiniz aktif edildi.' : 'Your membership has been activated.'}
+                <Typography variant="h6" sx={{ color: '#1565C0', mb: 2, fontWeight: 600 }}>
+                  🎉 {language === 'tr' ? 'Ödemeniz onaylandı ve hesabınız güncellendi!' : 'Payment confirmed and your account has been updated!'}
                 </Typography>
               )}
 
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-                {language === 'tr' ? 'Ödemeniz başarıyla alındı ve hesabınız güncellendi.' : 'Your payment was successfully received and your account has been updated.'}
-              </Typography>
+              <Box sx={{ bgcolor: '#e8f5e9', borderRadius: 2, p: 2, mb: 3, border: '2px solid #4caf50' }}>
+                <Typography variant="body1" sx={{ color: '#2e7d32', fontWeight: 600 }}>
+                  💰 {language === 'tr' 
+                    ? 'Artık platformu kullanmaya başlayabilirsiniz!' 
+                    : 'You can now start using the platform!'}
+                </Typography>
+              </Box>
 
               {/* Ödeme Detayları */}
               <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 2, p: 2.5, mb: 3, textAlign: 'left' }}>
