@@ -51,13 +51,15 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import FacebookIcon from '@mui/icons-material/Facebook';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 // Iyzico ödeme logoları (beyaz versiyonlar)
 import payWithIyzicoWhite from '../assent/pay_with_iyzico_white.png';
-import cardLogosWhite from '../assent/logo_band_white@2x.png';
+
 import { useLanguage } from '../i18n/LanguageContext';
 import { useCart } from '../context/CartContext';
 
@@ -1508,6 +1510,32 @@ const LandingPage = () => {
                         LinkedIn Profili
                       </Typography>
                     </Box>
+                    <Box display="flex" alignItems="center">
+                      <InstagramIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ color: '#333' }}
+                        component="a"
+                        href="https://www.instagram.com/fgstrade?igsh=MWVlb2J1YjJxaTE0NA=="
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Instagram
+                      </Typography>
+                    </Box>
+                    <Box display="flex" alignItems="center">
+                      <FacebookIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
+                      <Typography 
+                        variant="body1" 
+                        sx={{ color: '#333' }}
+                        component="a"
+                        href="https://www.facebook.com/share/1G5iZZa4YU/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Facebook
+                      </Typography>
+                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
@@ -1692,28 +1720,7 @@ const LandingPage = () => {
             </Box>
             
             {/* Sağ taraf - Iyzico Logoları (FGS TRADE ile aynı hizada) */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: { xs: 'center', md: 'flex-end' } }}>
-              <Box 
-                component="img"
-                src={payWithIyzicoWhite}
-                alt="Pay with Iyzico"
-                sx={{ 
-                  height: { xs: 40, sm: 50, md: 55 }, 
-                  width: 'auto',
-                  objectFit: 'contain',
-                }}
-              />
-              <Box 
-                component="img"
-                src={cardLogosWhite}
-                alt="Desteklenen Kartlar - Visa, Mastercard, American Express, Troy"
-                sx={{ 
-                  height: { xs: 24, sm: 30, md: 35 }, 
-                  width: 'auto',
-                  objectFit: 'contain',
-                }}
-              />
-            </Box>
+            
           </Box>
 
           {/* Alt kısım - Yasal Linkler, Copyright ve Güvenli Ödeme */}
