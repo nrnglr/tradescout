@@ -354,7 +354,7 @@ const LandingPage = () => {
       ]
     },
     professional: {
-      id: 'professional',
+      id: 'pro_monthly',
       name: t('packages.professional.name'),
       price: 39,
       yearlyPrice: 299,
@@ -368,7 +368,7 @@ const LandingPage = () => {
       ]
     },
     enterprise: {
-      id: 'enterprise',
+      id: 'business_monthly',
       name: t('packages.enterprise.name'),
       price: 79,
       yearlyPrice: 599,
