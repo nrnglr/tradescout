@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Drawer, Box, Typography, IconButton, Button, List, ListItem,
   Chip, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel,
-  CircularProgress, Radio, RadioGroup, FormControl, Paper,
+  CircularProgress, Paper,
 } from '@mui/material';
 import CloseIcon        from '@mui/icons-material/Close';
 import DeleteIcon       from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import PaymentIcon      from '@mui/icons-material/Payment';
-import CreditCardIcon   from '@mui/icons-material/CreditCard';
 import { useCart }      from '../context/CartContext';
 import { useLanguage }  from '../i18n/LanguageContext';
 import { Link, useNavigate } from 'react-router-dom';
@@ -28,10 +27,6 @@ const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment:
   credit_100:       { code: '1247100', priceUsd: 60,  maxInstallment: 1,  isYearly: false },
 };
 
-// ⚠️ TEST FİYATLARI (TL karşılığı değil, gösterim için USD)
-// Starter aylık: 1 TL → backend PriceTry=100, frontend sadece gösterim
-// Starter yıllık: 2 TL → backend PriceTry=200
-// Canlıya geçince: starter: 15, starter yearly: 99 yap
 const MONTHLY_PRICES: Record<string, number> = { starter: 15, basic: 39, pro: 39, professional: 39, business: 79 };
 const YEARLY_PRICES:  Record<string, number> = { starter: 99, basic: 299, pro: 299, professional: 299, business: 599 };
 
@@ -46,54 +41,36 @@ const CartDrawer: React.FC = () => {
   const [salesAccepted,      setSalesAccepted]      = useState(false);
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
-  const [installmentChoice,  setInstallmentChoice]  = useState<'1' | '9' | '12'>('1');
   const [isAuthenticated,    setIsAuthenticated]    = useState(false);
 
   const allAccepted = termsAccepted && privacyAccepted && salesAccepted;
 
-  // Login durumunu izle ve otomatik güncelle
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       const newAuthState = !!token;
       
-      // Eğer auth durumu değiştiyse (login olmuşsa)
       if (newAuthState !== isAuthenticated) {
         setIsAuthenticated(newAuthState);
-        
-        // Login olmuşsa hata mesajını temizle
         if (newAuthState && paymentError) {
           setPaymentError(null);
         }
       }
     };
 
-    // İlk yüklemede kontrol et
     checkAuth();
+    if (isCartOpen) checkAuth();
 
-    // Sepet her açıldığında kontrol et
-    if (isCartOpen) {
-      checkAuth();
-    }
-
-    // localStorage değişikliklerini dinle (başka tab'da login olma durumu için)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'token') {
-        checkAuth();
-      }
+      if (e.key === 'token') checkAuth();
     };
 
     window.addEventListener('storage', handleStorageChange);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [isCartOpen, isAuthenticated, paymentError]);
 
   const isLoggedIn = () => isAuthenticated;
 
-  // Translations
   const tr: Record<string, string> = {
     cartTitle:        'Sepetim',
     emptyCart:        'Sepetiniz boş',
@@ -106,16 +83,10 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/ay',
     perYear:          '/yıl',
     saveLabel:        '%45 tasarruf',
-    noInstallment:    'Aylık planlarda taksit uygulanmaz',
-    installmentTitle: 'Taksit Seçeneği',
-    singlePayment:    'Tek seferlik',
-    perInstallment:   '/taksit',
     securePayment:    'Güvenli ödeme · Tosla Sanal POS',
     readAndAccept:    'okudum ve kabul ediyorum',
     acceptRequired:   'Devam etmek için tüm sözleşmeleri onaylayın',
     billingPeriod:    'Ödeme Dönemi',
-    bankNote:         'Taksitler bankanız tarafından uygulanır. Toplam tutar değişmez.',
-    approx:           'Aylık yaklaşık',
   };
   const en: Record<string, string> = {
     cartTitle:        'My Cart',
@@ -129,21 +100,13 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/month',
     perYear:          '/year',
     saveLabel:        'Save 45%',
-    noInstallment:    'No installments for monthly plans',
-    installmentTitle: 'Installment Option',
-    singlePayment:    'Single payment',
-    perInstallment:   '/mo',
     securePayment:    'Secure payment · Tosla Virtual POS',
     readAndAccept:    'I have read and accept',
     acceptRequired:   'Please accept all agreements to continue',
     billingPeriod:    'Billing Period',
-    bankNote:         'Installments are applied by your bank. Total amount does not change.',
-    approx:           'Approx.',
   };
   const t = (key: string) => (language === 'tr' ? tr : en)[key] ?? key;
 
-  // Frontend'den gelen kısa isimleri normalize et
-  // "professional" → "pro", "enterprise" → "enterprise" vb.
   const normalizeId = (id: string): string => {
     const map: Record<string, string> = {
       professional: 'pro',
@@ -177,9 +140,8 @@ const CartDrawer: React.FC = () => {
     return { code: plan?.code ?? item.id, priceUsd: price, isYearly: billingPeriod === 'yearly' };
   };
 
-  const totalPrice        = items.reduce((sum, item) => sum + getPlanInfo(item).priceUsd, 0);
-  const hasYearly         = items.some(item => getPlanInfo(item).isYearly);
-  const selectedInstallment = hasYearly ? parseInt(installmentChoice) : 1;
+  const totalPrice = items.reduce((sum, item) => sum + getPlanInfo(item).priceUsd, 0);
+  const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
 
   const handleCheckout = async () => {
     if (!isLoggedIn()) {
@@ -195,8 +157,9 @@ const CartDrawer: React.FC = () => {
     setPaymentError(null);
 
     try {
-      const plan        = getPlanInfo(items[0]);
-      const installment = plan.isYearly ? selectedInstallment : 1;
+      const plan = getPlanInfo(items[0]);
+      // Taksit seçeneği kaldırıldığı için daima 1 gönderiliyor
+      const installment = 1;
 
       const response = await apiClient.post('/api/payment/initialize', {
         productCode: plan.code,
@@ -251,7 +214,7 @@ const CartDrawer: React.FC = () => {
           </Typography>
           <ToggleButtonGroup
             value={billingPeriod} exclusive
-            onChange={(_, val) => { if (val) { setBillingPeriod(val); setInstallmentChoice('1'); } }}
+            onChange={(_, val) => { if (val) { setBillingPeriod(val); } }}
             size="small" fullWidth
           >
             <ToggleButton value="monthly" sx={{ fontWeight: 600 }}>{t('monthly')}</ToggleButton>
@@ -300,75 +263,6 @@ const CartDrawer: React.FC = () => {
                 );
               })}
             </List>
-
-            {/* ── Taksit Seçimi (yalnızca yıllık paket seçiliyse) ──────── */}
-            {hasYearly ? (
-              <Paper elevation={0} sx={{ borderRadius: 2, border: '2px solid #1565C0', p: 2, mt: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <CreditCardIcon sx={{ color: '#1565C0', fontSize: 20 }} />
-                  <Typography variant="subtitle2" fontWeight="bold" color="#1565C0">
-                    {t('installmentTitle')}
-                  </Typography>
-                </Box>
-
-                <FormControl component="fieldset" fullWidth>
-                  <RadioGroup value={installmentChoice} onChange={e => setInstallmentChoice(e.target.value as '1' | '9' | '12')}>
-                    {[
-                      { value: '1',  label: t('singlePayment'), months: 1  },
-                      { value: '9',  label: language === 'tr' ? '9 Taksit'  : '9 Installments',  months: 9  },
-                      { value: '12', label: language === 'tr' ? '12 Taksit' : '12 Installments', months: 12 },
-                    ].map(opt => {
-                      const isSelected  = installmentChoice === opt.value;
-                      const perMonth    = opt.months > 1 ? (totalPrice / opt.months).toFixed(2) : null;
-
-                      return (
-                        <Box
-                          key={opt.value}
-                          onClick={() => setInstallmentChoice(opt.value as '1' | '9' | '12')}
-                          sx={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            p: 1.5, mb: 1, borderRadius: 2, cursor: 'pointer',
-                            bgcolor: isSelected ? '#1565C0' : 'white',
-                            border: `2px solid ${isSelected ? '#1565C0' : '#e0e0e0'}`,
-                            transition: 'all 0.2s',
-                            '&:hover': { borderColor: '#1565C0', bgcolor: isSelected ? '#1565C0' : '#f0f4ff' },
-                          }}
-                        >
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Radio
-                              value={opt.value}
-                              size="small"
-                              sx={{ p: 0, color: isSelected ? 'white' : '#1565C0', '&.Mui-checked': { color: 'white' } }}
-                            />
-                            <Box>
-                              <Typography variant="body2" fontWeight="bold" sx={{ color: isSelected ? 'white' : '#333' }}>
-                                {opt.label}
-                              </Typography>
-                              {perMonth && (
-                                <Typography variant="caption" sx={{ color: isSelected ? 'rgba(255,255,255,.75)' : 'text.secondary' }}>
-                                  {t('approx')} ${perMonth}{t('perInstallment')}
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                          <Typography variant="subtitle2" fontWeight="bold" sx={{ color: isSelected ? 'white' : '#1565C0' }}>
-                            {opt.months === 1 ? `$${totalPrice}` : `${opt.months} × $${perMonth}`}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </RadioGroup>
-                </FormControl>
-
-                <Typography variant="caption" sx={{ color: '#777', display: 'block', mt: 0.5 }}>
-                  💳 {t('bankNote')}
-                </Typography>
-              </Paper>
-            ) : (
-              <Box sx={{ mt: 1, p: 1.5, bgcolor: '#f5f5f5', borderRadius: 2, border: '1px solid #e0e0e0' }}>
-                <Typography variant="caption" color="text.secondary">ℹ️ {t('noInstallment')}</Typography>
-              </Box>
-            )}
           </>
         )}
       </Box>
@@ -376,18 +270,12 @@ const CartDrawer: React.FC = () => {
       {/* Footer */}
       {items.length > 0 && (
         <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid #e0e0e0', boxShadow: '0 -4px 12px rgba(0,0,0,.1)', flexShrink: 0 }}>
-          {/* Toplam */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 1.5 }}>
             <Typography variant="h6">{t('total')}</Typography>
             <Box sx={{ textAlign: 'right' }}>
               <Typography variant="h5" fontWeight="bold" color="#1565C0">
                 ${totalPrice}{hasYearly ? t('perYear') : t('perMonth')}
               </Typography>
-              {hasYearly && selectedInstallment > 1 && (
-                <Typography variant="caption" color="text.secondary">
-                  {selectedInstallment} × ${(totalPrice / selectedInstallment).toFixed(2)}{t('perInstallment')}
-                </Typography>
-              )}
             </Box>
           </Box>
 

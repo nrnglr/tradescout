@@ -328,6 +328,23 @@ class AuthService {
   }
 
   /**
+   * Backend'den güncel kullanıcı bilgilerini çek ve localStorage'ı güncelle
+   */
+  async refreshUserData(): Promise<any> {
+    try {
+      const response = await apiClient.get('/api/auth/profile');
+      if (response.data) {
+        localStorage.setItem('user', JSON.stringify(response.data));
+        return response.data;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      return null;
+    }
+  }
+
+  /**
    * Şifre sıfırlama isteği - e-postaya kod gönderir
    */
   async resetPasswordRequest(email: string): Promise<{ message: string }> {

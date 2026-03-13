@@ -11,6 +11,7 @@ import CartDrawer from './components/CartDrawer';
 import { ReturnPolicy, Privacy, SalesAgreement, About, TermsOfUse } from './pages/Terms';
 import PaymentFailed from './pages/Paymentfailed';
 import PaymentSuccess from './pages/Paymentsuccess';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -23,10 +24,10 @@ function App() {
 
             {/* Login Sayfası - Butona basınca buraya gidecek */}
             <Route path="/login" element={<Login />} />
-          
+
             {/* Kayıt Ol Sayfası */}
             <Route path="/register" element={<Register />} />
-          
+
             {/* Dashboard - Kullanıcı giriş yaptıktan sonra */}
             <Route path="/dashboard" element={<Dashboard />} />
 
@@ -40,7 +41,8 @@ function App() {
             <Route path="/hakkimizda" element={<About />} />
             <Route path="/kullanim-sartlari" element={<TermsOfUse />} />
             <Route path="/payment/success" element={<PaymentSuccess />} />
-<Route path="/payment/failed"  element={<PaymentFailed />} />
+            <Route path="/payment/failed" element={<PaymentFailed />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
           <CartDrawer />
         </Router>
