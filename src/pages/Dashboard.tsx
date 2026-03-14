@@ -740,6 +740,16 @@ const Dashboard = () => {
         locationQuery += `, ${searchParams.neighborhood}`;
       }
 
+      console.log('🔍 [FRONTEND] Arama başlatılıyor...');
+      console.log('📍 [FRONTEND] Endpoint: /api/scraper/scrape-gemini');
+      console.log('📦 [FRONTEND] Request data:', {
+        category: searchParams.product,
+        city: locationQuery,
+        country: searchParams.country || 'Türkiye',
+        language: searchParams.language || 'tr',
+        maxResults: companyCount,
+      });
+
       const response = await scraperService.scrape({
         category: searchParams.product,
         city: locationQuery,
@@ -748,23 +758,64 @@ const Dashboard = () => {
         maxResults: companyCount,
       });
 
+      console.log('✅ [FRONTEND] Response alındı:', response);
+      console.log('💰 [FRONTEND] Remaining Credits:', response.remainingCredits);
+      console.log('🔍 [FRONTEND] Response içindeki TÜM field\'lar:', Object.keys(response));
+      console.log('📋 [FRONTEND] Full Response Object:', JSON.stringify(response, null, 2));
+
       setSearchResults(response);
 
       // Son aramayı kaydet (öneriler için)
       saveRecentSearch(searchParams.product, searchParams.country, searchParams.city);
 
-      // Kullanıcının kredi bilgisini backend'den güncelle - Her arama 1 kredi düşer
-      try {
-        const updatedUser = await authService.refreshUserData();
-        if (updatedUser) {
-          setUser(updatedUser);
-        }
-      } catch (error) {
-        console.error('Failed to refresh user data:', error);
-        // Yine de manuel olarak güncelle
-        const updatedUser = { ...user, credits: (user?.credits || 0) - 1 };
+      // ✅ Backend'den dönen güncel kredi bilgisini kullan
+      console.log('🔄 [FRONTEND] Kredi güncelleme başlıyor...');
+      console.log('📊 [FRONTEND] Mevcut user.credits:', user?.credits);
+      
+      // Backend farklı field adları kullanabilir, hepsini kontrol et
+      const remainingCredits = response.remainingCredits 
+        ?? (response as any).RemainingCredits 
+        ?? (response as any).remaining_credits
+        ?? (response as any).creditsRemaining
+        ?? (response as any).CreditsRemaining;
+      
+      console.log('📊 [FRONTEND] Response.remainingCredits:', response.remainingCredits);
+      console.log('📊 [FRONTEND] Tespit edilen remainingCredits:', remainingCredits);
+      
+      if (remainingCredits !== undefined && remainingCredits !== null) {
+        console.log('✅ [FRONTEND] remainingCredits bulundu, güncelleniyor...');
+        // localStorage'ı güncelle
+        authService.updateUserCredits(remainingCredits);
+        // UI'ı güncelle
+        const updatedUser = { ...user, credits: remainingCredits };
         setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('✅ [FRONTEND] Kredi güncellendi:', remainingCredits);
+        console.log('✅ [FRONTEND] localStorage güncellendi');
+      } else {
+        console.log('⚠️ [FRONTEND] remainingCredits YOK, fallback kullanılıyor...');
+        console.log('⚠️ [FRONTEND] Response objesi:', response);
+        
+        // İlk olarak manuel güncelleme yap (anında yansısın)
+        const estimatedCredits = Math.max(0, (user?.credits || 0) - 1);
+        console.log('⚠️ [FRONTEND] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
+        const tempUser = { ...user, credits: estimatedCredits };
+        setUser(tempUser);
+        localStorage.setItem('user', JSON.stringify(tempUser));
+        
+        // Arka planda backend'den gerçek değeri çek (gecikme olsa bile)
+        setTimeout(async () => {
+          try {
+            console.log('🔄 [FRONTEND] Backend\'den güncel kredi çekiliyor...');
+            const updatedUser = await authService.refreshUserData();
+            if (updatedUser && updatedUser.credits !== undefined) {
+              setUser(updatedUser);
+              console.log('✅ [FRONTEND] Gerçek kredi değeri güncellendi:', updatedUser.credits);
+            }
+          } catch (error) {
+            console.error('❌ [FRONTEND] refreshUserData başarısız:', error);
+            // Manuel güncelleme zaten yapıldı, başka bir şey yapmaya gerek yok
+          }
+        }, 500); // 500ms bekle ki backend işlemi tamamlansın
       }
 
     } catch (err: any) {
@@ -955,37 +1006,89 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
 
       if (response.data && response.data.reportContent) {
         setAnalysisResult(response.data.reportContent);
-        // Rapor başarıyla oluşturuldu, kullanıcı kredisini backend'den güncelle (5 kredi düşer)
-        try {
-          const updatedUser = await authService.refreshUserData();
-          if (updatedUser) {
-            setUser(updatedUser);
-          }
-        } catch (error) {
-          console.error('Failed to refresh user data:', error);
-          // Yine de manuel olarak güncelle
-          if (user) {
-            const updatedUser = { ...user, credits: Math.max(0, user.credits - 5) };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-          }
+        
+        // ✅ Backend'den dönen güncel kredi bilgisini kullan
+        console.log('🔄 [PAZAR ANALİZİ] Kredi güncelleme başlıyor...');
+        console.log('📊 [PAZAR ANALİZİ] Mevcut user.credits:', user?.credits);
+        
+        // Backend farklı field adları kullanabilir
+        const remainingCredits = response.data.remainingCredits 
+          ?? (response.data as any).RemainingCredits 
+          ?? (response.data as any).remaining_credits;
+        
+        console.log('📊 [PAZAR ANALİZİ] Tespit edilen remainingCredits:', remainingCredits);
+        
+        if (remainingCredits !== undefined && remainingCredits !== null) {
+          console.log('✅ [PAZAR ANALİZİ] remainingCredits bulundu, güncelleniyor...');
+          authService.updateUserCredits(remainingCredits);
+          setUser({ ...user, credits: remainingCredits });
+          console.log('✅ [PAZAR ANALİZİ] Kredi güncellendi:', remainingCredits);
+        } else {
+          console.log('⚠️ [PAZAR ANALİZİ] remainingCredits YOK, fallback kullanılıyor...');
+          
+          // İlk olarak manuel güncelleme yap (anında yansısın) - Pazar analizi 5 kredi
+          const estimatedCredits = Math.max(0, (user?.credits || 0) - 5);
+          console.log('⚠️ [PAZAR ANALİZİ] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
+          const tempUser = { ...user, credits: estimatedCredits };
+          setUser(tempUser);
+          localStorage.setItem('user', JSON.stringify(tempUser));
+          
+          // Arka planda backend'den gerçek değeri çek
+          setTimeout(async () => {
+            try {
+              console.log('🔄 [PAZAR ANALİZİ] Backend\'den güncel kredi çekiliyor...');
+              const updatedUser = await authService.refreshUserData();
+              if (updatedUser && updatedUser.credits !== undefined) {
+                setUser(updatedUser);
+                console.log('✅ [PAZAR ANALİZİ] Gerçek kredi değeri güncellendi:', updatedUser.credits);
+              }
+            } catch (error) {
+              console.error('❌ [PAZAR ANALİZİ] refreshUserData başarısız:', error);
+            }
+          }, 500);
         }
       } else if (response.data && response.data.report) {
         setAnalysisResult(response.data.report);
-        // Rapor başarıyla oluşturuldu, kullanıcı kredisini backend'den güncelle (5 kredi düşer)
-        try {
-          const updatedUser = await authService.refreshUserData();
-          if (updatedUser) {
-            setUser(updatedUser);
-          }
-        } catch (error) {
-          console.error('Failed to refresh user data:', error);
-          // Yine de manuel olarak güncelle
-          if (user) {
-            const updatedUser = { ...user, credits: Math.max(0, user.credits - 5) };
-            setUser(updatedUser);
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-          }
+        
+        // ✅ Backend'den dönen güncel kredi bilgisini kullan
+        console.log('🔄 [PAZAR ANALİZİ] Kredi güncelleme başlıyor...');
+        console.log('📊 [PAZAR ANALİZİ] Mevcut user.credits:', user?.credits);
+        
+        // Backend farklı field adları kullanabilir
+        const remainingCredits = response.data.remainingCredits 
+          ?? (response.data as any).RemainingCredits 
+          ?? (response.data as any).remaining_credits;
+        
+        console.log('📊 [PAZAR ANALİZİ] Tespit edilen remainingCredits:', remainingCredits);
+        
+        if (remainingCredits !== undefined && remainingCredits !== null) {
+          console.log('✅ [PAZAR ANALİZİ] remainingCredits bulundu, güncelleniyor...');
+          authService.updateUserCredits(remainingCredits);
+          setUser({ ...user, credits: remainingCredits });
+          console.log('✅ [PAZAR ANALİZİ] Kredi güncellendi:', remainingCredits);
+        } else {
+          console.log('⚠️ [PAZAR ANALİZİ] remainingCredits YOK, fallback kullanılıyor...');
+          
+          // İlk olarak manuel güncelleme yap (anında yansısın) - Pazar analizi 5 kredi
+          const estimatedCredits = Math.max(0, (user?.credits || 0) - 5);
+          console.log('⚠️ [PAZAR ANALİZİ] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
+          const tempUser = { ...user, credits: estimatedCredits };
+          setUser(tempUser);
+          localStorage.setItem('user', JSON.stringify(tempUser));
+          
+          // Arka planda backend'den gerçek değeri çek
+          setTimeout(async () => {
+            try {
+              console.log('🔄 [PAZAR ANALİZİ] Backend\'den güncel kredi çekiliyor...');
+              const updatedUser = await authService.refreshUserData();
+              if (updatedUser && updatedUser.credits !== undefined) {
+                setUser(updatedUser);
+                console.log('✅ [PAZAR ANALİZİ] Gerçek kredi değeri güncellendi:', updatedUser.credits);
+              }
+            } catch (error) {
+              console.error('❌ [PAZAR ANALİZİ] refreshUserData başarısız:', error);
+            }
+          }, 500);
         }
       } else {
         setAnalysisError(language === 'tr'

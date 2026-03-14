@@ -32,6 +32,7 @@ export interface ScrapeResponse {
   message: string;
   totalResults: number;
   creditsUsed: number;
+  remainingCredits?: number; // Backend'den dönen güncel kredi bilgisi
   businesses: Business[];
   downloadUrl: string;
 }

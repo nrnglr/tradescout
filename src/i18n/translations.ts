@@ -172,7 +172,7 @@ export const translations = {
         districtPlaceholder: "Örn: Kadıköy, Beşiktaş...",
         neighborhood: "Mahalle / Bölge",
         neighborhoodPlaceholder: "Örn: Moda, Levent...",
-        addRegionDetails: "Bölge detayı ekle (İlçe, Mahalle)",
+        addRegionDetails: "Bölge detayı ekle (İlçe, Mahalle) (Opsiyonel)",
         language: "Dil",
         languagePlaceholder: "Örn: İngilizce, Almanca",
         companyCount: "Kaç Firma Aranacak?",

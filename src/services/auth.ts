@@ -202,7 +202,7 @@ class AuthService {
     };
 
     // Senin kendi apiClient yapını kullanıyoruz
-    const response = await apiClient.post<AuthResponse>('http://localhost:5100/api/auth/google-login', requestData);
+   const response = await apiClient.post<AuthResponse>('/api/auth/google-login', requestData);
     
     // Başarılı girişte Token ve Kullanıcı bilgilerini kaydediyoruz (Mevcut login mantığınla aynı)
     localStorage.setItem('token', response.data.token);
@@ -385,6 +385,40 @@ class AuthService {
       Code: code
     });
     return response.data;
+  }
+
+  /**
+   * Kullanıcının kredi bilgisini güncelle (localStorage'da)
+   * Arama sonrası backend'den dönen güncel kredi ile çağrılır
+   */
+  updateUserCredits(newCredits: number): void {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        user.credits = newCredits;
+        localStorage.setItem('user', JSON.stringify(user));
+        console.log('💳 Kredi güncellendi:', newCredits);
+      }
+    } catch (error) {
+      console.error('Kredi güncelleme hatası:', error);
+    }
+  }
+
+  /**
+   * Mevcut kullanıcının kredi bilgisini al (localStorage'dan)
+   */
+  getUserCredits(): number {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.credits || 0;
+      }
+    } catch (error) {
+      console.error('Kredi okuma hatası:', error);
+    }
+    return 0;
   }
 }
 
