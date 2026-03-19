@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Drawer, Box, Typography, IconButton, Button, List, ListItem,
   Chip, ToggleButton, ToggleButtonGroup, Checkbox, FormControlLabel,
-  CircularProgress, Paper,
+  CircularProgress, Paper, TextField, InputAdornment, Alert,
 } from '@mui/material';
-import CloseIcon        from '@mui/icons-material/Close';
-import DeleteIcon       from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import PaymentIcon      from '@mui/icons-material/Payment';
-import { useCart }      from '../context/CartContext';
-import { useLanguage }  from '../i18n/LanguageContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { apiClient }    from '../services/api';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import PaymentIcon from '@mui/icons-material/Payment';
+import { useCart } from '../context/CartContext';
+import { useLanguage } from '../i18n/LanguageContext';
+import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../services/api';
 
 // ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment: number; isYearly: boolean }> = {
@@ -30,6 +33,9 @@ const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment:
 const MONTHLY_PRICES: Record<string, number> = { starter: 15, basic: 39, pro: 39, professional: 39, business: 79 };
 const YEARLY_PRICES:  Record<string, number> = { starter: 99, basic: 299, pro: 299, professional: 299, business: 599 };
 
+// TL/USD Dönüşüm Oranı
+const USD_TO_TRY = 43; // 1 USD = 43 TRY
+
 // ─────────────────────────────────────────────────────────────────────────────
 const CartDrawer: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +48,12 @@ const CartDrawer: React.FC = () => {
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
   const [isAuthenticated,    setIsAuthenticated]    = useState(false);
+  
+  // İndirim kodu state'leri
+  const [discountCode,       setDiscountCode]       = useState('');
+  const [discountData,       setDiscountData]       = useState<any>(null);
+  const [discountLoading,    setDiscountLoading]    = useState(false);
+  const [discountError,      setDiscountError]      = useState('');
 
   const allAccepted = termsAccepted && privacyAccepted && salesAccepted;
 
@@ -69,6 +81,13 @@ const CartDrawer: React.FC = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [isCartOpen, isAuthenticated, paymentError]);
 
+  // Sepet değiştiğinde indirim kodunu sıfırla
+  useEffect(() => {
+    if (discountData) {
+      removeDiscountCode();
+    }
+  }, [items.length, billingPeriod]); // items.length veya billingPeriod değişince indirim sıfırlanır
+
   const isLoggedIn = () => isAuthenticated;
 
   const tr: Record<string, string> = {
@@ -87,6 +106,7 @@ const CartDrawer: React.FC = () => {
     readAndAccept:    'okudum ve kabul ediyorum',
     acceptRequired:   'Devam etmek için tüm sözleşmeleri onaylayın',
     billingPeriod:    'Ödeme Dönemi',
+    goToPackages:     'Paketlere Git',
   };
   const en: Record<string, string> = {
     cartTitle:        'My Cart',
@@ -104,6 +124,7 @@ const CartDrawer: React.FC = () => {
     readAndAccept:    'I have read and accept',
     acceptRequired:   'Please accept all agreements to continue',
     billingPeriod:    'Billing Period',
+    goToPackages:     'Go to Packages',
   };
   const t = (key: string) => (language === 'tr' ? tr : en)[key] ?? key;
 
@@ -142,7 +163,104 @@ const CartDrawer: React.FC = () => {
 
   const totalPrice = items.reduce((sum, item) => sum + getPlanInfo(item).priceUsd, 0);
   const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
-
+  
+  // TL fiyat formatı için helper fonksiyon
+  const formatPrice = (usdPrice: number): string => {
+    const tryPrice = usdPrice * USD_TO_TRY;
+    return `₺${tryPrice.toFixed(2)}`;
+  };
+  
+  // İndirim kodunu kaldır
+  const removeDiscountCode = () => {
+    setDiscountCode('');
+    setDiscountData(null);
+    setDiscountError('');
+  };
+  
+  // İndirim kodu doğrulama fonksiyonu
+  const validateDiscountCode = async () => {
+    if (!discountCode.trim()) {
+      setDiscountError(language === 'tr' ? 'Lütfen bir indirim kodu girin' : 'Please enter a discount code');
+      return;
+    }
+    
+    if (items.length === 0) {
+      setDiscountError(language === 'tr' ? 'Sepetinizde ürün bulunmuyor' : 'Your cart is empty');
+      return;
+    }
+    
+    setDiscountLoading(true);
+    setDiscountError('');
+    
+    try {
+      // İlk ürünün paket bilgisini al
+      const plan = getPlanInfo(items[0]);
+      
+      // Backend'in tam olarak beklediği paket kodunu gönder
+      // Örnek: starter_monthly, pro_yearly, credit_10 gibi
+      const rawId = items[0].id.toLowerCase();
+      let packageCode = rawId;
+      
+      // Eğer kredi paketi değilse, billing period'a göre paket kodu oluştur
+      if (!rawId.startsWith('credit')) {
+        const baseId = normalizeId(rawId);
+        packageCode = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
+      }
+      
+      console.log('🏷️ İndirim kodu doğrulanıyor:', {
+        code: discountCode.trim().toUpperCase(),
+        packageCode,
+        originalPrice: totalPrice * USD_TO_TRY
+      });
+      
+      const response = await apiClient.post('/api/discountcode/validate', {
+        code: discountCode.trim().toUpperCase(),
+        packageCode: packageCode, // Backend'in beklediği paket kodu
+        originalPrice: totalPrice * USD_TO_TRY // TRY cinsinden fiyat
+      });
+      
+      console.log('✅ Backend response:', response.data);
+      
+      if (response.data.isValid) {
+        setDiscountData(response.data);
+        setDiscountError('');
+      } else {
+        setDiscountError(response.data.message || (language === 'tr' ? 'İndirim kodu geçersiz' : 'Invalid discount code'));
+        setDiscountData(null);
+      }
+    } catch (err: any) {
+      console.error('❌ İndirim kodu hatası:', err);
+      const errorMsg = err.response?.data?.message || 
+        (language === 'tr' ? 'İndirim kodu doğrulanırken bir hata oluştu' : 'Error validating discount code');
+      setDiscountError(errorMsg);
+      setDiscountData(null);
+    } finally {
+      setDiscountLoading(false);
+    }
+  };
+  
+  // Final fiyat hesaplama (indirim varsa)
+  // Backend'den gelen response: { discountedPrice, originalPrice, discountPercentage, discountAmount }
+  const finalPrice = discountData?.discountedPrice ?? totalPrice;
+{/* Toplam Fiyat Bölümü Güncellemesi */}
+<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 1.5 }}>
+  <Typography variant="h6">{t('total')}</Typography>
+  <Box sx={{ textAlign: 'right' }}>
+    {discountData && (
+      <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+        ${totalPrice}
+      </Typography>
+    )}
+    <Typography variant="h5" fontWeight="bold" color="#1565C0">
+      ${finalPrice}{hasYearly ? t('perYear') : t('perMonth')}
+    </Typography>
+    {discountData && (
+      <Typography variant="caption" color="success.main" sx={{ fontWeight: 'bold', display: 'block' }}>
+        %{discountData.discountPercentage} {language === 'tr' ? 'İndirim Uygulandı' : 'Discount Applied'}
+      </Typography>
+    )}
+  </Box>
+</Box>
   const handleCheckout = async () => {
     if (!isLoggedIn()) {
       setPaymentError(language === 'tr'
@@ -158,23 +276,35 @@ const CartDrawer: React.FC = () => {
 
     try {
       const plan = getPlanInfo(items[0]);
-      // Taksit seçeneği kaldırıldığı için daima 1 gönderiliyor
-      const installment = 1;
-
-      const response = await apiClient.post('/api/payment/initialize', {
+      
+      // TRY cinsinden fiyat hesapla
+      const finalPriceTRY = finalPrice * USD_TO_TRY;
+      
+      const paymentData: any = {
         productCode: plan.code,
-        installment,
-        amount:   plan.priceUsd,
-        currency: 'USD',
-      });
+        installment: 1,
+        amount: finalPriceTRY, // TRY cinsinden indirimli fiyat
+        currency: 'TRY',
+      };
+      
+      // İndirim kodu varsa backend'e gönder (kullanıcının girdiği kodu gönderiyoruz)
+      if (discountData && discountCode) {
+        paymentData.discountCode = discountCode.trim().toUpperCase();
+      }
+
+      console.log('💳 Ödeme başlatılıyor:', paymentData);
+
+      const response = await apiClient.post('/api/payment/initialize', paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
       if (paymentUrl) {
+        console.log('✅ Ödeme URL alındı, yönlendiriliyor...');
         window.location.href = paymentUrl;
       } else {
         throw new Error('Payment URL alınamadı');
       }
     } catch (error: any) {
+      console.error('❌ Ödeme hatası:', error);
       if (error.response?.status === 401) {
         setPaymentError(language === 'tr' ? 'Oturum süreniz dolmuş.' : 'Session expired. Please login again.');
         setTimeout(() => { closeCart(); navigate('/login?redirect=checkout'); }, 2000);
@@ -251,12 +381,12 @@ const CartDrawer: React.FC = () => {
                         )}
                       </Box>
                       <IconButton size="small" onClick={() => removeFromCart(item.id)} sx={{ color: '#f44336' }}>
-                        <DeleteIcon fontSize="small" />
+                        <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
                     </Box>
                     <Box sx={{ width: '100%', mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
                       <Typography variant="h6" fontWeight="bold" color="#1565C0">
-                        ${plan.priceUsd}{plan.isYearly ? t('perYear') : t('perMonth')}
+                        {formatPrice(plan.priceUsd)}{plan.isYearly ? t('perYear') : t('perMonth')}
                       </Typography>
                     </Box>
                   </ListItem>
@@ -270,13 +400,41 @@ const CartDrawer: React.FC = () => {
       {/* Footer */}
       {items.length > 0 && (
         <Box sx={{ p: 2, bgcolor: 'white', borderTop: '1px solid #e0e0e0', boxShadow: '0 -4px 12px rgba(0,0,0,.1)', flexShrink: 0 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 1.5 }}>
-            <Typography variant="h6">{t('total')}</Typography>
-            <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="h5" fontWeight="bold" color="#1565C0">
-                ${totalPrice}{hasYearly ? t('perYear') : t('perMonth')}
-              </Typography>
-            </Box>
+          {/* Toplam Fiyat */}
+          <Box sx={{ mb: 1.5 }}>
+            {discountData ? (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {language === 'tr' ? 'Ara Toplam' : 'Subtotal'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                    ₺{discountData.originalPrice?.toFixed(2) || (totalPrice * USD_TO_TRY).toFixed(2)}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="body2" color="success.main" fontWeight="bold">
+                    {language === 'tr' ? 'İndirim' : 'Discount'} ({discountData.discountPercentage}%)
+                  </Typography>
+                  <Typography variant="body2" color="success.main" fontWeight="bold">
+                    -₺{discountData.discountAmount?.toFixed(2) || '0.00'}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', pt: 1, borderTop: '2px solid #e0e0e0' }}>
+                  <Typography variant="h6" fontWeight="bold">{t('total')}</Typography>
+                  <Typography variant="h5" fontWeight="bold" color="#1565C0">
+                    ₺{discountData.discountedPrice?.toFixed(2) || (totalPrice * USD_TO_TRY).toFixed(2)}{hasYearly ? t('perYear') : t('perMonth')}
+                  </Typography>
+                </Box>
+              </>
+            ) : (
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <Typography variant="h6">{t('total')}</Typography>
+                <Typography variant="h5" fontWeight="bold" color="#1565C0">
+                  {formatPrice(totalPrice)}{hasYearly ? t('perYear') : t('perMonth')}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           {/* Sözleşmeler */}
@@ -311,6 +469,66 @@ const CartDrawer: React.FC = () => {
               <Typography variant="caption" color="error" sx={{ display: 'block', textAlign: 'center' }}>❌ {paymentError}</Typography>
             </Box>
           )}
+
+          {/* İndirim Kodu Girişi */}
+          <Box sx={{ mb: 2 }}>
+            {!discountData ? (
+              <>
+                <TextField
+                  variant="outlined" fullWidth size="small"
+                  placeholder={language === 'tr' ? 'İndirim kodunuzu girin' : 'Enter your discount code'}
+                  value={discountCode}
+                  onChange={e => setDiscountCode(e.target.value.toUpperCase())}
+                  onKeyPress={e => { if (e.key === 'Enter') validateDiscountCode(); }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LocalOfferIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ mb: 1 }}
+                />
+                <Button
+                  variant="contained" fullWidth size="small"
+                  onClick={validateDiscountCode}
+                  disabled={discountLoading || !discountCode.trim()}
+                  sx={{
+                    bgcolor: '#1565C0', py: 1, borderRadius: 2,
+                    fontWeight: 'bold', fontSize: '0.875rem',
+                    boxShadow: '0 4px 12px rgba(21,101,192,.4)',
+                    '&:hover': { bgcolor: '#0D47A1', transform: 'translateY(-2px)' },
+                    '&.Mui-disabled': { bgcolor: '#e0e0e0', color: '#9e9e9e' },
+                  }}
+                >
+                  {discountLoading ? <CircularProgress size={20} color="inherit" /> : (language === 'tr' ? 'İndirim Kodunu Uygula' : 'Apply Discount Code')}
+                </Button>
+                {discountError && (
+                  <Alert severity="error" sx={{ mt: 1, py: 0 }}>
+                    {discountError}
+                  </Alert>
+                )}
+              </>
+            ) : (
+              <Alert 
+                severity="success" 
+                icon={<CheckCircleIcon />}
+                action={
+                  <IconButton size="small" onClick={removeDiscountCode} sx={{ color: 'success.main' }}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                }
+                sx={{ mb: 1 }}
+              >
+                <Typography variant="body2" fontWeight="bold">
+                  {language === 'tr' ? `${discountCode} kodu uygulandı` : `Code ${discountCode} applied`}
+                </Typography>
+                <Typography variant="caption">
+                  {discountData.message || (language === 'tr' ? `%${discountData.discountPercentage} indirim kazandınız` : `${discountData.discountPercentage}% discount applied`)}
+                </Typography>
+              </Alert>
+            )}
+          </Box>
 
           <Button
             variant="contained" fullWidth size="large"

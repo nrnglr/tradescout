@@ -93,7 +93,7 @@ export const translations = {
         feature6: "Sosyal medya",
         feature7: "WeChat (Çin için)",
         feature8: "Excel export",
-        searchLimit: "10 Arama"
+        searchLimit: "10 Arama (Her bir aramada 200 firma)"
       },
       professional: {
         name: "Profesyonel Paket",
@@ -107,7 +107,7 @@ export const translations = {
         feature3: "Gelişmiş Excel export",
         feature4: "Daha hızlı veri erişimi",
         feature5: "Öncelikli destek",
-        searchLimit: "40 Arama"
+        searchLimit: "40 Arama (Her bir aramada 200 firma)"
       },
       enterprise: {
         name: "Kurumsal Paket",
@@ -121,7 +121,7 @@ export const translations = {
         feature3: "Bulk veri export",
         feature4: "Öncelikli destek",
         feature5: "Satış ekipleri için kullanım",
-        searchLimit: "100 Arama"
+        searchLimit: "100 Arama (Her bir aramada 200 firma)"
       }
     },
     

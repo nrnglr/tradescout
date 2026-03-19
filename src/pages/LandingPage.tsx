@@ -57,8 +57,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
-// Iyzico ödeme logosu
-import iyzicoLogoBandWhite from '../assent/logo_band_white@2x.png';
+// Iyzico ödeme logoları (beyaz versiyonlar)
+import payWithIyzicoWhite from '../assent/pay_with_iyzico_white.png';
 
 import { useLanguage } from '../i18n/LanguageContext';
 import { useCart } from '../context/CartContext';
@@ -1818,32 +1818,6 @@ const LandingPage = () => {
             <Typography variant="body2" sx={{ opacity: 0.7, fontSize: '0.85rem' }}>
               🔒 {language === 'tr' ? 'Güvenli ödeme altyapısı' : 'Secure payment infrastructure'} - SSL 256-bit
             </Typography>
-          </Box>
-
-          {/* Ödeme Logosu - Sağ Alt Köşe */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            mt: 3,
-            gap: 2
-          }}>
-            <Box
-              component="img"
-              src={iyzicoLogoBandWhite}
-              alt="iyzico"
-              sx={{
-                height: { xs: 35, sm: 40, md: 45 },
-                width: 'auto',
-                opacity: 0.9,
-                transition: 'all 0.3s ease',
-                cursor: 'pointer',
-                '&:hover': {
-                  opacity: 1,
-                  transform: 'scale(1.05)',
-                }
-              }}
-            />
           </Box>
         </Container>
       </Footer>
