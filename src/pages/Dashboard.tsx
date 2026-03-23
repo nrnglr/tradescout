@@ -63,6 +63,7 @@ import PlaceIcon from '@mui/icons-material/Place'; // Bölge ikonu
 import DescriptionIcon from '@mui/icons-material/Description'; // PDF/Rapor ikonu
 import TrendingUpIcon from '@mui/icons-material/TrendingUp'; // Analiz ikonu
 
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { authService } from '../services/auth';
 import { scraperService, ScrapeResponse, UserJob } from '../services/scraper';
 import { apiClient } from '../services/api';
@@ -442,6 +443,7 @@ const Dashboard = () => {
   // Pazar Analizi State'leri
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [analysisChartData, setAnalysisChartData] = useState<any>(null);
   const [analysisError, setAnalysisError] = useState<string>('');
   const [analysisFormData, setAnalysisFormData] = useState({
     hsCode: '',
@@ -569,7 +571,14 @@ const Dashboard = () => {
 
     if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
-      console.log('🔍 [DEBUG] user.packageType:', parsedUser?.packageType, '| user.package:', parsedUser?.package, '| user.plan:', parsedUser?.plan);
+      // PascalCase → camelCase normalize et (backend bazen farklı döndürebilir)
+      if (parsedUser.PackageType && !parsedUser.packageType) {
+        parsedUser.packageType = parsedUser.PackageType;
+      }
+      if (parsedUser.Role && !parsedUser.role) {
+        parsedUser.role = parsedUser.Role;
+      }
+      console.log('🔍 [DEBUG] user.packageType:', parsedUser?.packageType, '| PackageType:', parsedUser?.PackageType);
       setUser(parsedUser);
     } else {
       // Kullanıcı yoksa Login'e at (Güvenlik)
@@ -713,7 +722,7 @@ const Dashboard = () => {
     const isAdmin = user?.role?.toLowerCase() === 'admin';
 
     // Admin değilse firma sayısı kontrolü yap (Max 10)
-    const _pkgType = user?.packageType || user?.package || user?.plan || '';
+    const _pkgType = user?.packageType || user?.PackageType || user?.package || user?.plan || '';
     const hasPaidPackage = !!(_pkgType && _pkgType !== 'Free' && _pkgType !== 'free' && _pkgType !== '');
     const maxCompanies = isAdmin ? 1000 : hasPaidPackage ? 200 : 10;
     if (!isAdmin && (companyCount < 1 || companyCount > maxCompanies)) {
@@ -920,7 +929,6 @@ const Dashboard = () => {
       const response = await apiClient.post(
         '/api/tradeintelligence/convert-to-pdf',
         {
-          // Backend'in beklediği format
           MarkdownContent: analysisResult,
           HsCode: analysisFormData.hsCode,
           ProductName: analysisFormData.productName,
@@ -968,6 +976,49 @@ const Dashboard = () => {
   };
 
   // Pazar Analizi Raporu Oluştur
+  // ── ChartData yardımcı fonksiyonları ─────────────────────────────────
+  const extractChartData = (text: string): any | null => {
+    // Tüm ```json ... ``` bloklarını bul, marketTrend veya marketShare içereni al
+    const regex = /```json\s*([\s\S]*?)```/g;
+    let match;
+    const candidates: any[] = [];
+    while ((match = regex.exec(text)) !== null) {
+      try {
+        const parsed = JSON.parse(match[1].trim());
+        if (parsed.marketTrend || parsed.marketShare || parsed.successMetrics) {
+          candidates.push(parsed);
+        }
+      } catch {}
+    }
+    // En son bulunanı döndür (rapor sonundaki ChartData olmalı)
+    return candidates.length > 0 ? candidates[candidates.length - 1] : null;
+  };
+
+  const removeChartDataBlock = (text: string): string => {
+    return text
+      // ## ChartData başlığından itibaren her şeyi sil
+      .replace(/\n?##\s*(ChartData|Grafik Verileri)[\s\S]*$/i, '')
+      // Geriye kalan json bloklarını da temizle
+      .replace(/```json[\s\S]*?```/g, '')
+      .trim();
+  };
+
+  // Kayıttan itibaren 30 gün ücretsiz mi?
+  const isInFreeTrial = (): boolean => {
+    const createdAt = user?.createdAt || user?.CreatedAt;
+    if (!createdAt) return false;
+    const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+    return daysSince <= 30;
+  };
+
+  // Ücretsiz deneme kalan gün
+  const freeTrialDaysLeft = (): number => {
+    const createdAt = user?.createdAt || user?.CreatedAt;
+    if (!createdAt) return 0;
+    const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
+    return Math.max(0, Math.ceil(30 - daysSince));
+  };
+
   const handleGenerateAnalysis = async () => {
     // Validasyon
     if (!analysisFormData.hsCode.trim()) {
@@ -983,36 +1034,24 @@ const Dashboard = () => {
       return;
     }
 
+    // 30 gün ücretsiz değilse ve admin değilse kredi kontrolü
+    const isAdmin = user?.role?.toLowerCase() === 'admin';
+    if (!isAdmin && !isInFreeTrial()) {
+      const availableCredits = user?.credits || 0;
+      if (availableCredits < 5) {
+        setAnalysisError(language === 'tr'
+          ? `❌ Yetersiz kredi! Pazar analizi 5 kredi gerektirir. Mevcut: ${availableCredits}. Kredi satın almak için sağ üstteki kredi ikonuna tıklayın.`
+          : `❌ Insufficient credits! Market analysis requires 5 credits. Available: ${availableCredits}.`);
+        return;
+      }
+    }
+
     setAnalysisError('');
     setAnalysisLoading(true);
     setAnalysisResult(null);
+    setAnalysisChartData(null);
 
     try {
-      // ChartData JSON formatı için ek talimat
-      const chartDataInstruction = `
-Analiz raporunu hazırlarken tüm sayısal verileri standart Markdown tabloları halinde sun.
-Ayrıca raporun en sonuna, frontend grafiklerini beslemek için aşağıdaki JSON formatında bir ChartData bloğu ekle.
-Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD) doldur.
-
-\`\`\`json
-{
-  "importTrend": {
-    "labels": ["2023", "2024", "2025"],
-    "datasets": [950, 980, 1050]
-  },
-  "marketShare": {
-    "labels": ["Country1", "Country2", "Country3", "Country4"],
-    "values": [18, 15, 12, 8]
-  },
-  "priceSegments": {
-    "labels": ["Economy", "Mid-Range", "Premium"],
-    "min": [600, 751, 951],
-    "max": [750, 950, 1200]
-  }
-}
-\`\`\`
-`;
-
       // Backend API'ye istek at
       const response = await apiClient.post('/api/tradeintelligence/generate-report', {
         hsCode: analysisFormData.hsCode,
@@ -1020,11 +1059,15 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
         targetCountry: analysisFormData.targetCountry,
         originCountry: analysisFormData.originCountry || 'Türkiye',
         language: analysisFormData.reportLanguage || 'tr',
-        additionalInstructions: chartDataInstruction
       });
 
       if (response.data && response.data.reportContent) {
-        setAnalysisResult(response.data.reportContent);
+        // ChartData JSON'ı rapor metninden ayıkla
+        const rawReport1 = response.data.reportContent;
+        const chartData1 = extractChartData(rawReport1);
+        if (chartData1) setAnalysisChartData(chartData1);
+        const cleanReport1 = removeChartDataBlock(rawReport1);
+        setAnalysisResult(cleanReport1);
         // Pazar analizini geçmişe kaydet
         saveRecentSearch(analysisFormData.productName, analysisFormData.targetCountry, '', 'analiz', analysisFormData.hsCode);
         
@@ -1047,8 +1090,8 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
         } else {
           console.log('⚠️ [PAZAR ANALİZİ] remainingCredits YOK, fallback kullanılıyor...');
           
-          // İlk olarak manuel güncelleme yap (anında yansısın) - Pazar analizi 5 kredi
-          const estimatedCredits = Math.max(0, (user?.credits || 0) - 5);
+          // İlk olarak manuel güncelleme yap (anında yansısın) - 30 gün ücretsizse kredi düşme
+          const estimatedCredits = isInFreeTrial() ? (user?.credits || 0) : Math.max(0, (user?.credits || 0) - 5);
           console.log('⚠️ [PAZAR ANALİZİ] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
           const tempUser = { ...user, credits: estimatedCredits };
           setUser(tempUser);
@@ -1069,7 +1112,12 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
           }, 500);
         }
       } else if (response.data && response.data.report) {
-        setAnalysisResult(response.data.report);
+        // ChartData JSON'ı rapor metninden ayıkla
+        const rawReport2 = response.data.report;
+        const chartData2 = extractChartData(rawReport2);
+        if (chartData2) setAnalysisChartData(chartData2);
+        const cleanReport2 = removeChartDataBlock(rawReport2);
+        setAnalysisResult(cleanReport2);
         // Pazar analizini geçmişe kaydet
         saveRecentSearch(analysisFormData.productName, analysisFormData.targetCountry, '', 'analiz', analysisFormData.hsCode);
         
@@ -1092,8 +1140,8 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
         } else {
           console.log('⚠️ [PAZAR ANALİZİ] remainingCredits YOK, fallback kullanılıyor...');
           
-          // İlk olarak manuel güncelleme yap (anında yansısın) - Pazar analizi 5 kredi
-          const estimatedCredits = Math.max(0, (user?.credits || 0) - 5);
+          // İlk olarak manuel güncelleme yap (anında yansısın) - 30 gün ücretsizse kredi düşme
+          const estimatedCredits = isInFreeTrial() ? (user?.credits || 0) : Math.max(0, (user?.credits || 0) - 5);
           console.log('⚠️ [PAZAR ANALİZİ] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
           const tempUser = { ...user, credits: estimatedCredits };
           setUser(tempUser);
@@ -1684,14 +1732,14 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                       fullWidth
                       type="number"
                       label={t('dashboard.search.companyCount')}
-                      placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : ((user?.packageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.package || user?.plan || '') !== 'free' ? "Maximum 200 companies" : "Maximum 10 companies")}
+                      placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : ((user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'free' ? "Maximum 200 companies" : "Maximum 10 companies")}
                       value={searchParams.companyCount}
                       onChange={(e) => {
                         const value = parseInt(e.target.value) || 0;
                         const isAdmin = user?.role?.toLowerCase() === 'admin';
 
                         // Admin değilse 10'a sınırla ve uyar
-                        const _pkg2 = user?.packageType || user?.package || user?.plan || '';
+                        const _pkg2 = user?.packageType || user?.PackageType || user?.package || user?.plan || '';
                         const hasPaidPkg = !!(_pkg2 && _pkg2 !== 'Free' && _pkg2 !== 'free' && _pkg2 !== '');
                         const maxComp = isAdmin ? 1000 : hasPaidPkg ? 200 : 10;
                         if (!isAdmin && value > maxComp) {
@@ -1714,10 +1762,10 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                         ),
                         inputProps: {
                           min: 1,
-                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : ((user?.packageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.package || user?.plan || '') !== 'free' ? 200 : 10)
+                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : ((user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'free' ? 200 : 10)
                         }
                       }}
-                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : ((user?.packageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.package || user?.plan || '') !== 'free' ? "Min 1, max 200 companies" : "Min 1, max 10 companies")}
+                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : ((user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'free' ? "Min 1, max 200 companies" : "Min 1, max 10 companies")}
                     />
                   </Box>
                 </Box>
@@ -2374,6 +2422,70 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
               </Box>
             </Box>
 
+            {/* 30 Gün Ücretsiz Banner */}
+            {isInFreeTrial() && (
+              <Box sx={{
+                mb: 3,
+                p: 2.5,
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #E8F5E9 0%, #F1F8E9 100%)',
+                border: '2px solid #66BB6A',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                flexWrap: 'wrap',
+              }}>
+                <Typography sx={{ fontSize: '2rem', flexShrink: 0 }}>🎉</Typography>
+                <Box sx={{ flex: 1 }}>
+                  <Typography fontWeight={700} sx={{ color: '#2E7D32', fontSize: '1rem' }}>
+                    {language === 'tr'
+                      ? `Pazar Analizi ${freeTrialDaysLeft()} gün daha ücretsiz!`
+                      : `Market Analysis is FREE for ${freeTrialDaysLeft()} more days!`}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#388E3C', mt: 0.5 }}>
+                    {language === 'tr'
+                      ? 'Kayıt tarihinden itibaren 30 gün boyunca pazar analizi raporları kredi gerektirmez. Süre dolduğunda her rapor 5 kredi kullanır.'
+                      : 'Market analysis reports are free for 30 days from registration. After that, each report costs 5 credits.'}
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  bgcolor: '#2E7D32',
+                  color: '#fff',
+                  px: 2, py: 0.8,
+                  borderRadius: '20px',
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                }}>
+                  {language === 'tr' ? `${freeTrialDaysLeft()} gün kaldı` : `${freeTrialDaysLeft()} days left`}
+                </Box>
+              </Box>
+            )}
+
+            {/* Süre dolmuş ve kredisi yetersiz uyarısı */}
+            {!isInFreeTrial() && (user?.credits || 0) < 5 && user?.role?.toLowerCase() !== 'admin' && (
+              <Box sx={{
+                mb: 3, p: 2,
+                borderRadius: '12px',
+                bgcolor: '#FFF3E0',
+                border: '2px solid #FFB74D',
+                display: 'flex', alignItems: 'center', gap: 1.5,
+              }}>
+                <Typography sx={{ fontSize: '1.5rem' }}>⚡</Typography>
+                <Box>
+                  <Typography fontWeight={700} sx={{ color: '#E65100' }}>
+                    {language === 'tr' ? 'Ücretsiz dönem sona erdi' : 'Free trial ended'}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#BF360C' }}>
+                    {language === 'tr'
+                      ? `Her pazar analizi 5 kredi kullanır. Mevcut krediniz: ${user?.credits || 0}`
+                      : `Each market analysis costs 5 credits. Your credits: ${user?.credits || 0}`}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+
             {/* Yapım Aşaması Bildirimi */}
             <Alert
               severity="info"
@@ -2735,22 +2847,38 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
             {/* Loading */}
             {analysisLoading && (
               <Box sx={{
-                mt: 3,
-                p: 3,
+                mt: 3, p: 3,
                 bgcolor: 'rgba(21, 101, 192, 0.05)',
                 borderRadius: '12px',
                 textAlign: 'center',
                 border: '2px solid #42A5F5',
               }}>
                 <CircularProgress size={40} sx={{ color: BRAND_COLORS.primary, mb: 2 }} />
-                <Typography sx={{ color: BRAND_COLORS.primary, fontWeight: 600 }}>
+                <Typography sx={{ color: BRAND_COLORS.primary, fontWeight: 600, fontSize: '1.05rem' }}>
                   {language === 'tr' ? '📊 Rapor Hazırlanıyor...' : '📊 Generating Report...'}
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#666', mt: 1 }}>
+                <Typography variant="body2" sx={{ color: '#555', mt: 1, fontWeight: 500 }}>
                   {language === 'tr'
-                    ? 'Pazar verileri analiz ediliyor...'
-                    : 'Analyzing market data...'}
+                    ? 'Pazar verileri analiz ediliyor, lütfen bekleyin...'
+                    : 'Analyzing market data, please wait...'}
                 </Typography>
+                {/* Süre uyarısı */}
+                <Box sx={{
+                  mt: 2, px: 2.5, py: 1.5,
+                  bgcolor: 'rgba(255, 193, 7, 0.12)',
+                  border: '1px solid #FFC107',
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                }}>
+                  <Typography sx={{ fontSize: '1.1rem' }}>⏱️</Typography>
+                  <Typography variant="body2" sx={{ color: '#E65100', fontWeight: 600 }}>
+                    {language === 'tr'
+                      ? 'Bu işlem 1–3 dakika sürebilir, lütfen sayfayı kapatmayın.'
+                      : 'This may take 1–3 minutes, please do not close the page.'}
+                  </Typography>
+                </Box>
               </Box>
             )}
 
@@ -2820,6 +2948,143 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                   />
                 </Box>
 
+                {/* Grafik Gösterimi */}
+                {analysisChartData && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" fontWeight={700} sx={{ color: '#1565C0', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                      📊 {language === 'tr' ? 'Pazar Verileri Görselleştirmesi' : 'Market Data Visualization'}
+                    </Typography>
+
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+
+                      {/* Pazar Trendi - Çizgi Grafik */}
+                      {analysisChartData.marketTrend?.values && (
+                        <Box sx={{ bgcolor: '#fff', p: 2, borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1, color: '#333' }}>
+                            📈 {language === 'tr' ? 'İthalat Trendi (Milyon USD)' : 'Import Trend (Million USD)'}
+                            {analysisChartData.marketTrend.cagr ? ` — CAGR: %${analysisChartData.marketTrend.cagr}` : ''}
+                          </Typography>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <LineChart data={analysisChartData.marketTrend.labels.map((label: string, i: number) => ({
+                              year: label,
+                              value: analysisChartData.marketTrend.values[i]
+                            }))}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                              <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+                              <YAxis tick={{ fontSize: 12 }} />
+                              <RechartsTooltip formatter={(v: any) => [`${v} Milyon USD`, 'İthalat']} />
+                              <Line type="monotone" dataKey="value" stroke="#1565C0" strokeWidth={2} dot={{ fill: '#1565C0', r: 5 }} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      )}
+
+                      {/* Pazar Payı - Pasta Grafik */}
+                      {analysisChartData.marketShare?.values && (
+                        <Box sx={{ bgcolor: '#fff', p: 2, borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1, color: '#333' }}>
+                            🌍 {language === 'tr' ? 'Ülkelere Göre Pazar Payı (%)' : 'Market Share by Country (%)'}
+                          </Typography>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <PieChart>
+                              <Pie
+                                data={analysisChartData.marketShare.labels.map((label: string, i: number) => ({
+                                  name: label,
+                                  value: analysisChartData.marketShare.values[i]
+                                }))}
+                                cx="50%" cy="50%" outerRadius={75}
+                                dataKey="value"
+                                label={({ name, value }) => `${name}: ${value}%`}
+                                labelLine={false}
+                              >
+                                {analysisChartData.marketShare.labels.map((_: any, i: number) => (
+                                  <Cell key={i} fill={['#1565C0','#42A5F5','#2E7D32','#FFC107','#E91E63','#9C27B0'][i % 6]} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip formatter={(v: any) => [`${v}%`, 'Pay']} />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      )}
+
+                      {/* Mevsimsel Talep - Bar Grafik */}
+                      {analysisChartData.seasonalDemand?.values && (
+                        <Box sx={{ bgcolor: '#fff', p: 2, borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1, color: '#333' }}>
+                            🗓️ {language === 'tr' ? 'Mevsimsel Talep Endeksi' : 'Seasonal Demand Index'}
+                          </Typography>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <BarChart data={analysisChartData.seasonalDemand.labels.map((label: string, i: number) => ({
+                              month: label,
+                              value: analysisChartData.seasonalDemand.values[i]
+                            }))}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                              <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                              <YAxis tick={{ fontSize: 11 }} domain={[50, 'auto']} />
+                              <RechartsTooltip formatter={(v: any) => [v, 'Endeks']} />
+                              <Bar dataKey="value" radius={[4,4,0,0]}>
+                                {analysisChartData.seasonalDemand.values.map((v: number, i: number) => (
+                                  <Cell key={i} fill={v >= 110 ? '#2E7D32' : v >= 90 ? '#1565C0' : '#90A4AE'} />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      )}
+
+                      {/* Maliyet Dağılımı - Bar Grafik */}
+                      {analysisChartData.costBreakdown?.values && (
+                        <Box sx={{ bgcolor: '#fff', p: 2, borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                          <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1, color: '#333' }}>
+                            💰 {language === 'tr' ? `Landed Cost Dağılımı — Toplam: $${analysisChartData.costBreakdown.totalLandedCost?.toLocaleString()}` : `Cost Breakdown — Total: $${analysisChartData.costBreakdown.totalLandedCost?.toLocaleString()}`}
+                          </Typography>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <BarChart
+                              layout="vertical"
+                              data={analysisChartData.costBreakdown.labels
+                                .map((label: string, i: number) => ({ name: label, value: analysisChartData.costBreakdown.values[i] }))
+                                .filter((d: any) => d.value > 0)}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                              <XAxis type="number" tick={{ fontSize: 11 }} />
+                              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+                              <RechartsTooltip formatter={(v: any) => [`$${v.toLocaleString()}`, 'USD']} />
+                              <Bar dataKey="value" fill="#1565C0" radius={[0,4,4,0]} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </Box>
+                      )}
+
+                      {/* Başarı Metrikleri */}
+                      {analysisChartData.successMetrics && (
+                        <Box sx={{
+                          bgcolor: '#fff', p: 2.5, borderRadius: 2,
+                          border: '1px solid #e0e0e0',
+                          gridColumn: { md: '1 / -1' },
+                          display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center'
+                        }}>
+                          <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#333', width: '100%', mb: 1 }}>
+                            🎯 {language === 'tr' ? 'Başarı Değerlendirmesi' : 'Success Assessment'}
+                          </Typography>
+                          {[
+                            { label: language === 'tr' ? 'Başarı Oranı' : 'Success Rate', value: `%${analysisChartData.successMetrics.successRate}`, color: '#1565C0' },
+                            { label: language === 'tr' ? 'Pazar Potansiyeli' : 'Market Potential', value: analysisChartData.successMetrics.marketPotential, color: '#2E7D32' },
+                            { label: language === 'tr' ? 'Rekabet Seviyesi' : 'Competition', value: analysisChartData.successMetrics.competitionLevel, color: '#E65100' },
+                            { label: language === 'tr' ? 'Giriş Engeli' : 'Entry Barrier', value: analysisChartData.successMetrics.entryBarrier, color: '#7B1FA2' },
+                            { label: language === 'tr' ? 'Tavsiye' : 'Recommendation', value: analysisChartData.successMetrics.recommendation, color: analysisChartData.successMetrics.recommendation === 'İlerle' ? '#2E7D32' : '#E65100' },
+                          ].map(m => (
+                            <Box key={m.label} sx={{ textAlign: 'center', flex: '1 1 120px' }}>
+                              <Typography sx={{ fontSize: '1.3rem', fontWeight: 800, color: m.color }}>{m.value}</Typography>
+                              <Typography variant="caption" sx={{ color: '#666' }}>{m.label}</Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+
+                    </Box>
+                  </Box>
+                )}
+
                 {/* PDF İndirme Butonu */}
                 <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                   <Button
@@ -2887,7 +3152,9 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
               ) : (
                 <>
                   <DescriptionIcon sx={{ mr: 1 }} />
-                  {language === 'tr' ? 'Detaylı Pazar Analizi Oluştur (PDF)' : 'Generate Detailed Market Analysis (PDF)'}
+                  {isInFreeTrial()
+                    ? (language === 'tr' ? '🎉 Ücretsiz Pazar Analizi Oluştur' : '🎉 Generate Free Market Analysis')
+                    : (language === 'tr' ? 'Detaylı Pazar Analizi Oluştur (5 Kredi)' : 'Generate Market Analysis (5 Credits)')}
                 </>
               )}
             </Button>
