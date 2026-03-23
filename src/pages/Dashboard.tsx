@@ -411,6 +411,14 @@ const Dashboard = () => {
   const { openCart } = useCart();
   const [user, setUser] = useState<any>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  // Paket yükseltme uyarısı - her oturumda bir kez göster
+  const [showUpgradeHint, setShowUpgradeHint] = useState<boolean>(() => {
+    return sessionStorage.getItem('upgradeHintDismissed') !== 'true';
+  });
+  const dismissUpgradeHint = () => {
+    sessionStorage.setItem('upgradeHintDismissed', 'true');
+    setShowUpgradeHint(false);
+  };
 
   // Login sonrası redirect ile geldiyse sepeti aç
   useEffect(() => {
@@ -479,6 +487,8 @@ const Dashboard = () => {
     country: string;
     city: string;
     timestamp: number;
+    type?: 'firma' | 'analiz';   // firma araması mı pazar analizi mi
+    hsCode?: string;             // pazar analizi için
   }
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
@@ -517,12 +527,14 @@ const Dashboard = () => {
   };
 
   // Yeni arama kaydet
-  const saveRecentSearch = (product: string, country: string, city: string) => {
+  const saveRecentSearch = (product: string, country: string, city: string, type: 'firma' | 'analiz' = 'firma', hsCode?: string) => {
     const newSearch: RecentSearch = {
       product,
       country,
       city,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      type,
+      ...(hsCode ? { hsCode } : {}),
     };
 
     // Aynı aramayı tekrar ekleme, en fazla 10 arama sakla
@@ -557,6 +569,7 @@ const Dashboard = () => {
 
     if (storedUser && token) {
       const parsedUser = JSON.parse(storedUser);
+      console.log('🔍 [DEBUG] user.packageType:', parsedUser?.packageType, '| user.package:', parsedUser?.package, '| user.plan:', parsedUser?.plan);
       setUser(parsedUser);
     } else {
       // Kullanıcı yoksa Login'e at (Güvenlik)
@@ -700,8 +713,14 @@ const Dashboard = () => {
     const isAdmin = user?.role?.toLowerCase() === 'admin';
 
     // Admin değilse firma sayısı kontrolü yap (Max 10)
-    if (!isAdmin && (companyCount < 1 || companyCount > 10)) {
-      setError(`⚠️ ${language === 'tr' ? 'Free pakette maksimum 10 firma aranabilir.' : 'Maximum 10 companies per search in free plan.'} ${language === 'tr' ? 'Daha fazla arama için paket yükseltin!' : 'Upgrade your package to search more!'}`);
+    const _pkgType = user?.packageType || user?.package || user?.plan || '';
+    const hasPaidPackage = !!(_pkgType && _pkgType !== 'Free' && _pkgType !== 'free' && _pkgType !== '');
+    const maxCompanies = isAdmin ? 1000 : hasPaidPackage ? 200 : 10;
+    if (!isAdmin && (companyCount < 1 || companyCount > maxCompanies)) {
+      const errMsg1 = language === 'tr'
+        ? `⚠️ ${hasPaidPackage ? 'Pakette' : 'Free pakette'} maksimum ${maxCompanies} firma aranabilir. Daha fazla arama için paket yükseltin!`
+        : `⚠️ Maximum ${maxCompanies} companies per search in your plan. Upgrade your package to search more!`;
+      setError(errMsg1);
       return;
     }
 
@@ -1006,6 +1025,8 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
 
       if (response.data && response.data.reportContent) {
         setAnalysisResult(response.data.reportContent);
+        // Pazar analizini geçmişe kaydet
+        saveRecentSearch(analysisFormData.productName, analysisFormData.targetCountry, '', 'analiz', analysisFormData.hsCode);
         
         // ✅ Backend'den dönen güncel kredi bilgisini kullan
         console.log('🔄 [PAZAR ANALİZİ] Kredi güncelleme başlıyor...');
@@ -1049,6 +1070,8 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
         }
       } else if (response.data && response.data.report) {
         setAnalysisResult(response.data.report);
+        // Pazar analizini geçmişe kaydet
+        saveRecentSearch(analysisFormData.productName, analysisFormData.targetCountry, '', 'analiz', analysisFormData.hsCode);
         
         // ✅ Backend'den dönen güncel kredi bilgisini kullan
         console.log('🔄 [PAZAR ANALİZİ] Kredi güncelleme başlıyor...');
@@ -1200,46 +1223,116 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                 </Tooltip>
               )}
 
-              {/* Profil Menüsü - Ad Soyad gösterimi */}
-              <Tooltip title={language === 'tr' ? 'Hesap Ayarları' : 'Account Settings'}>
-                <Box
-                  onClick={handleMenu}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    cursor: 'pointer',
-                    px: { xs: 1, sm: 1.5 },
-                    py: 0.5,
-                    borderRadius: '10px',
-                    bgcolor: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.2)',
-                      borderColor: 'rgba(255, 255, 255, 0.4)',
-                    }
-                  }}
-                >
-                  <Avatar sx={{ bgcolor: BRAND_COLORS.primary, width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 }, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
-                    {user?.fullName?.charAt(0) || 'U'}
-                  </Avatar>
-                  <Typography
+              {/* Profil Menüsü - Ad Soyad gösterimi + Paket Yükseltme Uyarısı */}
+              <Box sx={{ position: 'relative' }}>
+                {/* Paket Yükseltme Uyarısı - profilin altında, ok yukarı bakıyor */}
+                {showUpgradeHint && (
+                  <Box
                     sx={{
-                      color: '#FFFFFF',
-                      fontWeight: 600,
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      display: { xs: 'none', sm: 'block' },
-                      maxWidth: '120px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      position: 'absolute',
+                      top: 'calc(100% + 10px)',
+                      right: 0,
+                      display: { xs: 'none', md: 'flex' },
+                      flexDirection: 'column',
+                      alignItems: 'flex-end',
+                      zIndex: 1400,
+                      pointerEvents: 'none',
                     }}
                   >
-                    {user?.fullName || 'Kullanıcı'}
-                  </Typography>
-                </Box>
-              </Tooltip>
+                    {/* Yukarı bakan üçgen ok */}
+                    <Box sx={{
+                      width: 0,
+                      height: 0,
+                      borderLeft: '7px solid transparent',
+                      borderRight: '7px solid transparent',
+                      borderBottom: '8px solid #FFC107',
+                      mr: 2,
+                    }} />
+                    {/* Balon */}
+                    <Box
+                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); dismissUpgradeHint(); navigate('/profile'); }}
+                      sx={{
+                        pointerEvents: 'all',
+                        bgcolor: '#FFC107',
+                        color: '#1a1a1a',
+                        px: 1.5,
+                        py: 0.8,
+                        borderRadius: '10px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        whiteSpace: 'nowrap',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        animation: 'bounceDot 1.2s ease-in-out infinite',
+                        '@keyframes bounceDot': {
+                          '0%, 100%': { transform: 'translateY(0px)' },
+                          '50%': { transform: 'translateY(-4px)' },
+                        },
+                        '&:hover': { bgcolor: '#FFB300' },
+                      }}
+                    >
+                      {language === 'tr' ? '🚀 Paket yükseltmek için tıklayın!' : '🚀 Click to upgrade your plan!'}
+                      <Box
+                        component="span"
+                        onClick={(e: React.MouseEvent) => { e.stopPropagation(); dismissUpgradeHint(); }}
+                        sx={{
+                          ml: 0.5,
+                          px: 0.5,
+                          borderRadius: '50%',
+                          bgcolor: 'rgba(0,0,0,0.15)',
+                          fontSize: '0.7rem',
+                          lineHeight: 1.6,
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
+                        }}
+                      >{'✕'}</Box>
+                    </Box>
+                  </Box>
+                )}
+                <Tooltip title={language === 'tr' ? 'Hesap Ayarları' : 'Account Settings'}>
+                  <Box
+                    id="profile-btn"
+                    onClick={(e: React.MouseEvent<HTMLElement>) => { dismissUpgradeHint(); handleMenu(e); }}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      cursor: 'pointer',
+                      px: { xs: 1, sm: 1.5 },
+                      py: 0.5,
+                      borderRadius: '10px',
+                      bgcolor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                        borderColor: 'rgba(255, 255, 255, 0.4)',
+                      }
+                    }}
+                  >
+                    <Avatar sx={{ bgcolor: BRAND_COLORS.primary, width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 }, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+                      {user?.fullName?.charAt(0) || 'U'}
+                    </Avatar>
+                    <Typography
+                      sx={{
+                        color: '#FFFFFF',
+                        fontWeight: 600,
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        display: { xs: 'none', sm: 'block' },
+                        maxWidth: '120px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {user?.fullName || 'Kullanıcı'}
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              </Box>
               <Menu
                 id="menu-appbar"
                 anchorEl={anchorEl}
@@ -1591,17 +1684,23 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                       fullWidth
                       type="number"
                       label={t('dashboard.search.companyCount')}
-                      placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : "Maximum 10 companies"}
+                      placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : ((user?.packageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.package || user?.plan || '') !== 'free' ? "Maximum 200 companies" : "Maximum 10 companies")}
                       value={searchParams.companyCount}
                       onChange={(e) => {
                         const value = parseInt(e.target.value) || 0;
                         const isAdmin = user?.role?.toLowerCase() === 'admin';
 
                         // Admin değilse 10'a sınırla ve uyar
-                        if (!isAdmin && value > 10) {
-                          setError(`⚠️ ${language === 'tr' ? 'Free pakette maksimum 10 firma aranabilir.' : 'Maximum 10 companies per search in free plan.'} ${language === 'tr' ? 'Daha fazla arama için paket yükseltin!' : 'Upgrade your package to search more!'}`);
+                        const _pkg2 = user?.packageType || user?.package || user?.plan || '';
+                        const hasPaidPkg = !!(_pkg2 && _pkg2 !== 'Free' && _pkg2 !== 'free' && _pkg2 !== '');
+                        const maxComp = isAdmin ? 1000 : hasPaidPkg ? 200 : 10;
+                        if (!isAdmin && value > maxComp) {
+                          const errMsg2 = language === 'tr'
+                            ? `⚠️ ${hasPaidPkg ? 'Pakette' : 'Free pakette'} maksimum ${maxComp} firma aranabilir. Daha fazla arama için paket yükseltin!`
+                            : `⚠️ Maximum ${maxComp} companies per search. Upgrade your package to search more!`;
+                          setError(errMsg2);
                           setTimeout(() => setError(''), 5000);
-                          setSearchParams({ ...searchParams, companyCount: '10' });
+                          setSearchParams({ ...searchParams, companyCount: String(maxComp) });
                         } else {
                           // Admin ise sınır yok, değeri direkt kaydet
                           setSearchParams({ ...searchParams, companyCount: value.toString() });
@@ -1615,10 +1714,10 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                         ),
                         inputProps: {
                           min: 1,
-                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : 10
+                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : ((user?.packageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.package || user?.plan || '') !== 'free' ? 200 : 10)
                         }
                       }}
-                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : "Min 1, max 10 companies"}
+                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : ((user?.packageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.package || user?.plan || '') !== 'free' ? "Min 1, max 200 companies" : "Min 1, max 10 companies")}
                     />
                   </Box>
                 </Box>
@@ -2878,7 +2977,7 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                 <Alert severity="error" sx={{ borderRadius: '12px' }}>
                   {historyError}
                 </Alert>
-              ) : historyData.length === 0 ? (
+              ) : historyData.length === 0 && recentSearches.filter(s => s.type === 'analiz').length === 0 ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8 }}>
                   <HistoryIcon sx={{ fontSize: 64, color: '#BBDEFB', mb: 2 }} />
                   <Typography variant="h6" sx={{ color: '#666', textAlign: 'center' }}>
@@ -2917,6 +3016,12 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                   </Box>
 
                   {/* Arama Kartları */}
+                  {/* ── Firma Aramaları ── */}
+                  {historyData.length > 0 && (
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 1, mb: 0.5 }}>
+                      🏢 {language === 'tr' ? 'Firma Aramaları' : 'Company Searches'}
+                    </Typography>
+                  )}
                   {historyData.map((job) => (
                     <Paper
                       key={job.jobId}
@@ -3031,6 +3136,58 @@ Verileri rapordaki analizlerine göre (Örn: CAGR %+5,1, Landed Cost 12.882 USD)
                       </Box>
                     </Paper>
                   ))}
+
+                  {/* ── Pazar Analizi Geçmişi (localStorage'dan) ── */}
+                  {(() => {
+                    const analysisHistory = recentSearches.filter(s => s.type === 'analiz');
+                    if (analysisHistory.length === 0) return null;
+                    return (
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 1, display: 'block', mb: 1 }}>
+                          📊 {language === 'tr' ? 'Pazar Analizi Aramaları' : 'Market Analysis Searches'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                          {analysisHistory.map((s, idx) => (
+                            <Paper
+                              key={idx}
+                              elevation={0}
+                              sx={{
+                                p: { xs: 2, sm: 2.5 },
+                                borderRadius: '14px',
+                                border: '1px solid #E8F5E9',
+                                bgcolor: '#F9FBE7',
+                                transition: 'all 0.2s ease',
+                                '&:hover': {
+                                  boxShadow: '0 4px 20px rgba(46,125,50,0.1)',
+                                  borderColor: '#A5D6A7',
+                                  transform: 'translateY(-2px)',
+                                }
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                  <Typography sx={{ fontSize: '1.1rem' }}>📊</Typography>
+                                  <Typography fontWeight="bold" sx={{ color: '#333', fontSize: '0.95rem' }}>
+                                    {s.product}
+                                  </Typography>
+                                  {s.hsCode && (
+                                    <Chip label={`HS: ${s.hsCode}`} size="small" sx={{ bgcolor: '#C8E6C9', color: '#2E7D32', fontWeight: 600, fontSize: '0.7rem' }} />
+                                  )}
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <PublicIcon sx={{ fontSize: 15, color: '#666' }} />
+                                    <Typography variant="body2" sx={{ color: '#666' }}>{s.country}</Typography>
+                                  </Box>
+                                </Box>
+                                <Typography variant="caption" sx={{ color: '#888' }}>
+                                  📅 {new Date(s.timestamp).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                </Typography>
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Box>
+                      </Box>
+                    );
+                  })()}
                 </Box>
               )}
             </Box>

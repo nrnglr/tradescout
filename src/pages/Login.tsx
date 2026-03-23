@@ -285,22 +285,22 @@ const Login = () => {
 
   // google ile kayıt yönetimi 
   const googleLogin = useGoogleLogin({
-  onSuccess: async (tokenResponse) => {
-    setLoading(true);
-    try {
-      // Artık authService içinde bu metod var!
-      await authService.googleLogin(tokenResponse.access_token);
-      
-      // Başarılı olursa yönlendir (redirect parametresine göre)
-      handlePostLoginRedirect();
-    } catch (err: any) {
-      setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
-    } finally {
-      setLoading(false);
-    }
-  },
-  onError: () => setError(language === 'tr' ? 'Google ile giriş başarısız.' : 'Google login failed.'),
-});
+    onSuccess: async (tokenResponse) => {
+      setLoading(true);
+      try {
+        // Artık authService içinde bu metod var!
+        await authService.googleLogin(tokenResponse.access_token);
+
+        // Başarılı olursa yönlendir (redirect parametresine göre)
+        handlePostLoginRedirect();
+      } catch (err: any) {
+        setError(getUserFriendlyErrorMessage(err, language as 'tr' | 'en'));
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => setError(language === 'tr' ? 'Google ile giriş başarısız.' : 'Google login failed.'),
+  });
   // State Yönetimi
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -590,7 +590,8 @@ const Login = () => {
         <LoginContent>
           <LoginSection>
 
-            {/* Sol Görsel Alanı - İllüstrasyon */}
+
+            {/* Sol Görsel Alanı - Kendi Logonuz */}
             <ImageContainer>
               <Box
                 sx={{
@@ -598,12 +599,14 @@ const Login = () => {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  padding: 4,
+                  backgroundColor: '#FFFFFF', // Beyaz arka plan
+                  padding: 6, // Padding'i biraz artırarak alanı genişletebilirsiniz
                   borderRadius: 4,
                   backdropFilter: 'blur(15px)',
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                  width: '100%', // Kapsayıcıyı tam genişlik yapın
+                  maxWidth: '500px', // Kutunun genel büyüklüğü
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-5px)',
@@ -612,19 +615,19 @@ const Login = () => {
                 }}
               >
                 <img
-                  src={loginIllustration}
-                  alt="Login Illustration"
+                  src={logoImage} // loginIllustration yerine logoImage
+                  alt="FGS Trade Logo"
                   style={{
-                    width: '100%',
-                    maxWidth: '400px',
+                    width: '100%', // Kapsayıcının %100'ünü kullansın
+                    maxWidth: '350px', // Logonun aşırı yayılmaması için bir sınır
                     height: 'auto',
-                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.1))',
+                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))',
                   }}
                 />
-                <Typography variant="h4" sx={{ color: '#FFFFFF', fontWeight: 800, textAlign: 'center', mt: 3, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                <Typography variant="h4" sx={{ color: '#1565C0', fontWeight: 800, textAlign: 'center', mt: 3 }}>
                   {t('login.heroTitle')}
                 </Typography>
-                <Typography variant="h6" sx={{ color: '#E3F2FD', textAlign: 'center', mt: 2, fontWeight: 500 }}>
+                <Typography variant="h6" sx={{ color: '#1976D2', textAlign: 'center', mt: 2, fontWeight: 500 }}>
                   {t('login.heroSubtitle')}
                 </Typography>
               </Box>
@@ -911,7 +914,7 @@ const Login = () => {
                         <SocialButton variant="outlined" onClick={() => googleLogin()}>
                           <GoogleIcon sx={{ color: '#DB4437' }} />
                         </SocialButton>
-                       
+
                       </Box>
                     </Box>
                   )}
@@ -964,6 +967,7 @@ const Login = () => {
               </LoginForm>
             </FormContainer>
             {/* Sağ Görsel Alanı - İllüstrasyon */}
+            
             <ImageContainer>
               <Box
                 sx={{
@@ -971,12 +975,14 @@ const Login = () => {
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  padding: 4,
+                  backgroundColor: '#FFFFFF', // Beyaz arka plan
+                  padding: 6, // Padding'i biraz artırarak alanı genişletebilirsiniz
                   borderRadius: 4,
                   backdropFilter: 'blur(15px)',
                   border: '2px solid rgba(255, 255, 255, 0.2)',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                  width: '100%', // Kapsayıcıyı tam genişlik yapın
+                  maxWidth: '500px', // Kutunun genel büyüklüğü
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-5px)',
@@ -985,20 +991,20 @@ const Login = () => {
                 }}
               >
                 <img
-                  src={login2Illustration}
-                  alt="Analytics & Accounting Illustration"
+                  src={logoImage} // loginIllustration yerine logoImage
+                  alt="FGS Trade Logo"
                   style={{
-                    width: '100%',
-                    maxWidth: '400px',
+                    width: '100%', // Kapsayıcının %100'ünü kullansın
+                    maxWidth: '350px', // Logonun aşırı yayılmaması için bir sınır
                     height: 'auto',
-                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.1))',
+                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.2))',
                   }}
                 />
-                <Typography variant="h4" sx={{ color: '#FFFFFF', fontWeight: 800, textAlign: 'center', mt: 3, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-                  {t('login.hero2Title')}
+                <Typography variant="h4" sx={{ color: '#1565C0', fontWeight: 800, textAlign: 'center', mt: 3, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                  {t('login.heroTitle')}
                 </Typography>
-                <Typography variant="h6" sx={{ color: '#E3F2FD', textAlign: 'center', mt: 2, fontWeight: 500 }}>
-                  {t('login.hero2Subtitle')}
+                <Typography variant="h6" sx={{ color: '#1976D2', textAlign: 'center', mt: 2, fontWeight: 500 }}>
+                  {t('login.heroSubtitle')}
                 </Typography>
               </Box>
             </ImageContainer>
