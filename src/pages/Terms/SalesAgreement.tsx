@@ -88,7 +88,7 @@ const SalesAgreement: React.FC = () => {
           </Typography>
           <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, color: '#555' }}>
             Hizmet bedeli, sipariş anında web sitesinde belirtilen fiyattır. Tüm fiyatlara 
-            KDV dahildir. Ödeme, iyzico güvenli ödeme altyapısı üzerinden kredi kartı veya 
+            KDV dahildir. Ödeme, paratika güvenli ödeme altyapısı üzerinden kredi kartı veya 
             banka kartı ile gerçekleştirilir.
           </Typography>
 

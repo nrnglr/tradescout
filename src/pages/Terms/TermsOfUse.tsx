@@ -86,7 +86,7 @@ const TermsOfUse: React.FC = () => {
           <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, color: '#555' }}>
             • Abonelik ücretleri, seçilen paket türüne göre aylık olarak faturalandırılır.
             <br />
-            • Ödemeler iyzico güvenli ödeme altyapısı üzerinden gerçekleştirilir.
+            • Ödemeler Paratika güvenli ödeme altyapısı üzerinden gerçekleştirilir.
             <br />
             • Abonelik iptali, bir sonraki fatura dönemi için geçerli olur.
             <br />

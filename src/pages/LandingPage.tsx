@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import paratikaLogo from '../assent/paratika-sanal-pos-beyaz-logo.png';
 import {
   Box,
   Button,
@@ -168,7 +169,7 @@ const LoginButton = styled(Button)({
 
 // Hero Bölümü
 const HeroSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(16, 0, 10), 
+  padding: theme.spacing(16, 0, 10),
   background: 'transparent',
   display: 'flex',
   alignItems: 'center',
@@ -496,7 +497,7 @@ const LandingPage = () => {
         setPhone('');
         setSubject('');
         setMessage('');
-        
+
         setTimeout(() => setFeedbackSuccess(false), 3000);
       } else {
         setFeedbackError(t('feedback.errorGeneral'));
@@ -521,10 +522,10 @@ const LandingPage = () => {
       {/* --- NAVBAR --- */}
       <StyledAppBar position="fixed" color="default">
         <Container maxWidth={false} sx={{ px: { xs: 0, sm: 1, md: 3, lg: 5, xl: 8 } }}>
-          <Toolbar 
-            disableGutters 
-            sx={{ 
-              py: { xs: 0.5, md: 0.8 }, 
+          <Toolbar
+            disableGutters
+            sx={{
+              py: { xs: 0.5, md: 0.8 },
               minHeight: { xs: '85px', md: '110px' },
               maxHeight: { xs: '85px', md: '110px' },
               overflow: 'hidden'
@@ -532,9 +533,9 @@ const LandingPage = () => {
           >
             {/* Logo */}
             <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', height: '100%', pl: { xs: 0, sm: 0.5 } }}>
-              <LogoImage 
-                src={logoImage} 
-                alt="Trade Scout Logo" 
+              <LogoImage
+                src={logoImage}
+                alt="Trade Scout Logo"
                 onClick={() => window.scrollTo(0, 0)}
               />
               <LogoText onClick={() => window.scrollTo(0, 0)}>
@@ -544,27 +545,27 @@ const LandingPage = () => {
 
             {/* Menü Linkleri (Masaüstü) */}
             <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', gap: { md: 0.5, lg: 1 } }}>
-              <NavButton 
+              <NavButton
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {t('navbar.features')}
               </NavButton>
-              <NavButton 
+              <NavButton
                 onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {t('navbar.about')}
               </NavButton>
-              <NavButton 
+              <NavButton
                 onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {t('navbar.contact')}
               </NavButton>
-              <NavButton 
+              <NavButton
                 onClick={() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {t('navbar.packages')}
               </NavButton>
-              
+
               {/* Dil Seçici */}
               <ToggleButtonGroup
                 value={language}
@@ -618,16 +619,16 @@ const LandingPage = () => {
             </IconButton>
 
             {/* Giriş Yap Butonu (Desktop) */}
-            <LoginButton 
+            <LoginButton
               onClick={() => navigate('/login')}
-              sx={{ 
+              sx={{
                 display: { xs: 'none', md: 'inline-flex' },
                 ml: { md: 1 }
               }}
             >
               {t('navbar.login')}
             </LoginButton>
-            
+
             {/* Hamburger Menü İkonu (Mobil & Tablet) */}
             <IconButton
               onClick={toggleMobileMenu}
@@ -675,7 +676,7 @@ const LandingPage = () => {
           <ListItem disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               onClick={() => handleMenuItemClick(() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }))}
-              sx={{ 
+              sx={{
                 borderRadius: 2,
                 '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
               }}
@@ -683,7 +684,7 @@ const LandingPage = () => {
               <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
                 <SavedSearchIcon />
               </ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={t('navbar.features')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
@@ -693,7 +694,7 @@ const LandingPage = () => {
           <ListItem disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               onClick={() => handleMenuItemClick(() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }))}
-              sx={{ 
+              sx={{
                 borderRadius: 2,
                 '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
               }}
@@ -701,7 +702,7 @@ const LandingPage = () => {
               <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
                 <VerifiedIcon />
               </ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={t('navbar.about')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
@@ -711,7 +712,7 @@ const LandingPage = () => {
           <ListItem disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               onClick={() => handleMenuItemClick(() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }))}
-              sx={{ 
+              sx={{
                 borderRadius: 2,
                 '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
               }}
@@ -719,7 +720,7 @@ const LandingPage = () => {
               <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
                 <LocationOnIcon />
               </ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={t('navbar.contact')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
@@ -729,7 +730,7 @@ const LandingPage = () => {
           <ListItem disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               onClick={() => handleMenuItemClick(() => document.getElementById('packages')?.scrollIntoView({ behavior: 'smooth' }))}
-              sx={{ 
+              sx={{
                 borderRadius: 2,
                 '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.1)' }
               }}
@@ -737,7 +738,7 @@ const LandingPage = () => {
               <ListItemIcon sx={{ color: '#FFFFFF', minWidth: 40 }}>
                 <StarIcon />
               </ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={t('navbar.packages')}
                 primaryTypographyProps={{ fontWeight: 600, fontSize: '1.1rem' }}
               />
@@ -816,7 +817,7 @@ const LandingPage = () => {
           >
             {language === 'tr' ? 'Sepetim' : 'My Cart'}
           </Button>
-          
+
           <Button
             variant="contained"
             fullWidth
@@ -871,14 +872,14 @@ const LandingPage = () => {
         <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 8, lg: 10, xl: 12 } }}>
           <Box sx={{ display: 'flex', gap: { xs: 3, md: 8 }, alignItems: 'center', flexWrap: 'wrap' }}>
             <Box sx={{ flex: 1, minWidth: '280px', maxWidth: { md: '600px' } }}>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  color: '#E3F2FD', 
-                  fontWeight: 'bold', 
-                  mb: 2, 
+              <Typography
+                variant="h6"
+                sx={{
+                  color: '#E3F2FD',
+                  fontWeight: 'bold',
+                  mb: 2,
                   mt: { xs: 2, sm: 0 },
-                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' } 
+                  fontSize: { xs: '0.875rem', sm: '1rem', md: '1.25rem' }
                 }}
               >
                 {t('hero.subtitle')}
@@ -891,16 +892,16 @@ const LandingPage = () => {
                 {t('hero.description')}
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   size="large"
                   onClick={() => navigate('/login')}
-                  sx={{ 
+                  sx={{
                     bgcolor: '#FFFFFF',
                     color: '#1565C0',
-                    borderRadius: '12px', 
-                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' }, 
-                    px: { xs: 3, sm: 4 }, 
+                    borderRadius: '12px',
+                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' },
+                    px: { xs: 3, sm: 4 },
                     py: { xs: 1.2, sm: 1.5 },
                     textTransform: 'none',
                     fontWeight: 'bold',
@@ -914,17 +915,17 @@ const LandingPage = () => {
                 >
                   {t('hero.startNow')}
                 </Button>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   size="large"
                   onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                  sx={{ 
+                  sx={{
                     borderColor: '#FFFFFF',
                     borderWidth: 2,
                     color: '#FFFFFF',
-                    borderRadius: '12px', 
-                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' }, 
-                    px: { xs: 3, sm: 4 }, 
+                    borderRadius: '12px',
+                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' },
+                    px: { xs: 3, sm: 4 },
                     py: { xs: 1.2, sm: 1.5 },
                     textTransform: 'none',
                     fontWeight: 'bold',
@@ -940,7 +941,7 @@ const LandingPage = () => {
               </Stack>
             </Box>
             <Box sx={{ flex: 1, minWidth: '280px', position: 'relative', display: { xs: 'none', md: 'block' } }}>
-              <Box 
+              <Box
                 sx={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   borderRadius: '24px',
@@ -956,7 +957,7 @@ const LandingPage = () => {
                 <Box sx={{ position: 'absolute', top: 0, right: 0, opacity: 0.1 }}>
                   <TrendingUpIcon sx={{ fontSize: 200, color: 'white' }} />
                 </Box>
-                
+
                 {/* İçerik */}
                 <Box sx={{ position: 'relative', zIndex: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-around', mb: 4 }}>
@@ -976,10 +977,10 @@ const LandingPage = () => {
                       <Typography variant="body2">{t('hero.statsSuccess')}</Typography>
                     </Box>
                   </Box>
-                  
-                  <Box sx={{ 
-                    bgcolor: 'rgba(255,255,255,0.1)', 
-                    borderRadius: 3, 
+
+                  <Box sx={{
+                    bgcolor: 'rgba(255,255,255,0.1)',
+                    borderRadius: 3,
                     p: 3,
                     backdropFilter: 'blur(10px)',
                   }}>
@@ -1007,7 +1008,7 @@ const LandingPage = () => {
         <Box sx={{ position: 'absolute', bottom: 50, right: 50, opacity: 0.05 }}>
           <BusinessIcon sx={{ fontSize: 150, color: 'white' }} />
         </Box>
-        
+
         <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
           <Box textAlign="center" mb={8}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -1076,7 +1077,7 @@ const LandingPage = () => {
           pointerEvents: 'none',
           zIndex: 0,
         }} />
-        
+
         {/* Bulanık Logo Arka Planı */}
         <Box sx={{
           position: 'absolute',
@@ -1088,9 +1089,9 @@ const LandingPage = () => {
           pointerEvents: 'none',
           zIndex: 0,
         }}>
-          <img 
-            src={logoImage} 
-            alt="Background Logo" 
+          <img
+            src={logoImage}
+            alt="Background Logo"
             style={{
               width: '400px',
               height: 'auto',
@@ -1106,7 +1107,7 @@ const LandingPage = () => {
         <Box sx={{ position: 'absolute', bottom: 50, right: 50, opacity: 0.05 }}>
           <RocketLaunchIcon sx={{ fontSize: 150, color: 'white' }} />
         </Box>
-        
+
         <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 }, position: 'relative', zIndex: 1 }}>
           <Box textAlign="center" mb={8}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -1119,11 +1120,11 @@ const LandingPage = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ 
-            display: 'flex', 
-            gap: { xs: 3, sm: 4 }, 
-            flexWrap: 'wrap', 
-            justifyContent: 'center', 
+          <Box sx={{
+            display: 'flex',
+            gap: { xs: 3, sm: 4 },
+            flexWrap: 'wrap',
+            justifyContent: 'center',
             alignItems: 'stretch',
             maxWidth: '1400px',
             margin: '0 auto'
@@ -1234,11 +1235,11 @@ const LandingPage = () => {
 
             {/* Profesyonel Paket (Öne Çıkan) */}
             <Box sx={{ flex: '1 1 100%', minWidth: { sm: '320px', md: '350px' }, maxWidth: { xs: '100%', sm: '400px' }, display: 'flex' }}>
-              <FeatureCard 
-                sx={{ 
+              <FeatureCard
+                sx={{
                   width: '100%',
                   height: '100%',
-                  display: 'flex', 
+                  display: 'flex',
                   flexDirection: 'column',
                   border: '3px solid #1565C0',
                   position: 'relative',
@@ -1438,7 +1439,7 @@ const LandingPage = () => {
         <Box sx={{ position: 'absolute', top: 100, right: 100, opacity: 0.03 }}>
           <GroupsIcon sx={{ fontSize: 200, color: 'white' }} />
         </Box>
-        
+
         <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
           <Box sx={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <Box sx={{ flex: 1, minWidth: '300px' }}>
@@ -1453,7 +1454,7 @@ const LandingPage = () => {
                 <TrendingUpIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
                 {t('about.reliableInfra')}
               </Typography>
-              
+
               {/* İstatistikler */}
               <Box sx={{ display: 'flex', gap: 3, mt: 4 }}>
                 <Box sx={{ textAlign: 'center', bgcolor: 'rgba(255,255,255,0.15)', p: 2, borderRadius: 2, flex: 1, backdropFilter: 'blur(10px)' }}>
@@ -1475,8 +1476,8 @@ const LandingPage = () => {
                   <Stack spacing={3} mt={3}>
                     <Box display="flex" alignItems="center">
                       <EmailIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography 
-                        variant="body1" 
+                      <Typography
+                        variant="body1"
                         sx={{ color: '#333' }}
                         component="a"
                         href="mailto:info@fgstrade.com"
@@ -1486,8 +1487,8 @@ const LandingPage = () => {
                     </Box>
                     <Box display="flex" alignItems="center">
                       <PublicIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography 
-                        variant="body1" 
+                      <Typography
+                        variant="body1"
                         sx={{ color: '#333' }}
                         component="a"
                         href="https://www.fortexglobe.com"
@@ -1499,11 +1500,11 @@ const LandingPage = () => {
                     </Box>
                     <Box display="flex" alignItems="center">
                       <BusinessIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography 
-                        variant="body1" 
+                      <Typography
+                        variant="body1"
                         sx={{ color: '#333' }}
                         component="a"
-                        href="https://www.linkedin.com/in/ihsan-aytekin-126005165?"
+                        href="https://www.linkedin.com/company/108605401"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -1512,8 +1513,8 @@ const LandingPage = () => {
                     </Box>
                     <Box display="flex" alignItems="center">
                       <InstagramIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography 
-                        variant="body1" 
+                      <Typography
+                        variant="body1"
                         sx={{ color: '#333' }}
                         component="a"
                         href="https://www.instagram.com/fgstrade?igsh=MWVlb2J1YjJxaTE0NA=="
@@ -1525,8 +1526,8 @@ const LandingPage = () => {
                     </Box>
                     <Box display="flex" alignItems="center">
                       <FacebookIcon sx={{ color: '#1565C0', mr: 2, fontSize: 30 }} />
-                      <Typography 
-                        variant="body1" 
+                      <Typography
+                        variant="body1"
                         sx={{ color: '#333' }}
                         component="a"
                         href="https://www.facebook.com/share/1G5iZZa4YU/"
@@ -1539,7 +1540,7 @@ const LandingPage = () => {
                   </Stack>
                 </CardContent>
               </Card>
-              
+
               {/* --- GERİBİLDİRİM FORMU (Bize Ulaşın Altında) --- */}
               <Box id="feedback" sx={{ mt: 4 }}>
                 <FeedbackCard sx={{ p: { xs: 3, sm: 4 } }}>
@@ -1550,7 +1551,7 @@ const LandingPage = () => {
                     <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
                       {t('feedback.description')}
                     </Typography>
-                    
+
                     <Box component="form" onSubmit={handleFeedbackSubmit}>
                       <Stack spacing={3} sx={{ mt: 3 }}>
                         {/* Ad Soyad */}
@@ -1696,19 +1697,20 @@ const LandingPage = () => {
 
       {/* --- FOOTER --- */}
       <Footer>
+        
         <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', mb: 2 }}>
             {/* Sol taraf - FGS TRADE Logo ve Tagline */}
             <Box sx={{ flex: 1, minWidth: '200px' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Box 
+                <Box
                   component="img"
                   src={logoImage}
                   alt="Trade Scout Logo"
-                  sx={{ 
-                    height: { xs: 70, sm: 85, md: 95 }, 
-                    width: 'auto', 
-                    mr: 1.5 
+                  sx={{
+                    height: { xs: 70, sm: 85, md: 95 },
+                    width: 'auto',
+                    mr: 1.5
                   }}
                 />
                 <Typography variant="h5" fontWeight="bold">FGS TRADE</Typography>
@@ -1718,26 +1720,37 @@ const LandingPage = () => {
                 {t('footer.tagline')}
               </Typography>
             </Box>
-            
+
+        <Box
+          component="img"
+          src={paratikaLogo}
+          alt="Paratika Sanal POS"
+          sx={{
+            height: { xs: '60px', md: '80px' }, // Boyutu önemli ölçüde büyüttük (örneğin 30px yerine 60/80px)
+            width: 'auto',
+            opacity: 0.9,
+            marginLeft: 'auto' // Sağa yaslamak için (gerekirse ayarlayın)
+          }}
+        />
             {/* Sağ taraf - Iyzico Logoları (FGS TRADE ile aynı hizada) */}
-            
+
           </Box>
 
           {/* Alt kısım - Yasal Linkler, Copyright ve Güvenli Ödeme */}
           <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.2)', my: 2 }} />
-          
+
           {/* Yasal Linkler */}
-          <Box sx={{ 
-            display: 'flex', 
+          <Box sx={{
+            display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
             gap: { xs: 1.5, md: 3 },
             mb: 2
           }}>
-            <Link 
-              to="/hakkimizda" 
-              style={{ 
-                opacity: 0.8, 
+            <Link
+              to="/hakkimizda"
+              style={{
+                opacity: 0.8,
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
@@ -1747,10 +1760,10 @@ const LandingPage = () => {
                 {t('footer.about')}
               </Typography>
             </Link>
-            <Link 
-              to="/gizlilik" 
-              style={{ 
-                opacity: 0.8, 
+            <Link
+              to="/gizlilik"
+              style={{
+                opacity: 0.8,
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
@@ -1760,10 +1773,10 @@ const LandingPage = () => {
                 {t('footer.privacy')}
               </Typography>
             </Link>
-            <Link 
-              to="/kullanim-sartlari" 
-              style={{ 
-                opacity: 0.8, 
+            <Link
+              to="/kullanim-sartlari"
+              style={{
+                opacity: 0.8,
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
@@ -1773,10 +1786,10 @@ const LandingPage = () => {
                 {t('footer.terms')}
               </Typography>
             </Link>
-            <Link 
-              to="/iade-politikasi" 
-              style={{ 
-                opacity: 0.8, 
+            <Link
+              to="/iade-politikasi"
+              style={{
+                opacity: 0.8,
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
@@ -1786,10 +1799,10 @@ const LandingPage = () => {
                 {t('footer.refund')}
               </Typography>
             </Link>
-            <Link 
-              to="/mesafeli-satis" 
-              style={{ 
-                opacity: 0.8, 
+            <Link
+              to="/mesafeli-satis"
+              style={{
+                opacity: 0.8,
                 cursor: 'pointer',
                 textDecoration: 'none',
                 color: 'inherit',
@@ -1799,25 +1812,6 @@ const LandingPage = () => {
                 {t('footer.distanceSales')}
               </Typography>
             </Link>
-          </Box>
-          
-          {/* Copyright ve Güvenli Ödeme */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: { xs: 'column', md: 'row' },
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 1
-          }}>
-            {/* Sol - Copyright */}
-            <Typography variant="body2" sx={{ opacity: 0.6 }}>
-              © 2026 FGS TRADE. {t('footer.rights')}
-            </Typography>
-            
-            {/* Sağ - Güvenli Ödeme */}
-            <Typography variant="body2" sx={{ opacity: 0.7, fontSize: '0.85rem' }}>
-              🔒 {language === 'tr' ? 'Güvenli ödeme altyapısı' : 'Secure payment infrastructure'} - SSL 256-bit
-            </Typography>
           </Box>
         </Container>
       </Footer>

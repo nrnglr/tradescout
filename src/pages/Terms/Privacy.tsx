@@ -97,8 +97,8 @@ const Privacy: React.FC = () => {
             6. Ödeme Bilgileri
           </Typography>
           <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, color: '#555' }}>
-            Ödeme bilgileri doğrudan iyzico altyapısında saklanmakta olup, tarafımızca 
-            kredi kartı bilgisi tutulmamaktadır. iyzico, PCI DSS sertifikasına sahip 
+            Ödeme bilgileri doğrudan Paratika altyapısında saklanmakta olup, tarafımızca 
+            kredi kartı bilgisi tutulmamaktadır. Paratika, PCI DSS sertifikasına sahip 
             güvenilir bir ödeme kuruluşudur.
           </Typography>
 
