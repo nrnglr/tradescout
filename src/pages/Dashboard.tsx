@@ -1003,10 +1003,12 @@ const Dashboard = () => {
       .trim();
   };
 
-  // Kayıttan itibaren 30 gün ücretsiz mi?
+ 
+// Kayıttan itibaren 30 gün ücretsiz mi?
   const isInFreeTrial = (): boolean => {
     const createdAt = user?.createdAt || user?.CreatedAt;
-    if (!createdAt) return false;
+    // EĞER BACKEND TARİH GÖNDERMEDİYSE FRONTEND ENGELLEMESİN, KARARI BACKEND VERSİN!
+    if (!createdAt) return true; 
     const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
     return daysSince <= 30;
   };
@@ -1014,7 +1016,7 @@ const Dashboard = () => {
   // Ücretsiz deneme kalan gün
   const freeTrialDaysLeft = (): number => {
     const createdAt = user?.createdAt || user?.CreatedAt;
-    if (!createdAt) return 0;
+    if (!createdAt) return 30; // Tarih yoksa varsayılan 30 göster (görsel amaçlı)
     const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
     return Math.max(0, Math.ceil(30 - daysSince));
   };
