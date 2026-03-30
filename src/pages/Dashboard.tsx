@@ -513,16 +513,20 @@ const Dashboard = () => {
   const handleBuyCredit = async (productCode: string, amount: number) => {
     setBuyingCredit(productCode);
     try {
-      const response = await apiClient.post('/api/payment/initialize', {
+      const response = await apiClient.post('/api/payment/paratika/initialize', {
         productCode,
         installment: 1,
-        amount,
-        currency: 'USD',
       });
-      const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
-      if (paymentUrl) window.location.href = paymentUrl;
+      const paymentUrl = response.data?.paymentUrl;
+      if (paymentUrl) {
+        // MerchantPaymentId'yi localStorage'a kaydet — dönüşte verify için
+        if (response.data?.merchantPaymentId) {
+          localStorage.setItem('lastMerchantPaymentId', response.data.merchantPaymentId);
+        }
+        window.location.href = paymentUrl;
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message ?? (language === 'tr' ? 'Ödeme başlatılamadı.' : 'Payment failed.'));
+      setError(err.response?.data?.error ?? err.response?.data?.message ?? (language === 'tr' ? 'Ödeme başlatılamadı.' : 'Payment failed.'));
     } finally {
       setBuyingCredit(null);
     }
@@ -3535,7 +3539,7 @@ const Dashboard = () => {
             </Box>
 
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
-              🔒 {language === 'tr' ? 'Güvenli ödeme · Tosla Sanal POS · Krediler süresizdir' : 'Secure payment · Tosla Virtual POS · Credits never expire'}
+              🔒 {language === 'tr' ? 'Güvenli ödeme · Paratika Sanal POS · Krediler süresizdir' : 'Secure payment · Paratika Virtual POS · Credits never expire'}
             </Typography>
           </Box>
         </Fade>
