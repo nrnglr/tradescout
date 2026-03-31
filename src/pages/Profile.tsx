@@ -5,7 +5,8 @@ import {
   Box, Container, Paper, Typography, Avatar,
   Button, IconButton, Chip, CircularProgress,
   Divider, List, ListItem, ListItemText, ListItemIcon,
-  Grid, LinearProgress, Alert
+  Grid, LinearProgress, Alert,
+  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField // YENİ EKLENENLER
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -19,6 +20,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DiamondIcon from '@mui/icons-material/Diamond';
+import CancelIcon from '@mui/icons-material/Cancel'; // İptal ikonu
 import { authService } from '../services/auth';
 import { scraperService, UserJob } from '../services/scraper';
 import { apiClient } from '../services/api';
@@ -83,6 +85,12 @@ const Profile: React.FC = () => {
   const [error,         setError]         = useState('');
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
 
+  // ABONELİK İPTALİ İÇİN YENİ STATE'LER
+  const [subscription, setSubscription] = useState<any>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [canceling, setCanceling] = useState(false);
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -95,13 +103,24 @@ const Profile: React.FC = () => {
           const stored = localStorage.getItem('user');
           if (stored) setUser(JSON.parse(stored));
         }
+        
+        // Aktif Abonelik Sorgusu (YENİ EKLENDİ)
+        try {
+          const subRes = await apiClient.get('/api/payment/paratika/subscription');
+          if (subRes.data && subRes.data.hasActiveSubscription) {
+            setSubscription(subRes.data);
+          }
+        } catch (e) { console.error('Abonelik sorgulama hatası:', e); }
+
         // Firma aramaları
         try { setJobs(await scraperService.getMyJobs(1, 50)); } catch {}
+        
         // Ödeme geçmişi
         try {
           const res = await apiClient.get('/api/payment/history');
           setPayments(res.data ?? []);
         } catch {}
+
       } catch {
         setError('Profil bilgileri yüklenirken hata oluştu.');
       } finally {
@@ -115,6 +134,23 @@ const Profile: React.FC = () => {
     try { await scraperService.downloadExcelFromJob(job); }
     catch { alert('İndirme başarısız.'); }
     finally { setDownloadingId(null); }
+  };
+
+  // ABONELİK İPTAL FONKSİYONU
+  const handleCancelSubscription = async () => {
+    setCanceling(true);
+    try {
+      await apiClient.delete('/api/payment/paratika/subscription', {
+        data: { Reason: cancelReason || 'Kullanıcı paneli üzerinden iptal' }
+      });
+      alert('Aboneliğiniz başarıyla iptal edildi. Mevcut dönem sonuna kadar kullanmaya devam edebilirsiniz.');
+      setCancelOpen(false);
+      setSubscription(null); // İptal edildiği için butonu gizle
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'İptal işlemi başarısız oldu. Lütfen destek ekibiyle iletişime geçin.');
+    } finally {
+      setCanceling(false);
+    }
   };
 
   if (loading) return (
@@ -254,10 +290,21 @@ const Profile: React.FC = () => {
 
                 </List>
 
-                {!hasPaid && (
+                {/* Eğer aktif bir tekrar eden aboneliği (recurring) varsa "İptal Et" butonu göster */}
+                {subscription ? (
+                  <Button 
+                    variant="outlined" 
+                    color="error" 
+                    fullWidth 
+                    startIcon={<CancelIcon />}
+                    onClick={() => setCancelOpen(true)}
+                    sx={{ mt: 3, textTransform: 'none', borderRadius: 2, fontWeight: 'bold' }}>
+                    Aboneliği İptal Et
+                  </Button>
+                ) : !hasPaid && (
                   <Button variant="contained" fullWidth startIcon={<DiamondIcon />}
                     onClick={() => navigate('/#packages')}
-                    sx={{ mt: 2, textTransform: 'none', borderRadius: 2 }}>
+                    sx={{ mt: 3, textTransform: 'none', borderRadius: 2, fontWeight: 'bold' }}>
                     Pakete Yükselt
                   </Button>
                 )}
@@ -404,7 +451,7 @@ const Profile: React.FC = () => {
                             </Box>
                           }
                           secondary={[
-                            p.amount ? `${p.amount} TL` : null,
+                            p.amount ? `${p.amount} TL` : null, // Backend'i USD yaptıysan buradaki "TL" yazısını "$" veya "USD" olarak değiştirmeyi unutma
                             p.creditsAdded ? `+${p.creditsAdded} kredi` : null,
                             formatDate(p.paymentDate),
                           ].filter(Boolean).join(' • ')}
@@ -440,6 +487,45 @@ const Profile: React.FC = () => {
           </MuiGrid>
         </MuiGrid>
       </Container>
+
+      {/* ABONELİK İPTAL DİALOGU */}
+      <Dialog open={cancelOpen} onClose={() => !canceling && setCancelOpen(false)}>
+        <DialogTitle sx={{ color: '#d32f2f', fontWeight: 'bold' }}>Aboneliği İptal Et</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 3 }}>
+            Aboneliğinizi iptal etmek istediğinize emin misiniz? <br/><br/>
+            Mevcut dönem sonuna kadar (<strong>{formatDate(memberEnd)}</strong>) kullanım hakkınız ve kredileriniz devam edecektir. Ancak gelecek ay için kredi kartınızdan çekim <strong>yapılmayacaktır</strong>.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="İptal Nedeni (Bize yardımcı olmak için isteğe bağlı)"
+            type="text"
+            fullWidth
+            multiline
+            rows={2}
+            variant="outlined"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            disabled={canceling}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={() => setCancelOpen(false)} disabled={canceling} color="inherit">
+            Vazgeç
+          </Button>
+          <Button 
+            onClick={handleCancelSubscription} 
+            color="error" 
+            variant="contained" 
+            disabled={canceling}
+            sx={{ fontWeight: 'bold' }}
+          >
+            {canceling ? <CircularProgress size={24} color="inherit" /> : 'Evet, İptal Et'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Box>
   );
 };

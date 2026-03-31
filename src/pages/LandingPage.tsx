@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import paratikaLogo from '../assent/paratika-sanal-pos-beyaz-logo.png';
 import {
@@ -322,6 +322,7 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
   const { addToCart, openCart, itemCount } = useCart();
+  const location = useLocation(); //
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [feedbackType, setFeedbackType] = useState('');
   const [fullName, setFullName] = useState('');
@@ -333,6 +334,15 @@ const LandingPage = () => {
   const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const [feedbackError, setFeedbackError] = useState('');
 
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const urlLang = searchParams.get('lang');
+
+    if (urlLang === 'en' || urlLang === 'tr') {
+      setLanguage(urlLang);
+    }
+  }, [location.search, setLanguage]);
   // Paket bilgileri
   // ⚠️ TEST FİYATLARI: starter aylık=1TL, yıllık=2TL (backend PriceTry ile belirlenir)
   // Canlıya geçince: price: 15, yearlyPrice: 99 yap
@@ -409,6 +419,11 @@ const LandingPage = () => {
   const handleLanguageChange = (event: React.MouseEvent<HTMLElement>, newLanguage: 'tr' | 'en' | null) => {
     if (newLanguage !== null) {
       setLanguage(newLanguage);
+      
+     
+      const searchParams = new URLSearchParams(location.search);
+      searchParams.set('lang', newLanguage);
+      navigate(`${location.pathname}?${searchParams.toString()}`, { replace: true });
     }
   };
 
