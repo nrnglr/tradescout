@@ -28,7 +28,7 @@ const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { language } = useLanguage();
-  const orderId = searchParams.get('orderId') ?? '';
+  const orderId = searchParams.get('orderId') ?? searchParams.get('merchantPaymentId') ?? '';
   
   const [countdown, setCountdown] = useState(5);
   const [verifying, setVerifying] = useState(true);
@@ -51,8 +51,10 @@ const PaymentSuccess: React.FC = () => {
       console.log('🔍 Ödeme doğrulanıyor ve krediler yükleniyor...', orderId);
       
       // Backend'e GET isteği (RESTful)
-      const response = await apiClient.get(`/api/payment/verify/${orderId}`, {
-        timeout: 30000 // 30 saniye
+      const response = await apiClient.post(`/api/payment/paratika/verify`, {
+        merchantPaymentId: orderId
+      }, {
+        timeout: 30000
       });
 
       console.log('✅ Ödeme doğrulandı ve krediler yüklendi:', response.data);
@@ -317,7 +319,7 @@ const PaymentSuccess: React.FC = () => {
 
       <Box sx={{ textAlign: 'center', py: 3 }}>
         <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Tosla Sanal POS
+          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Paratika Sanal POS
         </Typography>
       </Box>
     </PageContainer>

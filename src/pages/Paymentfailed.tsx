@@ -145,7 +145,7 @@ const PaymentFailed: React.FC = () => {
 
       <Box sx={{ textAlign: 'center', py: 3 }}>
         <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Tosla Sanal POS
+          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Paratika Sanal POS
         </Typography>
       </Box>
     </PageContainer>
