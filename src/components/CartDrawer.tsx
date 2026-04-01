@@ -16,7 +16,7 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 
-// ─── Paratika Paket Kodları ───────────────────────────────────────────────────
+// ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment: number; isYearly: boolean }> = {
   starter_monthly:  { code: '1274715', priceUsd: 15,  maxInstallment: 1,  isYearly: false },
   pro_monthly:      { code: '1274739', priceUsd: 39,  maxInstallment: 1,  isYearly: false },
@@ -102,7 +102,7 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/ay',
     perYear:          '/yıl',
     saveLabel:        '%45 tasarruf',
-    securePayment:    'Güvenli ödeme · Paratika Sanal POS',
+    securePayment:    'Güvenli ödeme · Tosla Sanal POS',
     readAndAccept:    'okudum ve kabul ediyorum',
     acceptRequired:   'Devam etmek için tüm sözleşmeleri onaylayın',
     billingPeriod:    'Ödeme Dönemi',
@@ -120,7 +120,7 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/month',
     perYear:          '/year',
     saveLabel:        'Save 45%',
-    securePayment:    'Secure payment · Paratika Virtual POS',
+    securePayment:    'Secure payment · Tosla Virtual POS',
     readAndAccept:    'I have read and accept',
     acceptRequired:   'Please accept all agreements to continue',
     billingPeriod:    'Billing Period',
@@ -148,7 +148,7 @@ const CartDrawer: React.FC = () => {
 
     if (isCredit) {
       const plan = PLAN_MAP[rawId] ?? PLAN_MAP[item.id];
-      return { code: plan?.code ?? item.id, priceUsd: plan?.priceUsd ?? item.price, isYearly: false, maxInstallment: 1 };
+      return { code: plan?.code ?? item.id, priceUsd: plan?.priceUsd ?? item.price, isYearly: false };
     }
 
     const baseId  = normalizeId(rawId);
@@ -158,7 +158,7 @@ const CartDrawer: React.FC = () => {
       ? (YEARLY_PRICES[baseId]  ?? item.yearlyPrice ?? item.price)
       : (MONTHLY_PRICES[baseId] ?? item.price);
 
-    return { code: plan?.code ?? item.id, priceUsd: price, isYearly: billingPeriod === 'yearly', maxInstallment: plan?.maxInstallment ?? 1 };
+    return { code: plan?.code ?? item.id, priceUsd: price, isYearly: billingPeriod === 'yearly' };
   };
 
   const totalPrice = items.reduce((sum, item) => sum + getPlanInfo(item).priceUsd, 0);
@@ -276,44 +276,42 @@ const CartDrawer: React.FC = () => {
 
     try {
       const plan = getPlanInfo(items[0]);
-
+      
+      // TRY cinsinden fiyat hesapla
+      const finalPriceTRY = finalPrice * USD_TO_TRY;
+      
       const paymentData: any = {
         productCode: plan.code,
-        installment: billingPeriod === 'yearly' ? plan.maxInstallment : 1,
+        installment: 1,
+        amount: finalPriceTRY, // TRY cinsinden indirimli fiyat
+        currency: 'TRY',
       };
-
-      // İndirim kodu varsa ekle
+      
+      // İndirim kodu varsa backend'e gönder (kullanıcının girdiği kodu gönderiyoruz)
       if (discountData && discountCode) {
         paymentData.discountCode = discountCode.trim().toUpperCase();
       }
 
-      console.log('💳 Paratika ödeme başlatılıyor:', paymentData);
+      console.log('💳 Ödeme başlatılıyor:', paymentData);
 
-      const response = await apiClient.post('/api/payment/paratika/initialize', paymentData);
+      const response = await apiClient.post('/api/payment/initialize', paymentData);
 
-      const paymentUrl = response.data?.paymentUrl;
+      const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
       if (paymentUrl) {
-        // MerchantPaymentId'yi sakla — dönüşte verify için kullanılacak
-        if (response.data?.merchantPaymentId) {
-          localStorage.setItem('lastMerchantPaymentId', response.data.merchantPaymentId);
-        }
-        console.log('✅ Paratika ödeme URL alındı, yönlendiriliyor...');
+        console.log('✅ Ödeme URL alındı, yönlendiriliyor...');
         window.location.href = paymentUrl;
       } else {
         throw new Error('Payment URL alınamadı');
       }
     } catch (error: any) {
-      console.error('❌ Paratika ödeme hatası:', error);
+      console.error('❌ Ödeme hatası:', error);
       if (error.response?.status === 401) {
         setPaymentError(language === 'tr' ? 'Oturum süreniz dolmuş.' : 'Session expired. Please login again.');
         setTimeout(() => { closeCart(); navigate('/login?redirect=checkout'); }, 2000);
         return;
       }
-      setPaymentError(
-        error.response?.data?.error ??
-        error.response?.data?.message ??
-        (language === 'tr' ? 'Ödeme başlatılırken hata oluştu.' : 'Payment error. Please try again.')
-      );
+      setPaymentError(error.response?.data?.message ??
+        (language === 'tr' ? 'Ödeme başlatılırken hata oluştu.' : 'Payment error. Please try again.'));
     } finally {
       setIsProcessing(false);
     }

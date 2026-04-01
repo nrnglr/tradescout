@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
+import StarIcon from '@mui/icons-material/Star';
 import {
   Box,
   AppBar,
@@ -411,7 +412,7 @@ const Dashboard = () => {
   const { language, t } = useLanguage();
   const { openCart } = useCart();
   const [user, setUser] = useState<any>(null);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
   // Paket yükseltme uyarısı - her oturumda bir kez göster
   const [showUpgradeHint, setShowUpgradeHint] = useState<boolean>(() => {
     return sessionStorage.getItem('upgradeHintDismissed') !== 'true';
@@ -607,14 +608,6 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
   // Geçmiş aramaları yükle
   const loadSearchHistory = async () => {
     setHistoryLoading(true);
@@ -646,7 +639,7 @@ const Dashboard = () => {
   const handleOpenHistoryModal = () => {
     setHistoryModalOpen(true);
     loadSearchHistory();
-    handleClose(); // Menüyü kapat
+
   };
 
   // Geçmiş aramadan Excel indir
@@ -725,6 +718,7 @@ const Dashboard = () => {
     const companyCount = parseInt(searchParams.companyCount);
     const isAdmin = user?.role?.toLowerCase() === 'admin';
 
+
     // Admin değilse firma sayısı kontrolü yap (Max 10)
     const _pkgType = user?.packageType || user?.PackageType || user?.package || user?.plan || '';
     const hasPaidPackage = !!(_pkgType && _pkgType !== 'Free' && _pkgType !== 'free' && _pkgType !== '');
@@ -755,7 +749,7 @@ const Dashboard = () => {
       // Her arama 1 kredi kullanıyor
       if (!isAdmin && availableCredits < 1) {
         setError(language === 'tr'
-          ? `❌ Yetersiz kredi! Mevcut: ${availableCredits}. Kredi satın almak için sağ üstteki kredi ikonuna tıklayın.`
+          ? `❌ Yetersiz kredi! Mevcut: ${availableCredits}. Kredi satın almak için sağ üstteki paket yükselt ikonuna tıklayın.`
           : `❌ Insufficient credits! Available: ${availableCredits}. Click the credit icon to buy more.`);
         setCreditModalOpen(true);
         setIsLoading(false);
@@ -803,17 +797,17 @@ const Dashboard = () => {
       // ✅ Backend'den dönen güncel kredi bilgisini kullan
       console.log('🔄 [FRONTEND] Kredi güncelleme başlıyor...');
       console.log('📊 [FRONTEND] Mevcut user.credits:', user?.credits);
-      
+
       // Backend farklı field adları kullanabilir, hepsini kontrol et
-      const remainingCredits = response.remainingCredits 
-        ?? (response as any).RemainingCredits 
+      const remainingCredits = response.remainingCredits
+        ?? (response as any).RemainingCredits
         ?? (response as any).remaining_credits
         ?? (response as any).creditsRemaining
         ?? (response as any).CreditsRemaining;
-      
+
       console.log('📊 [FRONTEND] Response.remainingCredits:', response.remainingCredits);
       console.log('📊 [FRONTEND] Tespit edilen remainingCredits:', remainingCredits);
-      
+
       if (remainingCredits !== undefined && remainingCredits !== null) {
         console.log('✅ [FRONTEND] remainingCredits bulundu, güncelleniyor...');
         // localStorage'ı güncelle
@@ -826,14 +820,14 @@ const Dashboard = () => {
       } else {
         console.log('⚠️ [FRONTEND] remainingCredits YOK, fallback kullanılıyor...');
         console.log('⚠️ [FRONTEND] Response objesi:', response);
-        
+
         // İlk olarak manuel güncelleme yap (anında yansısın)
         const estimatedCredits = Math.max(0, (user?.credits || 0) - 1);
         console.log('⚠️ [FRONTEND] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
         const tempUser = { ...user, credits: estimatedCredits };
         setUser(tempUser);
         localStorage.setItem('user', JSON.stringify(tempUser));
-        
+
         // Arka planda backend'den gerçek değeri çek (gecikme olsa bile)
         setTimeout(async () => {
           try {
@@ -992,7 +986,7 @@ const Dashboard = () => {
         if (parsed.marketTrend || parsed.marketShare || parsed.successMetrics) {
           candidates.push(parsed);
         }
-      } catch {}
+      } catch { }
     }
     // En son bulunanı döndür (rapor sonundaki ChartData olmalı)
     return candidates.length > 0 ? candidates[candidates.length - 1] : null;
@@ -1007,12 +1001,12 @@ const Dashboard = () => {
       .trim();
   };
 
- 
-// Kayıttan itibaren 30 gün ücretsiz mi?
+
+  // Kayıttan itibaren 30 gün ücretsiz mi?
   const isInFreeTrial = (): boolean => {
     const createdAt = user?.createdAt || user?.CreatedAt;
     // EĞER BACKEND TARİH GÖNDERMEDİYSE FRONTEND ENGELLEMESİN, KARARI BACKEND VERSİN!
-    if (!createdAt) return true; 
+    if (!createdAt) return true;
     const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86400000;
     return daysSince <= 30;
   };
@@ -1076,18 +1070,18 @@ const Dashboard = () => {
         setAnalysisResult(cleanReport1);
         // Pazar analizini geçmişe kaydet
         saveRecentSearch(analysisFormData.productName, analysisFormData.targetCountry, '', 'analiz', analysisFormData.hsCode);
-        
+
         // ✅ Backend'den dönen güncel kredi bilgisini kullan
         console.log('🔄 [PAZAR ANALİZİ] Kredi güncelleme başlıyor...');
         console.log('📊 [PAZAR ANALİZİ] Mevcut user.credits:', user?.credits);
-        
+
         // Backend farklı field adları kullanabilir
-        const remainingCredits = response.data.remainingCredits 
-          ?? (response.data as any).RemainingCredits 
+        const remainingCredits = response.data.remainingCredits
+          ?? (response.data as any).RemainingCredits
           ?? (response.data as any).remaining_credits;
-        
+
         console.log('📊 [PAZAR ANALİZİ] Tespit edilen remainingCredits:', remainingCredits);
-        
+
         if (remainingCredits !== undefined && remainingCredits !== null) {
           console.log('✅ [PAZAR ANALİZİ] remainingCredits bulundu, güncelleniyor...');
           authService.updateUserCredits(remainingCredits);
@@ -1095,14 +1089,14 @@ const Dashboard = () => {
           console.log('✅ [PAZAR ANALİZİ] Kredi güncellendi:', remainingCredits);
         } else {
           console.log('⚠️ [PAZAR ANALİZİ] remainingCredits YOK, fallback kullanılıyor...');
-          
+
           // İlk olarak manuel güncelleme yap (anında yansısın) - 30 gün ücretsizse kredi düşme
           const estimatedCredits = isInFreeTrial() ? (user?.credits || 0) : Math.max(0, (user?.credits || 0) - 5);
           console.log('⚠️ [PAZAR ANALİZİ] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
           const tempUser = { ...user, credits: estimatedCredits };
           setUser(tempUser);
           localStorage.setItem('user', JSON.stringify(tempUser));
-          
+
           // Arka planda backend'den gerçek değeri çek
           setTimeout(async () => {
             try {
@@ -1126,18 +1120,18 @@ const Dashboard = () => {
         setAnalysisResult(cleanReport2);
         // Pazar analizini geçmişe kaydet
         saveRecentSearch(analysisFormData.productName, analysisFormData.targetCountry, '', 'analiz', analysisFormData.hsCode);
-        
+
         // ✅ Backend'den dönen güncel kredi bilgisini kullan
         console.log('🔄 [PAZAR ANALİZİ] Kredi güncelleme başlıyor...');
         console.log('📊 [PAZAR ANALİZİ] Mevcut user.credits:', user?.credits);
-        
+
         // Backend farklı field adları kullanabilir
-        const remainingCredits = response.data.remainingCredits 
-          ?? (response.data as any).RemainingCredits 
+        const remainingCredits = response.data.remainingCredits
+          ?? (response.data as any).RemainingCredits
           ?? (response.data as any).remaining_credits;
-        
+
         console.log('📊 [PAZAR ANALİZİ] Tespit edilen remainingCredits:', remainingCredits);
-        
+
         if (remainingCredits !== undefined && remainingCredits !== null) {
           console.log('✅ [PAZAR ANALİZİ] remainingCredits bulundu, güncelleniyor...');
           authService.updateUserCredits(remainingCredits);
@@ -1145,14 +1139,14 @@ const Dashboard = () => {
           console.log('✅ [PAZAR ANALİZİ] Kredi güncellendi:', remainingCredits);
         } else {
           console.log('⚠️ [PAZAR ANALİZİ] remainingCredits YOK, fallback kullanılıyor...');
-          
+
           // İlk olarak manuel güncelleme yap (anında yansısın) - 30 gün ücretsizse kredi düşme
           const estimatedCredits = isInFreeTrial() ? (user?.credits || 0) : Math.max(0, (user?.credits || 0) - 5);
           console.log('⚠️ [PAZAR ANALİZİ] Geçici manuel güncelleme yapılıyor:', estimatedCredits);
           const tempUser = { ...user, credits: estimatedCredits };
           setUser(tempUser);
           localStorage.setItem('user', JSON.stringify(tempUser));
-          
+
           // Arka planda backend'den gerçek değeri çek
           setTimeout(async () => {
             try {
@@ -1188,20 +1182,19 @@ const Dashboard = () => {
     setActiveTab(newValue);
   };
 
+  // Paket tipi ve kredi durumu
+  const _pkgType = user?.packageType || user?.PackageType || user?.package || user?.plan || '';
+  const hasPaidPackage = !!(_pkgType && _pkgType !== 'Free' && _pkgType !== 'free' && _pkgType !== '');
+
   return (
     <PageContainer>
       {/* --- HEADER (Navbar) --- */}
       <StyledAppBar position="static">
         <Container maxWidth="xl">
-          <Toolbar disableGutters sx={{ justifyContent: 'space-between', minHeight: { xs: 56, sm: 64 } }}>
+          <Toolbar disableGutters sx={{ justifyContent: 'space-between', minHeight: { xs: 60, sm: 70 } }}>
             {/* Logo ve Başlık */}
             <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: { xs: 1, sm: 1.5 },
-                cursor: 'pointer'
-              }}
+              sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, cursor: 'pointer' }}
               onClick={() => navigate('/')}
             >
               <Box
@@ -1209,13 +1202,11 @@ const Dashboard = () => {
                 src={logoImage}
                 alt="FGS Logo"
                 sx={{
-                  height: { xs: 60, sm: 65, md: 70 },
+                  height: { xs: 55, sm: 65, md: 70 }, // 🌟 LOGO MOBİLDE ESKİ BÜYÜKLÜĞÜNDE!
                   width: 'auto',
                   borderRadius: '8px',
                   transition: 'transform 0.3s ease',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                  }
+                  '&:hover': { transform: 'scale(1.05)' }
                 }}
               />
               <Typography
@@ -1224,208 +1215,67 @@ const Dashboard = () => {
                 sx={{
                   color: '#1565C0',
                   textShadow: '0 1px 2px rgba(255,255,255,0.3)',
-                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.4rem' }
+                  fontSize: { xs: '1.25rem', sm: '1.4rem' }
                 }}
               >
                 FGS Trade
               </Typography>
             </Box>
 
-            {/* Sağ Taraf: Kredi ve Profil */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
-              {/* Kredi Göstergesi / Admin Badge */}
+            {/* --- MASAÜSTÜ BUTONLARI (SADECE BİLGİSAYARDA SAĞ ÜSTTE GÖRÜNÜR) --- */}
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5 }}>
+              {/* 1. Kredi Göstergesi */}
               {user?.role?.toLowerCase() === 'admin' ? (
-                <Chip
-                  icon={<BoltIcon sx={{ color: '#FFD700 !important' }} />}
-                  label="🔑 Admin"
-                  sx={{
-                    fontWeight: 'bold',
-                    bgcolor: 'rgba(255, 215, 0, 0.3)',
-                    color: '#FFD700',
-                    border: '2px solid rgba(255, 215, 0, 0.6)',
-                    height: { xs: 32, sm: 40 },
-                    borderRadius: '10px',
-                    backdropFilter: 'blur(10px)',
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 215, 0, 0.4)',
-                    }
-                  }}
-                />
+                <Chip icon={<BoltIcon sx={{ color: '#FFD700 !important' }} />} label="🔑 Admin" sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 215, 0, 0.3)', color: '#FFD700', border: '2px solid rgba(255, 215, 0, 0.6)', height: 40, borderRadius: '10px' }} />
               ) : (
-                <Tooltip title={language === 'tr' ? 'Ekstra kredi almak için tıklayın' : 'Click to buy extra credits'}>
-                  <Chip
-                    icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />}
-                    label={`${user?.credits || 0} ${t('dashboard.credits')}`}
-                    onClick={() => setCreditModalOpen(true)}
-                    sx={{
-                      fontWeight: 'bold',
-                      bgcolor: 'rgba(255, 255, 255, 0.2)',
-                      color: '#FFFFFF',
-                      border: '2px solid rgba(255, 255, 255, 0.3)',
-                      height: { xs: 32, sm: 40 },
-                      borderRadius: '10px',
-                      backdropFilter: 'blur(10px)',
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      cursor: 'pointer',
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 193, 7, 0.4)',
-                        borderColor: '#FFC107',
-                      }
-                    }}
-                  />
-                </Tooltip>
+                hasPaidPackage && (
+                  <Tooltip title={language === 'tr' ? 'Ekstra kredi almak için tıklayın' : 'Click to buy extra credits'}>
+                    <Chip icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />} label={`${user?.credits || 0} ${t('dashboard.credits')}`} onClick={() => setCreditModalOpen(true)} sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 255, 255, 0.2)', color: '#FFFFFF', border: '2px solid rgba(255, 255, 255, 0.3)', height: 40, borderRadius: '10px', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(255, 193, 7, 0.4)', borderColor: '#FFC107' } }} />
+                  </Tooltip>
+                )
               )}
-
-              {/* Profil Menüsü - Ad Soyad gösterimi + Paket Yükseltme Uyarısı */}
+              {/* 2. Geçmiş Aramalar */}
+              <Button onClick={() => { setHistoryModalOpen(true); loadSearchHistory(); }} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '10px', px: 1.5, py: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+                <HistoryIcon sx={{ mr: 0.5 }} /> <Typography sx={{ fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Geçmiş' : 'History'}</Typography>
+              </Button>
+              {/* 3. Paket Yükselt */}
               <Box sx={{ position: 'relative' }}>
-                {/* Paket Yükseltme Uyarısı - profilin altında, ok yukarı bakıyor */}
-                {showUpgradeHint && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 'calc(100% + 10px)',
-                      right: 0,
-                      display: { xs: 'none', md: 'flex' },
-                      flexDirection: 'column',
-                      alignItems: 'flex-end',
-                      zIndex: 1400,
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    {/* Yukarı bakan üçgen ok */}
-                    <Box sx={{
-                      width: 0,
-                      height: 0,
-                      borderLeft: '7px solid transparent',
-                      borderRight: '7px solid transparent',
-                      borderBottom: '8px solid #FFC107',
-                      mr: 2,
-                    }} />
-                    {/* Balon */}
-                    <Box
-                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); dismissUpgradeHint(); navigate('/profile'); }}
-                      sx={{
-                        pointerEvents: 'all',
-                        bgcolor: '#FFC107',
-                        color: '#1a1a1a',
-                        px: 1.5,
-                        py: 0.8,
-                        borderRadius: '10px',
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        whiteSpace: 'nowrap',
-                        boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        animation: 'bounceDot 1.2s ease-in-out infinite',
-                        '@keyframes bounceDot': {
-                          '0%, 100%': { transform: 'translateY(0px)' },
-                          '50%': { transform: 'translateY(-4px)' },
-                        },
-                        '&:hover': { bgcolor: '#FFB300' },
-                      }}
-                    >
-                      {language === 'tr' ? '🚀 Paket yükseltmek için tıklayın!' : '🚀 Click to upgrade your plan!'}
-                      <Box
-                        component="span"
-                        onClick={(e: React.MouseEvent) => { e.stopPropagation(); dismissUpgradeHint(); }}
-                        sx={{
-                          ml: 0.5,
-                          px: 0.5,
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(0,0,0,0.15)',
-                          fontSize: '0.7rem',
-                          lineHeight: 1.6,
-                          cursor: 'pointer',
-                          '&:hover': { bgcolor: 'rgba(0,0,0,0.3)' },
-                        }}
-                      >{'✕'}</Box>
-                    </Box>
-                  </Box>
-                )}
-                <Tooltip title={language === 'tr' ? 'Hesap Ayarları' : 'Account Settings'}>
-                  <Box
-                    id="profile-btn"
-                    onClick={(e: React.MouseEvent<HTMLElement>) => { dismissUpgradeHint(); handleMenu(e); }}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      cursor: 'pointer',
-                      px: { xs: 1, sm: 1.5 },
-                      py: 0.5,
-                      borderRadius: '10px',
-                      bgcolor: 'rgba(255, 255, 255, 0.1)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        bgcolor: 'rgba(255, 255, 255, 0.2)',
-                        borderColor: 'rgba(255, 255, 255, 0.4)',
-                      }
-                    }}
-                  >
-                    <Avatar sx={{ bgcolor: BRAND_COLORS.primary, width: { xs: 28, sm: 32 }, height: { xs: 28, sm: 32 }, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
-                      {user?.fullName?.charAt(0) || 'U'}
-                    </Avatar>
-                    <Typography
-                      sx={{
-                        color: '#FFFFFF',
-                        fontWeight: 600,
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                        display: { xs: 'none', sm: 'block' },
-                        maxWidth: '120px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {user?.fullName || 'Kullanıcı'}
-                    </Typography>
-                  </Box>
-                </Tooltip>
-              </Box>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                keepMounted
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={handleOpenHistoryModal}>
-                  <HistoryIcon fontSize="small" sx={{ mr: 1, color: BRAND_COLORS.primary }} />
-                  {t('dashboard.history.title')}
-                </MenuItem>
-                <MenuItem onClick={() => { handleClose(); navigate('/profile'); }}>
-                  <ListItemIcon>
-                    <Avatar sx={{ width: 24, height: 24, bgcolor: BRAND_COLORS.primary, fontSize: '0.7rem' }}>
-                      {user?.fullName?.charAt(0)}
-                    </Avatar>
-                  </ListItemIcon>
-                  <ListItemText primary={t('dashboard.profile')} />
-                </MenuItem>
-                <MenuItem onClick={() => { 
-                  handleClose(); 
-                  navigate('/#packages');
-                  // Sayfa yüklendikten sonra paketler bölümüne scroll
+                <Button onClick={() => {
+                  dismissUpgradeHint();
+                  navigate('/'); // Önce ana sayfaya git
                   setTimeout(() => {
                     const packagesSection = document.getElementById('packages');
                     if (packagesSection) {
                       packagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
-                  }, 100);
-                }}>
-                  {t('dashboard.upgrade')}
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
-                  <LogoutIcon fontSize="small" sx={{ mr: 1 }} /> {t('dashboard.logout')}
-                </MenuItem>
-              </Menu>
+                  }, 150); // Sayfanın yüklenmesi için kısa bir bekleme
+                }} sx={{ color: '#FFD700', bgcolor: 'rgba(255, 215, 0, 0.15)', border: '1px solid rgba(255, 215, 0, 0.3)', borderRadius: '10px', px: 1.5, py: 0.75, '&:hover': { bgcolor: 'rgba(255, 215, 0, 0.25)' } }}>
+                  <StarIcon sx={{ mr: 0.5 }} /> <Typography sx={{ fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Paket Yükselt' : 'Upgrade'}</Typography>
+                </Button>
+              </Box>
+              {/* 4. Profilim */}
+              <Button onClick={() => { dismissUpgradeHint(); navigate('/profile'); }} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '10px', px: 1.5, py: 0.5, '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+                <Avatar sx={{ width: 28, height: 28, bgcolor: BRAND_COLORS.primary, mr: 1 }}>{user?.fullName?.charAt(0) || 'U'}</Avatar>
+                <Typography sx={{ fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Profilim' : 'Profile'}</Typography>
+              </Button>
+              {/* 5. Çıkış */}
+              {/* 5. Çıkış */}
+              <Button
+                onClick={handleLogout}
+                sx={{
+                  color: '#ff5252',
+                  bgcolor: 'rgba(255, 82, 82, 0.1)',
+                  borderRadius: '10px',
+                  px: 1.5,
+                  py: 0.75,
+                  '&:hover': { bgcolor: 'rgba(255, 82, 82, 0.2)' }
+                }}
+              >
+                <LogoutIcon sx={{ mr: 0.5 }} />
+                <Typography sx={{ fontWeight: 600, textTransform: 'none' }}>
+                  {language === 'tr' ? 'Çıkış Yap' : 'Logout'}
+                </Typography>
+              </Button>
             </Box>
           </Toolbar>
         </Container>
@@ -1433,6 +1283,48 @@ const Dashboard = () => {
 
       {/* --- ANA İÇERİK --- */}
       <Container maxWidth="lg" sx={{ mt: { xs: 3, sm: 4, md: 6 }, pb: { xs: 4, sm: 6, md: 8 }, px: { xs: 2, sm: 3 }, position: 'relative', zIndex: 1 }}>
+
+        {/* --- MOBİL BUTON BARI (SADECE MOBİLDE MERHABA'NIN ÜSTÜNDE GÖRÜNÜR) --- */}
+        <Box sx={{
+          display: { xs: 'flex', md: 'none' },
+          alignItems: 'center',
+          gap: 1.5,
+          width: '100%',
+          mb: 3,
+          bgcolor: '#FFFFFF',
+          p: 1.5,
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}>
+          {/* 1. Kredi Göstergesi */}
+          {user?.role?.toLowerCase() === 'admin' ? (
+            <Chip icon={<BoltIcon sx={{ color: '#F57F17 !important' }} />} label="🔑 Admin" sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 193, 7, 0.15)', color: '#F57F17', border: '1px solid rgba(255, 193, 7, 0.4)', height: 36, borderRadius: '10px', minWidth: 'max-content' }} />
+          ) : (
+            hasPaidPackage && (
+              <Chip icon={<BoltIcon sx={{ color: '#F57F17 !important' }} />} label={`${user?.credits || 0} ${t('dashboard.credits')}`} onClick={() => setCreditModalOpen(true)} sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 193, 7, 0.1)', color: '#F57F17', border: '1px solid rgba(255, 193, 7, 0.3)', height: 36, borderRadius: '10px', cursor: 'pointer', minWidth: 'max-content' }} />
+            )
+          )}
+          {/* 2. Geçmiş Aramalar */}
+          <Button onClick={() => { setHistoryModalOpen(true); loadSearchHistory(); }} sx={{ color: '#1565C0', bgcolor: 'rgba(21, 101, 192, 0.08)', borderRadius: '10px', minWidth: 'max-content', px: 1.5, py: 0.75 }}>
+            <HistoryIcon sx={{ mr: 0.5, fontSize: 20 }} /> <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Geçmiş' : 'History'}</Typography>
+          </Button>
+          {/* 3. Paket Yükselt */}
+          <Button onClick={() => { dismissUpgradeHint(); navigate('/#packages'); }} sx={{ color: '#E65100', bgcolor: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.3)', borderRadius: '10px', minWidth: 'max-content', px: 1.5, py: 0.75 }}>
+            <StarIcon sx={{ mr: 0.5, fontSize: 20 }} /> <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Paket Yükselt' : 'Upgrade'}</Typography>
+          </Button>
+          {/* 4. Profilim */}
+          <Button onClick={() => { dismissUpgradeHint(); navigate('/profile'); }} sx={{ color: '#1565C0', bgcolor: 'rgba(21, 101, 192, 0.08)', borderRadius: '10px', minWidth: 'max-content', px: 1.5, py: 0.5 }}>
+            <Avatar sx={{ width: 24, height: 24, bgcolor: BRAND_COLORS.primary, fontSize: '0.8rem', mr: 0.5 }}>{user?.fullName?.charAt(0) || 'U'}</Avatar>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Profilim' : 'Profile'}</Typography>
+          </Button>
+          {/* 5. Çıkış */}
+          <Button onClick={handleLogout} sx={{ color: '#ff5252', bgcolor: 'rgba(255, 82, 82, 0.1)', borderRadius: '10px', minWidth: 'max-content', px: 1.5, py: 0.75 }}>
+            <LogoutIcon sx={{ mr: 0.5, fontSize: 20 }} /> <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Çıkış' : 'Logout'}</Typography>
+          </Button>
+        </Box>
 
         {/* Karşılama Başlığı */}
         <Box mb={{ xs: 2, sm: 3, md: 4 }}>
@@ -1443,7 +1335,6 @@ const Dashboard = () => {
             {t('dashboard.subtitle')}
           </Typography>
         </Box>
-
         {/* Tab Navigasyonu */}
         <Paper
           elevation={0}
@@ -2448,7 +2339,7 @@ const Dashboard = () => {
                       ? `Pazar Analizi ${freeTrialDaysLeft()} gün daha ücretsiz!`
                       : `Market Analysis is FREE for ${freeTrialDaysLeft()} more days!`}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#388E3C', mt: 0.5 }}>
+                  <Typography variant="body2" sx={{ color: '#388E3C', mt: 0.5, fontSize: { xs: '0.85rem', sm: '0.9rem' }, lineHeight: 1.5 }}>
                     {language === 'tr'
                       ? 'Kayıt tarihinden itibaren 30 gün boyunca pazar analizi raporları kredi gerektirmez. Süre dolduğunda her rapor 5 kredi kullanır.'
                       : 'Market analysis reports are free for 30 days from registration. After that, each report costs 5 credits.'}
@@ -3004,7 +2895,7 @@ const Dashboard = () => {
                                 labelLine={false}
                               >
                                 {analysisChartData.marketShare.labels.map((_: any, i: number) => (
-                                  <Cell key={i} fill={['#1565C0','#42A5F5','#2E7D32','#FFC107','#E91E63','#9C27B0'][i % 6]} />
+                                  <Cell key={i} fill={['#1565C0', '#42A5F5', '#2E7D32', '#FFC107', '#E91E63', '#9C27B0'][i % 6]} />
                                 ))}
                               </Pie>
                               <RechartsTooltip formatter={(v: any) => [`${v}%`, 'Pay']} />
@@ -3028,7 +2919,7 @@ const Dashboard = () => {
                               <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                               <YAxis tick={{ fontSize: 11 }} domain={[50, 'auto']} />
                               <RechartsTooltip formatter={(v: any) => [v, 'Endeks']} />
-                              <Bar dataKey="value" radius={[4,4,0,0]}>
+                              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                 {analysisChartData.seasonalDemand.values.map((v: number, i: number) => (
                                   <Cell key={i} fill={v >= 110 ? '#2E7D32' : v >= 90 ? '#1565C0' : '#90A4AE'} />
                                 ))}
@@ -3055,7 +2946,7 @@ const Dashboard = () => {
                               <XAxis type="number" tick={{ fontSize: 11 }} />
                               <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
                               <RechartsTooltip formatter={(v: any) => [`$${v.toLocaleString()}`, 'USD']} />
-                              <Bar dataKey="value" fill="#1565C0" radius={[0,4,4,0]} />
+                              <Bar dataKey="value" fill="#1565C0" radius={[0, 4, 4, 0]} />
                             </BarChart>
                           </ResponsiveContainer>
                         </Box>
@@ -3097,7 +2988,8 @@ const Dashboard = () => {
                     variant="contained"
                     onClick={handleDownloadPDF}
                     disabled={pdfDownloading}
-                    startIcon={pdfDownloading ? <CircularProgress size={20} color="inherit" /> : <DownloadIcon />}
+                    startIcon={pdfDownloading ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
+
                     sx={{
                       bgcolor: '#D32F2F',
                       color: '#fff',
@@ -3106,11 +2998,15 @@ const Dashboard = () => {
                       px: 4,
                       py: 1.5,
                       textTransform: 'none',
-                      boxShadow: '0 4px 12px rgba(211, 47, 47, 0.3)',
+                      boxShadow: '0 4px 15px rgba(211, 47, 47, 0.3)',
                       '&:hover': {
                         bgcolor: '#B71C1C',
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 16px rgba(211, 47, 47, 0.4)',
+                        boxShadow: '0 6px 20px rgba(211, 47, 47, 0.4)',
+                      },
+                      '&:disabled': {
+                        bgcolor: '#ccc',
+                        color: '#999',
                       },
                       transition: 'all 0.3s ease',
                     }}
@@ -3205,21 +3101,11 @@ const Dashboard = () => {
           >
             {/* Modal Header */}
             <Box
-              sx={{
-                background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 50%, #42A5F5 100%)',
-                color: '#FFFFFF',
-                p: { xs: 2, sm: 3 },
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, bgcolor: 'rgba(21, 101, 192, 0.9)', borderRadius: '20px 20px 0 0' }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <HistoryIcon sx={{ fontSize: { xs: 24, sm: 28 } }} />
-                <Typography variant="h5" fontWeight="bold" sx={{ fontSize: { xs: '1.1rem', sm: '1.4rem' } }}>
-                  {t('dashboard.history.title')}
-                </Typography>
-              </Box>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: '#FFFFFF' }}>
+                {t('dashboard.history.title')}
+              </Typography>
               <IconButton
                 onClick={() => setHistoryModalOpen(false)}
                 sx={{
@@ -3469,81 +3355,83 @@ const Dashboard = () => {
       </Modal>
 
       {/* ── Kredi Satın Al Modal ─────────────────────────────────────────── */}
-      <Modal open={creditModalOpen} onClose={() => setCreditModalOpen(false)} closeAfterTransition slots={{ backdrop: Backdrop }} slotProps={{ backdrop: { timeout: 300 } }}>
-        <Fade in={creditModalOpen}>
-          <Box sx={{
-            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-            width: { xs: '95vw', sm: 480 }, bgcolor: 'white', borderRadius: 3,
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)', p: 4, outline: 'none',
-          }}>
-            {/* Başlık */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <BoltIcon sx={{ color: '#FFC107', fontSize: 32 }} />
-                <Box>
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#1565C0' }}>
-                    {language === 'tr' ? 'Ekstra Kredi Satın Al' : 'Buy Extra Credits'}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {language === 'tr' ? `Mevcut krediniz: ${user?.credits || 0}` : `Current credits: ${user?.credits || 0}`}
-                  </Typography>
+      {hasPaidPackage && (
+        <Modal open={creditModalOpen} onClose={() => setCreditModalOpen(false)} closeAfterTransition slots={{ backdrop: Backdrop }} slotProps={{ backdrop: { timeout: 300 } }}>
+          <Fade in={creditModalOpen}>
+            <Box sx={{
+              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+              width: { xs: '95vw', sm: 480 }, bgcolor: 'white', borderRadius: 3,
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)', p: 4, outline: 'none',
+            }}>
+              {/* Başlık */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <BoltIcon sx={{ color: '#FFC107', fontSize: 32 }} />
+                  <Box>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                      {language === 'tr' ? 'Ekstra Kredi Satın Al' : 'Buy Extra Credits'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {language === 'tr' ? `Mevcut krediniz: ${user?.credits || 0}` : `Current credits: ${user?.credits || 0}`}
+                    </Typography>
+                  </Box>
                 </Box>
+                <IconButton onClick={() => setCreditModalOpen(false)} size="small">
+                  <CloseIcon />
+                </IconButton>
               </Box>
-              <IconButton onClick={() => setCreditModalOpen(false)} size="small">
-                <CloseIcon />
-              </IconButton>
-            </Box>
 
-            {/* Kredi paketleri */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
-              {[
-                { code: '1274710', credits: 10, priceUsd: 10, priceDisplay: '$10', label: '10 Kredi', labelEn: '10 Credits' },
-                { code: '1274725', credits: 25, priceUsd: 20, priceDisplay: '$20', label: '25 Kredi', labelEn: '25 Credits' },
-                { code: '1274750', credits: 50, priceUsd: 35, priceDisplay: '$35', label: '50 Kredi', labelEn: '50 Credits' },
-                { code: '1247100', credits: 100, priceUsd: 60, priceDisplay: '$60', label: '100 Kredi', labelEn: '100 Credits' },
-              ].map(pkg => (
-                <Box
-                  key={pkg.code}
-                  sx={{
-                    border: '2px solid #e3f2fd', borderRadius: 2, p: 2, textAlign: 'center',
-                    cursor: 'pointer', transition: 'all 0.2s',
-                    '&:hover': { borderColor: '#1565C0', bgcolor: '#e3f2fd', transform: 'translateY(-2px)' },
-                  }}
-                >
-                  <BoltIcon sx={{ color: '#FFC107', fontSize: 28, mb: 0.5 }} />
-                  <Typography variant="h6" fontWeight="bold" sx={{ color: '#1565C0' }}>
-                    {language === 'tr' ? pkg.label : pkg.labelEn}
-                  </Typography>
-                  <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 1.5 }}>
-                    {pkg.priceDisplay}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    size="small"
-                    disabled={buyingCredit === pkg.code}
-                    onClick={() => handleBuyCredit(pkg.code, pkg.priceUsd)}
-                    startIcon={buyingCredit === pkg.code ? <CircularProgress size={14} color="inherit" /> : <AddCardIcon />}
+              {/* Kredi paketleri */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
+                {[
+                  { code: '1274710', credits: 10, priceUsd: 10, priceDisplay: '$10', label: '10 Kredi', labelEn: '10 Credits' },
+                  { code: '1274725', credits: 25, priceUsd: 20, priceDisplay: '$20', label: '25 Kredi', labelEn: '25 Credits' },
+                  { code: '1274750', credits: 50, priceUsd: 35, priceDisplay: '$35', label: '50 Kredi', labelEn: '50 Credits' },
+                  { code: '1247100', credits: 100, priceUsd: 60, priceDisplay: '$60', label: '100 Kredi', labelEn: '100 Credits' },
+                ].map(pkg => (
+                  <Box
+                    key={pkg.code}
                     sx={{
-                      background: 'linear-gradient(135deg, #1565C0, #1976D2)',
-                      borderRadius: 1.5, fontWeight: 700, textTransform: 'none',
-                      '&:hover': { background: 'linear-gradient(135deg, #0D47A1, #1565C0)' },
+                      border: '2px solid #e3f2fd', borderRadius: 2, p: 2, textAlign: 'center',
+                      cursor: 'pointer', transition: 'all 0.2s',
+                      '&:hover': { borderColor: '#1565C0', bgcolor: '#e3f2fd', transform: 'translateY(-2px)' },
                     }}
                   >
-                    {buyingCredit === pkg.code
-                      ? (language === 'tr' ? 'İşleniyor...' : 'Processing...')
-                      : (language === 'tr' ? 'Satın Al' : 'Buy')}
-                  </Button>
-                </Box>
-              ))}
-            </Box>
+                    <BoltIcon sx={{ color: '#FFC107', fontSize: 28, mb: 0.5 }} />
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                      {language === 'tr' ? pkg.label : pkg.labelEn}
+                    </Typography>
+                    <Typography variant="h6" fontWeight="bold" color="text.secondary" sx={{ mb: 1.5 }}>
+                      {pkg.priceDisplay}
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      size="small"
+                      disabled={buyingCredit === pkg.code}
+                      onClick={() => handleBuyCredit(pkg.code, pkg.priceUsd)}
+                      startIcon={buyingCredit === pkg.code ? <CircularProgress size={14} color="inherit" /> : <AddCardIcon />}
+                      sx={{
+                        background: 'linear-gradient(135deg, #1565C0, #1976D2)',
+                        borderRadius: 1.5, fontWeight: 700, textTransform: 'none',
+                        '&:hover': { background: 'linear-gradient(135deg, #0D47A1, #1565C0)' },
+                      }}
+                    >
+                      {buyingCredit === pkg.code
+                        ? (language === 'tr' ? 'İşleniyor...' : 'Processing...')
+                        : (language === 'tr' ? 'Satın Al' : 'Buy')}
+                    </Button>
+                  </Box>
+                ))}
+              </Box>
 
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
-              🔒 {language === 'tr' ? 'Güvenli ödeme · Paratika Sanal POS · Krediler süresizdir' : 'Secure payment · Paratika Virtual POS · Credits never expire'}
-            </Typography>
-          </Box>
-        </Fade>
-      </Modal>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center' }}>
+                🔒 {language === 'tr' ? 'Güvenli ödeme · Paratika Sanal POS · Krediler süresizdir' : 'Secure payment · Paratika Virtual POS · Credits never expire'}
+              </Typography>
+            </Box>
+          </Fade>
+        </Modal>
+      )}
     </PageContainer>
   );
 };
