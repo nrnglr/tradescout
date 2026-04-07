@@ -102,7 +102,7 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/ay',
     perYear:          '/yıl',
     saveLabel:        '%45 tasarruf',
-    securePayment:    'Güvenli ödeme · Tosla Sanal POS',
+    securePayment:    'Güvenli ödeme · Paratika Sanal POS',
     readAndAccept:    'okudum ve kabul ediyorum',
     acceptRequired:   'Devam etmek için tüm sözleşmeleri onaylayın',
     billingPeriod:    'Ödeme Dönemi',
@@ -120,7 +120,7 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/month',
     perYear:          '/year',
     saveLabel:        'Save 45%',
-    securePayment:    'Secure payment · Tosla Virtual POS',
+    securePayment:    'Secure payment · Paratika Sanal POS',
     readAndAccept:    'I have read and accept',
     acceptRequired:   'Please accept all agreements to continue',
     billingPeriod:    'Billing Period',
@@ -294,7 +294,7 @@ const CartDrawer: React.FC = () => {
 
       console.log('💳 Ödeme başlatılıyor:', paymentData);
 
-      const response = await apiClient.post('/api/payment/initialize', paymentData);
+      const response = await apiClient.post('/api/payment/paratika/initialize', paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
       if (paymentUrl) {
