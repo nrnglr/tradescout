@@ -4,8 +4,8 @@ import { styled } from '@mui/material/styles';
 import { Box, Typography, Button, Container, AppBar, Toolbar, CircularProgress, Alert } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
-import DashboardIcon   from '@mui/icons-material/Dashboard';
-import logoImage       from '../assent/fgs-logo.png';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import logoImage from '../assent/fgs-logo.png';
 import { apiClient } from '../services/api';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -28,8 +28,8 @@ const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { language } = useLanguage();
-  const orderId = searchParams.get('orderId') ?? searchParams.get('merchantPaymentId') ?? '';
-  
+  const orderId = searchParams.get('orderId') ?? searchParams.get('conversationId') ?? searchParams.get('merchantPaymentId') ?? '';
+
   const [countdown, setCountdown] = useState(5);
   const [verifying, setVerifying] = useState(true);
   const [verificationResult, setVerificationResult] = useState<any>(null);
@@ -49,10 +49,10 @@ const PaymentSuccess: React.FC = () => {
   const verifyPayment = async (orderId: string) => {
     try {
       console.log('🔍 Ödeme doğrulanıyor ve krediler yükleniyor...', orderId);
-      
+
       // Backend'e GET isteği (RESTful)
-      const response = await apiClient.post(`/api/payment/paratika/verify`, {
-        merchantPaymentId: orderId
+      const response = await apiClient.post(`/api/payment/morpara/verify`, {
+        conversationId: orderId // Backend muhtemelen conversationId bekliyor
       }, {
         timeout: 30000
       });
@@ -68,25 +68,25 @@ const PaymentSuccess: React.FC = () => {
         if (userStr) {
           try {
             const user = JSON.parse(userStr);
-            
+
             // Kredileri güncelle
             if (response.data.creditsAdded > 0) {
               user.credits = (user.credits || 0) + response.data.creditsAdded;
               console.log('💰 Krediler güncellendi:', user.credits);
             }
-            
+
             // Paket bilgisini güncelle
             if (response.data.packageName) {
               user.packageType = response.data.packageName;
               console.log('📦 Paket güncellendi:', user.packageType);
             }
-            
+
             // Üyelik bitiş tarihini güncelle
             if (response.data.membershipEnd) {
               user.membershipEnd = response.data.membershipEnd;
               console.log('📅 Üyelik bitiş tarihi:', user.membershipEnd);
             }
-            
+
             localStorage.setItem('user', JSON.stringify(user));
             console.log('✅ LocalStorage güncellendi');
           } catch (parseErr) {
@@ -97,13 +97,13 @@ const PaymentSuccess: React.FC = () => {
 
     } catch (err: any) {
       console.error('❌ Ödeme doğrulama hatası:', err);
-      
+
       // Daha detaylı hata mesajı
-      const errorMessage = err.response?.data?.message 
+      const errorMessage = err.response?.data?.message
         || err.response?.data?.error
         || err.message
         || (language === 'tr' ? 'Ödeme doğrulanamadı. Lütfen destek ekibiyle iletişime geçin.' : 'Payment verification failed. Please contact support.');
-      
+
       setError(errorMessage);
       setVerifying(false);
     }
@@ -139,25 +139,25 @@ const PaymentSuccess: React.FC = () => {
                   </Typography>
                 </Box>
               </Box>
-              
+
               <Typography variant="h4" fontWeight="bold" sx={{ color: '#1565C0', mb: 2 }}>
                 {language === 'tr' ? 'Ödemeniz Doğrulanıyor...' : 'Verifying Your Payment...'}
               </Typography>
-              
+
               <Typography variant="h6" sx={{ color: '#1976D2', mb: 3, fontWeight: 600 }}>
-                {language === 'tr' 
-                  ? '💰 Kredileriniz yükleniyor, lütfen bekleyin...' 
+                {language === 'tr'
+                  ? '💰 Kredileriniz yükleniyor, lütfen bekleyin...'
                   : '💰 Loading your credits, please wait...'}
               </Typography>
-              
+
               <Box sx={{ bgcolor: '#e3f2fd', borderRadius: 2, p: 2, mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  {language === 'tr' 
-                    ? '⏳ Bu işlem genellikle 5-10 saniye sürer.' 
+                  {language === 'tr'
+                    ? '⏳ Bu işlem genellikle 5-10 saniye sürer.'
                     : '⏳ This process usually takes 5-10 seconds.'}
                 </Typography>
               </Box>
-              
+
               {orderId && (
                 <Typography variant="caption" sx={{ fontFamily: 'monospace', color: 'text.secondary', display: 'block', mt: 2 }}>
                   {language === 'tr' ? 'Sipariş No' : 'Order ID'}: {orderId}
@@ -172,11 +172,11 @@ const PaymentSuccess: React.FC = () => {
               <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
                 <ErrorIcon sx={{ fontSize: 80, color: '#d32f2f' }} />
               </Box>
-              
+
               <Typography variant="h4" fontWeight="bold" sx={{ color: '#d32f2f', mb: 2 }}>
                 {language === 'tr' ? 'Ödeme Başarısız' : 'Payment Failed'}
               </Typography>
-              
+
               <Alert severity="error" sx={{ mb: 3, textAlign: 'left' }}>
                 {error}
               </Alert>
@@ -222,7 +222,7 @@ const PaymentSuccess: React.FC = () => {
               </Box>
 
               <Typography variant="h4" fontWeight="bold" sx={{ color: '#2e7d32', mb: 2 }}>
-                {language === 'tr' ? '✅ Kredileriniz Başarıyla Yüklendi!' : '✅ Credits Loaded Successfully!'} 
+                {language === 'tr' ? '✅ Kredileriniz Başarıyla Yüklendi!' : '✅ Credits Loaded Successfully!'}
               </Typography>
 
               {verificationResult.isAlreadyProcessed ? (
@@ -237,8 +237,8 @@ const PaymentSuccess: React.FC = () => {
 
               <Box sx={{ bgcolor: '#e8f5e9', borderRadius: 2, p: 2, mb: 3, border: '2px solid #4caf50' }}>
                 <Typography variant="body1" sx={{ color: '#2e7d32', fontWeight: 600 }}>
-                  💰 {language === 'tr' 
-                    ? 'Artık platformu kullanmaya başlayabilirsiniz!' 
+                  💰 {language === 'tr'
+                    ? 'Artık platformu kullanmaya başlayabilirsiniz!'
                     : 'You can now start using the platform!'}
                 </Typography>
               </Box>
