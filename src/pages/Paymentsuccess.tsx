@@ -30,7 +30,7 @@ const PaymentSuccess: React.FC = () => {
   const { language } = useLanguage();
 
   // conversationId: önce bizim parametremizi al, yoksa Mor Para'nın parametresini al
-  const conversationId = searchParams.get('conversationId') ?? searchParams.get('orderId') ?? '';
+  const conversationId = searchParams.get('cid') ?? searchParams.get('conversationId') ?? '';
 
   const [countdown, setCountdown] = useState(5);
   const [verifying, setVerifying] = useState(true);
