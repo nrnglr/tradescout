@@ -74,6 +74,7 @@ export const translations = {
       flexiblePackages: "İşletmenizin ihtiyaçlarına göre esnek paketlerimizden birini seçin",
       searchCost: "Arama Maliyeti",
       yearly: "yıl",
+      discountBadge: "100 GÜN İÇİN GEÇERLİ %50 İNDİRİM!",
       extraSearches: "Ek Arama Paketleri",
       extraSearch10: "10 Arama",
       extraSearch25: "25 Arama", 
@@ -82,9 +83,11 @@ export const translations = {
         name: "Başlangıç Paketi",
         subtitle: "Küçük işletmeler için ideal",
         price: "$15",
+        discountedPrice: "$7.50", // YENİ EKLENEN
         period: "/ay",
         yearlyPrice: "$99",
-        yearlyNote: "Yıllık: $99",
+        yearlyNote: "Normal Yıllık: $99", // DEĞİŞEN
+        discountedYearlyNote: "İndirimli Yıllık: $49.50", // YENİ EKLENEN
         feature1: "HS Code pazar analizi",
         feature2: "Firma keşfi",
         feature3: "E-posta adresleri",
@@ -99,9 +102,11 @@ export const translations = {
         name: "Profesyonel Paket",
         subtitle: "Büyüyen işletmeler için",
         price: "$39",
+        discountedPrice: "$19.50",
         period: "/ay",
         yearlyPrice: "$299",
-        yearlyNote: "Yıllık: $299",
+       yearlyNote: "Normal Yıllık: $299", // DEĞİŞEN
+       discountedYearlyNote: "İndirimli Yıllık: $149.50", // YENİ EKLENEN
         feature1: "Tüm Starter özellikleri",
         feature2: "Gelişmiş filtreleme",
         feature3: "Gelişmiş Excel export",
@@ -113,9 +118,11 @@ export const translations = {
         name: "Kurumsal Paket",
         subtitle: "Büyük ekipler için",
         price: "$79",
+        discountedPrice: "$39.50", // YENİ EKLENEN
         period: "/ay",
         yearlyPrice: "$599",
-        yearlyNote: "Yıllık: $599",
+        yearlyNote: "Normal Yıllık: $599", // DEĞİŞEN
+        discountedYearlyNote: "İndirimli Yıllık: $299.50", // YENİ EKLENEN
         feature1: "Tüm Professional özellikleri",
         feature2: "API erişimi",
         feature3: "Bulk veri export",
@@ -345,6 +352,7 @@ export const translations = {
       addToCart: "Add to Cart",
       mostPopular: "Most Popular",
       pricing: "PRICING",
+      discountBadge: "50% DISCOUNT VALID FOR 100 DAYS!", // YENİ EKLENEN
       choosePackage: "Choose the Right Package for You",
       flexiblePackages: "Choose one of our flexible packages according to your business needs",
       searchCost: "Search Cost",
@@ -357,9 +365,11 @@ export const translations = {
         name: "Starter Plan",
         subtitle: "Ideal for small businesses",
         price: "$15",
+        discountedPrice: "$7.50", // YENİ EKLENEN
         period: "/month",
         yearlyPrice: "$99",
-        yearlyNote: "Yearly: $99",
+       yearlyNote: "Normal Yearly: $99", // DEĞİŞEN
+       discountedYearlyNote: "Discount Yearly: $49.50", // YENİ EKLENEN
         feature1: "HS Code market analysis",
         feature2: "Company discovery",
         feature3: "Email addresses",
@@ -374,9 +384,11 @@ export const translations = {
         name: "Professional Plan",
         subtitle: "For growing businesses",
         price: "$39",
+        discountedPrice: "$19.50", // YENİ EKLENEN
         period: "/month",
         yearlyPrice: "$299",
-        yearlyNote: "Yearly: $299",
+       yearlyNote: "Normal Yearly: $299", // DEĞİŞEN
+       discountedYearlyNote: "Discount Yearly: $149.50", // YENİ EKLENEN
         feature1: "All Starter features",
         feature2: "Advanced filtering",
         feature3: "Advanced Excel export",
@@ -388,9 +400,11 @@ export const translations = {
         name: "Corporate Plan",
         subtitle: "For large teams",
         price: "$79",
+        discountedPrice: "$39.50", // YENİ EKLENEN
         period: "/month",
         yearlyPrice: "$599",
-        yearlyNote: "Yearly: $599",
+        yearlyNote: "Normal Yearly: $599", // DEĞİŞEN
+        discountedYearlyNote: "Discount Yearly: $299.50", // YENİ EKLENEN
         feature1: "All Professional features",
         feature2: "API access",
         feature3: "Bulk data export",

@@ -294,7 +294,7 @@ const CartDrawer: React.FC = () => {
 
       console.log('💳 Ödeme başlatılıyor:', paymentData);
 
-      const response = await apiClient.post('/api/payment/paratika/initialize', paymentData);
+      const response = await apiClient.post('/api/payment/morpara/initialize', paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
       if (paymentUrl) {

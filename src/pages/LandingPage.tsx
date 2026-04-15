@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 import paratikaLogo from '../assent/paratika-sanal-pos-beyaz-logo.png';
+import { keyframes } from '@mui/system';
 import {
   Box,
   Button,
@@ -65,6 +66,16 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useCart } from '../context/CartContext';
 
 // --- STİL TANIMLAMALARI ---
+const pulse = keyframes`
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+  50% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(211, 47, 47, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+`;
+
+const blinkText = keyframes`
+  0%, 100% { opacity: 1; color: #FFFFFF; }
+  50% { opacity: 0.85; color: #FFEB3B; }
+`;
 
 const PageContainer = styled(Box)({
   minHeight: '100vh',
@@ -350,8 +361,8 @@ const LandingPage = () => {
     starter: {
       id: 'starter',
       name: t('packages.starter.name'),
-      price: 15,       // gösterim USD — gerçek çekim backend PriceTry=100 (1TL)
-      yearlyPrice: 99, // gösterim USD — gerçek çekim backend PriceTry=200 (2TL)
+      price: 7.5,       // gösterim USD — gerçek çekim backend PriceTry=100 (1TL)
+      yearlyPrice: 49.5, // gösterim USD — gerçek çekim backend PriceTry=200 (2TL)
       searchLimit: t('packages.starter.searchLimit'),
       features: [
         t('packages.starter.feature1'),
@@ -367,8 +378,8 @@ const LandingPage = () => {
     professional: {
       id: 'pro_monthly',
       name: t('packages.professional.name'),
-      price: 39,
-      yearlyPrice: 299,
+      price: 19.5,
+      yearlyPrice: 149.5,
       searchLimit: t('packages.professional.searchLimit'),
       features: [
         t('packages.professional.feature1'),
@@ -381,8 +392,8 @@ const LandingPage = () => {
     enterprise: {
       id: 'business_monthly',
       name: t('packages.enterprise.name'),
-      price: 79,
-      yearlyPrice: 599,
+      price: 39.5,
+      yearlyPrice: 299.5,
       searchLimit: t('packages.enterprise.searchLimit'),
       features: [
         t('packages.enterprise.feature1'),
@@ -512,21 +523,21 @@ const LandingPage = () => {
         setPhone('');
         setSubject('');
         setMessage('');
-
-        setTimeout(() => setFeedbackSuccess(false), 3000);
+        setTimeout(() => setFeedbackSuccess(false), 5000);
       } else {
-        setFeedbackError(t('feedback.errorGeneral'));
+        // Sunucu hatasını logla (geliştirici için) ve kullanıcıya genel mesaj göster
+        const errText = await response.text().catch(() => '');
+        console.error('Feedback API hatası:', response.status, errText);
+        if (response.status === 429) {
+          setFeedbackError('Çok fazla istek gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.');
+        } else {
+          setFeedbackError('Form gönderilemedi. Lütfen bilgilerinizi kontrol edip tekrar deneyin.');
+        }
       }
     } catch (error) {
-      // Hata durumunda da başarılı gibi davran (UX için)
-      setFeedbackSuccess(true);
-      setFeedbackType('');
-      setFullName('');
-      setEmail('');
-      setPhone('');
-      setSubject('');
-      setMessage('');
-      setTimeout(() => setFeedbackSuccess(false), 3000);
+      // Ağ hatası — sunucuya ulaşılamadı
+      console.error('Feedback gönderme hatası:', error);
+      setFeedbackError('Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip tekrar deneyin.');
     } finally {
       setFeedbackLoading(false);
     }
@@ -1024,17 +1035,20 @@ const LandingPage = () => {
           <BusinessIcon sx={{ fontSize: 150, color: 'white' }} />
         </Box>
 
-        <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 } }}>
-          <Box textAlign="center" mb={8}>
+     
+          <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 }, position: 'relative', zIndex: 1 }}>
+          <Box textAlign="center" mb={4}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <VerifiedIcon sx={{ color: '#FFFFFF' }} />
-              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>{t('features.whyTradeScout')}</Typography>
+              <StarIcon sx={{ color: '#FFFFFF' }} />
+              <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>{t('packages.pricing')}</Typography>
             </Box>
-            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>{t('features.powerfulTools')}</Typography>
+            <Typography variant="h3" fontWeight="800" mt={1} sx={{ color: '#FFFFFF' }}>{t('packages.choosePackage')}</Typography>
             <Typography variant="body1" sx={{ color: '#E3F2FD', maxWidth: '600px', mx: 'auto' }} mt={2}>
-              {t('features.modernTech')}
+              {t('packages.flexiblePackages')}
             </Typography>
           </Box>
+
+          
           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
             {/* Kart 1 */}
             <Box sx={{ flex: '1 1 300px', maxWidth: '400px' }}>
@@ -1075,9 +1089,12 @@ const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+      
 
       {/* --- FİYATLANDIRMA VE PAKETLER --- */}
+     {/* --- FİYATLANDIRMA VE PAKETLER --- */}
       <Box id="packages" sx={{ py: 12, bgcolor: 'rgba(255,255,255,0.1)', position: 'relative', overflow: 'hidden' }}>
+        
         {/* Açık Mavi Gölge Arka Planı */}
         <Box sx={{
           position: 'absolute',
@@ -1124,7 +1141,7 @@ const LandingPage = () => {
         </Box>
 
         <Container maxWidth={false} sx={{ px: { xs: 3, sm: 6, md: 8, lg: 10, xl: 12 }, position: 'relative', zIndex: 1 }}>
-          <Box textAlign="center" mb={8}>
+          <Box textAlign="center" mb={4}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <StarIcon sx={{ color: '#FFFFFF' }} />
               <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 'bold' }}>{t('packages.pricing')}</Typography>
@@ -1133,6 +1150,31 @@ const LandingPage = () => {
             <Typography variant="body1" sx={{ color: '#E3F2FD', maxWidth: '600px', mx: 'auto' }} mt={2}>
               {t('packages.flexiblePackages')}
             </Typography>
+          </Box>
+
+          {/* DİNAMİK İNDİRİM BANNER ALANI */}
+          <Box textAlign="center" mb={8}>
+            <Box sx={{
+              animation: `${pulse} 2s infinite`,
+              background: 'linear-gradient(45deg, #D32F2F 0%, #F44336 100%)',
+              color: 'white',
+              py: { xs: 1.5, md: 2 },
+              px: { xs: 3, md: 6 },
+              borderRadius: '50px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              boxShadow: '0 8px 25px rgba(211, 47, 47, 0.6)',
+              border: '2px solid #FFCDD2'
+            }}>
+              <Typography variant="h5" sx={{ 
+                fontWeight: 900, 
+                animation: `${blinkText} 1.5s infinite`, 
+                letterSpacing: 1, 
+                fontSize: { xs: '1.1rem', sm: '1.4rem', md: '1.8rem' } 
+              }}>
+                🔥 {t('packages.discountBadge')} 🔥
+              </Typography>
+            </Box>
           </Box>
 
           <Box sx={{
@@ -1154,17 +1196,28 @@ const LandingPage = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     {t('packages.starter.subtitle')}
                   </Typography>
+                  
+                  {/* BAŞLANGIÇ PAKETİ İNDİRİMLİ FİYAT ALANI */}
                   <Box sx={{ my: { xs: 2, sm: 3 } }}>
-                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
+                    <Typography variant="h5" sx={{ color: 'text.disabled', textDecoration: 'line-through', mb: -1, fontWeight: 'bold' }}>
                       {t('packages.starter.price')}
-                      <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        {t('packages.starter.period')}
+                    </Typography>
+                    <Typography variant="h3" fontWeight="900" sx={{ color: '#D32F2F', display: 'flex', alignItems: 'baseline' }}>
+                      {t('packages.starter.discountedPrice')}
+                      <Typography component="span" variant="h6" color="text.secondary" sx={{ ml: 1, fontWeight: 'medium' }}>
+                         {t('packages.starter.period')}
                       </Typography>
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      {t('packages.starter.yearlyNote')}
-                    </Typography>
+                    <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="body2" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
+                        {t('packages.starter.yearlyNote')}
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
+                        {t('packages.starter.discountedYearlyNote')}
+                      </Typography>
+                    </Box>
                   </Box>
+
                   <List sx={{ flexGrow: 1 }}>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -1173,51 +1226,35 @@ const LandingPage = () => {
                       <ListItemText primary={t('packages.starter.searchLimit')} primaryTypographyProps={{ fontWeight: 'bold' }} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature1')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature2')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature3')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature4')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature5')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature6')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature7')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.starter.feature8')} />
                     </ListItem>
                   </List>
@@ -1282,17 +1319,28 @@ const LandingPage = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     {t('packages.professional.subtitle')}
                   </Typography>
+                  
+                  {/* PROFESYONEL PAKET İNDİRİMLİ FİYAT ALANI */}
                   <Box sx={{ my: { xs: 2, sm: 3 } }}>
-                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
+                    <Typography variant="h5" sx={{ color: 'text.disabled', textDecoration: 'line-through', mb: -1, fontWeight: 'bold' }}>
                       {t('packages.professional.price')}
-                      <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        {t('packages.professional.period')}
+                    </Typography>
+                    <Typography variant="h3" fontWeight="900" sx={{ color: '#D32F2F', display: 'flex', alignItems: 'baseline' }}>
+                      {t('packages.professional.discountedPrice')}
+                      <Typography component="span" variant="h6" color="text.secondary" sx={{ ml: 1, fontWeight: 'medium' }}>
+                         {t('packages.professional.period')}
                       </Typography>
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      {t('packages.professional.yearlyNote')}
-                    </Typography>
+                    <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="body2" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
+                        {t('packages.professional.yearlyNote')}
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
+                        {t('packages.professional.discountedYearlyNote')}
+                      </Typography>
+                    </Box>
                   </Box>
+
                   <List sx={{ flexGrow: 1 }}>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -1301,33 +1349,23 @@ const LandingPage = () => {
                       <ListItemText primary={t('packages.professional.searchLimit')} primaryTypographyProps={{ fontWeight: 'bold' }} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature1')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature2')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature3')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature4')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.professional.feature5')} />
                     </ListItem>
                   </List>
@@ -1367,17 +1405,28 @@ const LandingPage = () => {
                   <Typography variant="body2" color="text.secondary" paragraph>
                     {t('packages.enterprise.subtitle')}
                   </Typography>
+                  
+                  {/* KURUMSAL PAKET İNDİRİMLİ FİYAT ALANI */}
                   <Box sx={{ my: { xs: 2, sm: 3 } }}>
-                    <Typography variant="h3" fontWeight="bold" sx={{ color: '#1565C0', fontSize: { xs: '2rem', sm: '3rem' } }}>
+                    <Typography variant="h5" sx={{ color: 'text.disabled', textDecoration: 'line-through', mb: -1, fontWeight: 'bold' }}>
                       {t('packages.enterprise.price')}
-                      <Typography component="span" variant="h6" color="text.secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                        {t('packages.enterprise.period')}
+                    </Typography>
+                    <Typography variant="h3" fontWeight="900" sx={{ color: '#D32F2F', display: 'flex', alignItems: 'baseline' }}>
+                      {t('packages.enterprise.discountedPrice')}
+                      <Typography component="span" variant="h6" color="text.secondary" sx={{ ml: 1, fontWeight: 'medium' }}>
+                         {t('packages.enterprise.period')}
                       </Typography>
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      {t('packages.enterprise.yearlyNote')}
-                    </Typography>
+                    <Box sx={{ mt: 1.5, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      <Typography variant="body2" sx={{ color: 'text.disabled', textDecoration: 'line-through' }}>
+                        {t('packages.enterprise.yearlyNote')}
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
+                        {t('packages.enterprise.discountedYearlyNote')}
+                      </Typography>
+                    </Box>
                   </Box>
+
                   <List sx={{ flexGrow: 1 }}>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
                       <ListItemIcon sx={{ minWidth: 36 }}>
@@ -1386,33 +1435,23 @@ const LandingPage = () => {
                       <ListItemText primary={t('packages.enterprise.searchLimit')} primaryTypographyProps={{ fontWeight: 'bold' }} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature1')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature2')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature3')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature4')} />
                     </ListItem>
                     <ListItem sx={{ px: 0, py: 0.5 }}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        <CheckCircleIcon sx={{ color: '#1565C0' }} />
-                      </ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 36 }}><CheckCircleIcon sx={{ color: '#1565C0' }} /></ListItemIcon>
                       <ListItemText primary={t('packages.enterprise.feature5')} />
                     </ListItem>
                   </List>

@@ -514,7 +514,7 @@ const Dashboard = () => {
   const handleBuyCredit = async (productCode: string, amount: number) => {
     setBuyingCredit(productCode);
     try {
-      const response = await apiClient.post('/api/payment/paratika/initialize', {
+      const response = await apiClient.post('/api/payment/morpara/initialize', {
         productCode,
         installment: 1,
       });
@@ -1791,6 +1791,37 @@ const Dashboard = () => {
                 </Box>
               </Box>
             </SearchCard>
+
+            {/* Bilgilendirme Kutusu */}
+            <Box sx={{
+              mt: 3,
+              p: { xs: 2, sm: 3 },
+              bgcolor: 'rgba(21, 101, 192, 0.04)',
+              border: '1px solid rgba(21, 101, 192, 0.15)',
+              borderRadius: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.5,
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Typography sx={{ fontSize: '1.1rem', mt: 0.1 }}>💡</Typography>
+                <Typography variant="body2" sx={{ color: '#37474f', lineHeight: 1.6 }}>
+                  <strong>Arama başarısız olursa krediniz eksilmez.</strong> Yalnızca firma bulunduğunda 1 kredi kullanılır.
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Typography sx={{ fontSize: '1.1rem', mt: 0.1 }}>🌍</Typography>
+                <Typography variant="body2" sx={{ color: '#37474f', lineHeight: 1.6 }}>
+                  Bazı bölgelerde yeterli firma bulunamayabilir. Bu durumda farklı bir şehir veya daha geniş bir kategori deneyin.
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <Typography sx={{ fontSize: '1.1rem', mt: 0.1 }}>📥</Typography>
+                <Typography variant="body2" sx={{ color: '#37474f', lineHeight: 1.6 }}>
+                  İndirilen Excel dosyası açılmıyorsa dosya adı çok uzun olabilir. Daha kısa bir kategori adı kullanarak tekrar deneyin.
+                </Typography>
+              </Box>
+            </Box>
 
             {/* Sonuç Alanı */}
             {searchResults ? (
