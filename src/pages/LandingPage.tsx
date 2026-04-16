@@ -1778,7 +1778,7 @@ const LandingPage = () => {
         <Box
           component="img"
           src={paratikaLogo}
-          alt="Paratika Sanal POS"
+          alt="Morpara Sanal POS"
           sx={{
             height: { xs: '60px', md: '80px' }, // Boyutu önemli ölçüde büyüttük (örneğin 30px yerine 60/80px)
             width: 'auto',

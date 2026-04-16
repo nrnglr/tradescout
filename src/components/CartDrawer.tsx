@@ -18,20 +18,20 @@ import { apiClient } from '../services/api';
 
 // ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment: number; isYearly: boolean }> = {
-  starter_monthly:  { code: '1274715', priceUsd: 15,  maxInstallment: 1,  isYearly: false },
-  pro_monthly:      { code: '1274739', priceUsd: 39,  maxInstallment: 1,  isYearly: false },
-  business_monthly: { code: '1274779', priceUsd: 79,  maxInstallment: 1,  isYearly: false },
-  starter_yearly:   { code: '1274716', priceUsd: 99,  maxInstallment: 12, isYearly: true  },
-  pro_yearly:       { code: '1274740', priceUsd: 299, maxInstallment: 12, isYearly: true  },
-  business_yearly:  { code: '1274780', priceUsd: 599, maxInstallment: 12, isYearly: true  },
-  credit_10:        { code: '1274710', priceUsd: 10,  maxInstallment: 1,  isYearly: false },
-  credit_25:        { code: '1274725', priceUsd: 20,  maxInstallment: 1,  isYearly: false },
-  credit_50:        { code: '1274750', priceUsd: 35,  maxInstallment: 1,  isYearly: false },
-  credit_100:       { code: '1247100', priceUsd: 60,  maxInstallment: 1,  isYearly: false },
+  starter_monthly:  { code: '1274715', priceUsd: 7.5,   maxInstallment: 1,  isYearly: false },
+  pro_monthly:      { code: '1274739', priceUsd: 19.5,  maxInstallment: 1,  isYearly: false },
+  business_monthly: { code: '1274779', priceUsd: 39.5,  maxInstallment: 1,  isYearly: false },
+  starter_yearly:   { code: '1274716', priceUsd: 49.5,  maxInstallment: 12, isYearly: true  },
+  pro_yearly:       { code: '1274740', priceUsd: 149.5, maxInstallment: 12, isYearly: true  },
+  business_yearly:  { code: '1274780', priceUsd: 299.5, maxInstallment: 12, isYearly: true  },
+  credit_10:        { code: '1274710', priceUsd: 10,    maxInstallment: 1,  isYearly: false },
+  credit_25:        { code: '1274725', priceUsd: 20,    maxInstallment: 1,  isYearly: false },
+  credit_50:        { code: '1274750', priceUsd: 35,    maxInstallment: 1,  isYearly: false },
+  credit_100:       { code: '1247100', priceUsd: 60,    maxInstallment: 1,  isYearly: false },
 };
 
-const MONTHLY_PRICES: Record<string, number> = { starter: 15, basic: 39, pro: 39, professional: 39, business: 79 };
-const YEARLY_PRICES:  Record<string, number> = { starter: 99, basic: 299, pro: 299, professional: 299, business: 599 };
+const MONTHLY_PRICES: Record<string, number> = { starter: 7.5, basic: 19.5, pro: 19.5, professional: 19.5, business: 39.5 };
+const YEARLY_PRICES:  Record<string, number> = { starter: 49.5, basic: 149.5, pro: 149.5, professional: 149.5, business: 299.5 };
 
 // TL/USD Dönüşüm Oranı
 const USD_TO_TRY = 43; // 1 USD = 43 TRY
@@ -102,7 +102,7 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/ay',
     perYear:          '/yıl',
     saveLabel:        '%45 tasarruf',
-    securePayment:    'Güvenli ödeme · Paratika Sanal POS',
+    securePayment:    'Güvenli ödeme · Morpara Sanal POS',
     readAndAccept:    'okudum ve kabul ediyorum',
     acceptRequired:   'Devam etmek için tüm sözleşmeleri onaylayın',
     billingPeriod:    'Ödeme Dönemi',
@@ -120,7 +120,7 @@ const CartDrawer: React.FC = () => {
     perMonth:         '/month',
     perYear:          '/year',
     saveLabel:        'Save 45%',
-    securePayment:    'Secure payment · Paratika Sanal POS',
+    securePayment:    'Secure payment · Morpara Sanal POS',
     readAndAccept:    'I have read and accept',
     acceptRequired:   'Please accept all agreements to continue',
     billingPeriod:    'Billing Period',
@@ -164,10 +164,9 @@ const CartDrawer: React.FC = () => {
   const totalPrice = items.reduce((sum, item) => sum + getPlanInfo(item).priceUsd, 0);
   const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
   
-  // TL fiyat formatı için helper fonksiyon
+  // USD fiyat formatı
   const formatPrice = (usdPrice: number): string => {
-    const tryPrice = usdPrice * USD_TO_TRY;
-    return `₺${tryPrice.toFixed(2)}`;
+    return `$${usdPrice.toFixed(2)}`;
   };
   
   // İndirim kodunu kaldır
@@ -210,13 +209,13 @@ const CartDrawer: React.FC = () => {
       console.log('🏷️ İndirim kodu doğrulanıyor:', {
         code: discountCode.trim().toUpperCase(),
         packageCode,
-        originalPrice: totalPrice * USD_TO_TRY
+        originalPrice: totalPrice
       });
       
       const response = await apiClient.post('/api/discountcode/validate', {
         code: discountCode.trim().toUpperCase(),
-        packageCode: packageCode, // Backend'in beklediği paket kodu
-        originalPrice: totalPrice * USD_TO_TRY // TRY cinsinden fiyat
+        packageCode: packageCode,
+        originalPrice: totalPrice // USD cinsinden fiyat
       });
       
       console.log('✅ Backend response:', response.data);
@@ -277,14 +276,11 @@ const CartDrawer: React.FC = () => {
     try {
       const plan = getPlanInfo(items[0]);
       
-      // TRY cinsinden fiyat hesapla
-      const finalPriceTRY = finalPrice * USD_TO_TRY;
-      
       const paymentData: any = {
         productCode: plan.code,
         installment: 1,
-        amount: finalPriceTRY, // TRY cinsinden indirimli fiyat
-        currency: 'TRY',
+        amount: finalPrice, // USD cinsinden indirimli fiyat
+        currency: 'USD',
       };
       
       // İndirim kodu varsa backend'e gönder (kullanıcının girdiği kodu gönderiyoruz)
@@ -409,7 +405,7 @@ const CartDrawer: React.FC = () => {
                     {language === 'tr' ? 'Ara Toplam' : 'Subtotal'}
                   </Typography>
                   <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-                    ₺{discountData.originalPrice?.toFixed(2) || (totalPrice * USD_TO_TRY).toFixed(2)}
+                    ${discountData.originalPrice?.toFixed(2) || totalPrice.toFixed(2)}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
@@ -417,13 +413,13 @@ const CartDrawer: React.FC = () => {
                     {language === 'tr' ? 'İndirim' : 'Discount'} ({discountData.discountPercentage}%)
                   </Typography>
                   <Typography variant="body2" color="success.main" fontWeight="bold">
-                    -₺{discountData.discountAmount?.toFixed(2) || '0.00'}
+                    -${discountData.discountAmount?.toFixed(2) || '0.00'}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', pt: 1, borderTop: '2px solid #e0e0e0' }}>
                   <Typography variant="h6" fontWeight="bold">{t('total')}</Typography>
                   <Typography variant="h5" fontWeight="bold" color="#1565C0">
-                    ₺{discountData.discountedPrice?.toFixed(2) || (totalPrice * USD_TO_TRY).toFixed(2)}{hasYearly ? t('perYear') : t('perMonth')}
+                    ${discountData.discountedPrice?.toFixed(2) || totalPrice.toFixed(2)}{hasYearly ? t('perYear') : t('perMonth')}
                   </Typography>
                 </Box>
               </>
