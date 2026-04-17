@@ -18,16 +18,16 @@ import { apiClient } from '../services/api';
 
 // ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment: number; isYearly: boolean }> = {
-  starter_monthly:  { code: '1274715', priceUsd: 7.5,   maxInstallment: 1,  isYearly: false },
-  pro_monthly:      { code: '1274739', priceUsd: 19.5,  maxInstallment: 1,  isYearly: false },
-  business_monthly: { code: '1274779', priceUsd: 39.5,  maxInstallment: 1,  isYearly: false },
-  starter_yearly:   { code: '1274716', priceUsd: 49.5,  maxInstallment: 12, isYearly: true  },
-  pro_yearly:       { code: '1274740', priceUsd: 149.5, maxInstallment: 12, isYearly: true  },
-  business_yearly:  { code: '1274780', priceUsd: 299.5, maxInstallment: 12, isYearly: true  },
-  credit_10:        { code: '1274710', priceUsd: 10,    maxInstallment: 1,  isYearly: false },
-  credit_25:        { code: '1274725', priceUsd: 20,    maxInstallment: 1,  isYearly: false },
-  credit_50:        { code: '1274750', priceUsd: 35,    maxInstallment: 1,  isYearly: false },
-  credit_100:       { code: '1247100', priceUsd: 60,    maxInstallment: 1,  isYearly: false },
+  starter_monthly:  { code: '1274715', priceUsd: 1,   maxInstallment: 1,  isYearly: false },
+  pro_monthly:      { code: '1274739', priceUsd: 1,  maxInstallment: 1,  isYearly: false },
+  business_monthly: { code: '1274779', priceUsd: 1,  maxInstallment: 1,  isYearly: false },
+  starter_yearly:   { code: '1274716', priceUsd: 1,  maxInstallment: 12, isYearly: true  },
+  pro_yearly:       { code: '1274740', priceUsd: 1, maxInstallment: 12, isYearly: true  },
+  business_yearly:  { code: '1274780', priceUsd: 1, maxInstallment: 12, isYearly: true  },
+  credit_10:        { code: '1274710', priceUsd:1,    maxInstallment: 1,  isYearly: false },
+  credit_25:        { code: '1274725', priceUsd: 1,    maxInstallment: 1,  isYearly: false },
+  credit_50:        { code: '1274750', priceUsd: 1,    maxInstallment: 1,  isYearly: false },
+  credit_100:       { code: '1247100', priceUsd: 1,    maxInstallment: 1,  isYearly: false },
 };
 
 const MONTHLY_PRICES: Record<string, number> = { starter: 7.5, basic: 19.5, pro: 19.5, professional: 19.5, business: 39.5 };
