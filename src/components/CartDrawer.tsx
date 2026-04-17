@@ -18,12 +18,12 @@ import { apiClient } from '../services/api';
 
 // ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment: number; isYearly: boolean }> = {
-  starter_monthly:  { code: '1274715', priceUsd: 1,   maxInstallment: 1,  isYearly: false },
-  pro_monthly:      { code: '1274739', priceUsd: 1,  maxInstallment: 1,  isYearly: false },
-  business_monthly: { code: '1274779', priceUsd: 1,  maxInstallment: 1,  isYearly: false },
-  starter_yearly:   { code: '1274716', priceUsd: 1,  maxInstallment: 12, isYearly: true  },
-  pro_yearly:       { code: '1274740', priceUsd: 1, maxInstallment: 12, isYearly: true  },
-  business_yearly:  { code: '1274780', priceUsd: 1, maxInstallment: 12, isYearly: true  },
+  starter_monthly:  { code: '1274715', priceUsd: 336,   maxInstallment: 1,  isYearly: false },
+  pro_monthly:      { code: '1274739', priceUsd: 874,  maxInstallment: 1,  isYearly: false },
+  business_monthly: { code: '1274779', priceUsd: 1772,  maxInstallment: 1,  isYearly: false },
+  starter_yearly:   { code: '1274716', priceUsd: 2221,  maxInstallment: 12, isYearly: true  },
+  pro_yearly:       { code: '1274740', priceUsd: 6708, maxInstallment: 12, isYearly: true  },
+  business_yearly:  { code: '1274780', priceUsd: 13438, maxInstallment: 12, isYearly: true  },
   credit_10:        { code: '1274710', priceUsd:1,    maxInstallment: 1,  isYearly: false },
   credit_25:        { code: '1274725', priceUsd: 1,    maxInstallment: 1,  isYearly: false },
   credit_50:        { code: '1274750', priceUsd: 1,    maxInstallment: 1,  isYearly: false },
