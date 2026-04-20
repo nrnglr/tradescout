@@ -469,7 +469,7 @@ const Dashboard = () => {
     neighborhood: '', // Mahalle/Bölge
     language: 'tr',
     product: '',
-    companyCount: '10'
+    companyCount: '100'
   });
 
   // Loading ve Sonuç State'leri
@@ -719,13 +719,14 @@ const Dashboard = () => {
     const isAdmin = user?.role?.toLowerCase() === 'admin';
 
 
-    // Admin değilse firma sayısı kontrolü yap (Max 10)
+    // Admin değilse firma sayısı kontrolü: paket alanlara min 200, almayanlar DB değeri (100)
     const _pkgType = user?.packageType || user?.PackageType || user?.package || user?.plan || '';
     const hasPaidPackage = !!(_pkgType && _pkgType !== 'Free' && _pkgType !== 'free' && _pkgType !== '');
-    const maxCompanies = isAdmin ? 1000 : hasPaidPackage ? 200 : 10;
+    const userMaxResults = user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100;
+    const maxCompanies = isAdmin ? 1000 : (hasPaidPackage ? Math.max(userMaxResults, 200) : userMaxResults);
     if (!isAdmin && (companyCount < 1 || companyCount > maxCompanies)) {
       const errMsg1 = language === 'tr'
-        ? `⚠️ ${hasPaidPackage ? 'Pakette' : 'Free pakette'} maksimum ${maxCompanies} firma aranabilir. Daha fazla arama için paket yükseltin!`
+        ? `⚠️ Maksimum ${maxCompanies} firma aranabilir. Daha fazla arama için paket yükseltin!`
         : `⚠️ Maximum ${maxCompanies} companies per search in your plan. Upgrade your package to search more!`;
       setError(errMsg1);
       return;
@@ -1228,11 +1229,9 @@ const Dashboard = () => {
               {user?.role?.toLowerCase() === 'admin' ? (
                 <Chip icon={<BoltIcon sx={{ color: '#FFD700 !important' }} />} label="🔑 Admin" sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 215, 0, 0.3)', color: '#FFD700', border: '2px solid rgba(255, 215, 0, 0.6)', height: 40, borderRadius: '10px' }} />
               ) : (
-                hasPaidPackage && (
-                  <Tooltip title={language === 'tr' ? 'Ekstra kredi almak için tıklayın' : 'Click to buy extra credits'}>
-                    <Chip icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />} label={`${user?.credits || 0} ${t('dashboard.credits')}`} onClick={() => setCreditModalOpen(true)} sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 255, 255, 0.2)', color: '#FFFFFF', border: '2px solid rgba(255, 255, 255, 0.3)', height: 40, borderRadius: '10px', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(255, 193, 7, 0.4)', borderColor: '#FFC107' } }} />
-                  </Tooltip>
-                )
+                <Tooltip title={language === 'tr' ? 'Ekstra kredi almak için tıklayın' : 'Click to buy extra credits'}>
+                  <Chip icon={<BoltIcon sx={{ color: '#FFC107 !important' }} />} label={`${user?.credits || 0} ${t('dashboard.credits')}`} onClick={() => setCreditModalOpen(true)} sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 255, 255, 0.2)', color: '#FFFFFF', border: '2px solid rgba(255, 255, 255, 0.3)', height: 40, borderRadius: '10px', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(255, 193, 7, 0.4)', borderColor: '#FFC107' } }} />
+                </Tooltip>
               )}
               {/* 2. Geçmiş Aramalar */}
               <Button onClick={() => { setHistoryModalOpen(true); loadSearchHistory(); }} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', borderRadius: '10px', px: 1.5, py: 0.75, '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
@@ -1303,9 +1302,7 @@ const Dashboard = () => {
           {user?.role?.toLowerCase() === 'admin' ? (
             <Chip icon={<BoltIcon sx={{ color: '#F57F17 !important' }} />} label="🔑 Admin" sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 193, 7, 0.15)', color: '#F57F17', border: '1px solid rgba(255, 193, 7, 0.4)', height: 36, borderRadius: '10px', minWidth: 'max-content' }} />
           ) : (
-            hasPaidPackage && (
-              <Chip icon={<BoltIcon sx={{ color: '#F57F17 !important' }} />} label={`${user?.credits || 0} ${t('dashboard.credits')}`} onClick={() => setCreditModalOpen(true)} sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 193, 7, 0.1)', color: '#F57F17', border: '1px solid rgba(255, 193, 7, 0.3)', height: 36, borderRadius: '10px', cursor: 'pointer', minWidth: 'max-content' }} />
-            )
+            <Chip icon={<BoltIcon sx={{ color: '#F57F17 !important' }} />} label={`${user?.credits || 0} ${t('dashboard.credits')}`} onClick={() => setCreditModalOpen(true)} sx={{ fontWeight: 'bold', bgcolor: 'rgba(255, 193, 7, 0.1)', color: '#F57F17', border: '1px solid rgba(255, 193, 7, 0.3)', height: 36, borderRadius: '10px', cursor: 'pointer', minWidth: 'max-content' }} />
           )}
           {/* 2. Geçmiş Aramalar */}
           <Button onClick={() => { setHistoryModalOpen(true); loadSearchHistory(); }} sx={{ color: '#1565C0', bgcolor: 'rgba(21, 101, 192, 0.08)', borderRadius: '10px', minWidth: 'max-content', px: 1.5, py: 0.75 }}>
@@ -1629,19 +1626,20 @@ const Dashboard = () => {
                       fullWidth
                       type="number"
                       label={t('dashboard.search.companyCount')}
-                      placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : ((user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'free' ? "Maximum 200 companies" : "Maximum 10 companies")}
+                      placeholder={user?.role?.toLowerCase() === 'admin' ? "E.g: 50, 100, 500..." : `Maximum ${user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100} companies`}
                       value={searchParams.companyCount}
                       onChange={(e) => {
                         const value = parseInt(e.target.value) || 0;
                         const isAdmin = user?.role?.toLowerCase() === 'admin';
 
-                        // Admin değilse 10'a sınırla ve uyar
+                        // Admin değilse sınırla: Free=100, Paket=200
                         const _pkg2 = user?.packageType || user?.PackageType || user?.package || user?.plan || '';
                         const hasPaidPkg = !!(_pkg2 && _pkg2 !== 'Free' && _pkg2 !== 'free' && _pkg2 !== '');
-                        const maxComp = isAdmin ? 1000 : hasPaidPkg ? 200 : 10;
+                        const userMax2 = user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100;
+                        const maxComp = isAdmin ? 1000 : (hasPaidPkg ? Math.max(userMax2, 200) : userMax2);
                         if (!isAdmin && value > maxComp) {
                           const errMsg2 = language === 'tr'
-                            ? `⚠️ ${hasPaidPkg ? 'Pakette' : 'Free pakette'} maksimum ${maxComp} firma aranabilir. Daha fazla arama için paket yükseltin!`
+                            ? `⚠️ Maksimum ${maxComp} firma aranabilir. Daha fazla arama için paket yükseltin!`
                             : `⚠️ Maximum ${maxComp} companies per search. Upgrade your package to search more!`;
                           setError(errMsg2);
                           setTimeout(() => setError(''), 5000);
@@ -1659,10 +1657,10 @@ const Dashboard = () => {
                         ),
                         inputProps: {
                           min: 1,
-                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : ((user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'free' ? 200 : 10)
+                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : (user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100)
                         }
                       }}
-                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : ((user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'Free' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== '' && (user?.packageType || user?.PackageType || user?.package || user?.plan || '') !== 'free' ? "Min 1, max 200 companies" : "Min 1, max 10 companies")}
+                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : `Min 1, max ${user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100} companies`}
                     />
                   </Box>
                 </Box>

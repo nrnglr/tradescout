@@ -31,7 +31,7 @@ const BRAND = {
 };
 
 const PACKAGE_CONFIG: Record<string, { color: string; label: string; icon: string; maxCompanies: number; creditsPerMonth: number }> = {
-  'Free':             { color: '#78909C', label: 'Ücretsiz',          icon: '🆓', maxCompanies: 10,  creditsPerMonth: 2   },
+  'Free':             { color: '#78909C', label: 'Ücretsiz',          icon: '🆓', maxCompanies: 100, creditsPerMonth: 2   },
   'Starter':          { color: '#1565C0', label: 'Başlangıç',         icon: '🚀', maxCompanies: 200, creditsPerMonth: 10  },
   'Starter Yıllık':   { color: '#1565C0', label: 'Başlangıç Yıllık',  icon: '🚀', maxCompanies: 200, creditsPerMonth: 10  },
   'Pro':              { color: '#7B1FA2', label: 'Profesyonel',       icon: '⚡', maxCompanies: 200, creditsPerMonth: 40  },
@@ -41,7 +41,7 @@ const PACKAGE_CONFIG: Record<string, { color: string; label: string; icon: strin
 };
 
 const getPkg = (type: string) =>
-  PACKAGE_CONFIG[type] ?? { color: '#78909C', label: type || 'Ücretsiz', icon: '🆓', maxCompanies: 10, creditsPerMonth: 2 };
+  PACKAGE_CONFIG[type] ?? { color: '#78909C', label: type || 'Ücretsiz', icon: '🆓', maxCompanies: 100, creditsPerMonth: 2 };
 
 const HeroBg = styled(Box)({
   background: `linear-gradient(135deg, #1565C0 0%, #42A5F5 100%)`,
