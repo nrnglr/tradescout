@@ -471,9 +471,8 @@ const CartDrawer: React.FC = () => {
                 }}
               >
                 <Typography variant="body2" fontWeight="bold" color={currency === 'TRY' ? '#1565C0' : '#555'}>
-                  🇹🇷 {language === 'tr' ? 'Türk Kartı' : 'Turkish Card'}
+                  🇹🇷 Türkiye Kart (TRY)
                 </Typography>
-                <Typography variant="caption" color="text.secondary">TL</Typography>
               </Box>
               <Box
                 onClick={() => setCurrency('USD')}
@@ -485,9 +484,8 @@ const CartDrawer: React.FC = () => {
                 }}
               >
                 <Typography variant="body2" fontWeight="bold" color={currency === 'USD' ? '#1565C0' : '#555'}>
-                  🌍 {language === 'tr' ? 'Yabancı Kart' : 'Foreign Card'}
+                  🌍 International Card (USD)
                 </Typography>
-                <Typography variant="caption" color="text.secondary">USD</Typography>
               </Box>
             </Box>
           </Box>
