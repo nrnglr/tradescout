@@ -17,17 +17,17 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 
 // ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
-const PLAN_MAP: Record<string, { code: string; priceUsd: number; maxInstallment: number; isYearly: boolean }> = {
-  starter_monthly:  { code: '1274715', priceUsd: 7.5,   maxInstallment: 1,  isYearly: false },
-  pro_monthly:      { code: '1274739', priceUsd: 19.5,  maxInstallment: 1,  isYearly: false },
-  business_monthly: { code: '1274779', priceUsd: 39.5,  maxInstallment: 1,  isYearly: false },
-  starter_yearly:   { code: '1274716', priceUsd: 49.5,  maxInstallment: 12, isYearly: true  },
-  pro_yearly:       { code: '1274740', priceUsd: 149.5, maxInstallment: 12, isYearly: true  },
-  business_yearly:  { code: '1274780', priceUsd: 299.5, maxInstallment: 12, isYearly: true  },
-  credit_10:        { code: '1274710', priceUsd: 10,    maxInstallment: 1,  isYearly: false },
-  credit_25:        { code: '1274725', priceUsd: 20,    maxInstallment: 1,  isYearly: false },
-  credit_50:        { code: '1274750', priceUsd: 35,    maxInstallment: 1,  isYearly: false },
-  credit_100:       { code: '1247100', priceUsd: 60,    maxInstallment: 1,  isYearly: false },
+const PLAN_MAP: Record<string, { code: string; priceUsd: number; priceTry: number; maxInstallment: number; isYearly: boolean }> = {
+  starter_monthly:  { code: '1274715', priceUsd: 7.5,   priceTry: 336,   maxInstallment: 1,  isYearly: false },
+  pro_monthly:      { code: '1274739', priceUsd: 19.5,  priceTry: 874,   maxInstallment: 1,  isYearly: false },
+  business_monthly: { code: '1274779', priceUsd: 39.5,  priceTry: 1772,  maxInstallment: 1,  isYearly: false },
+  starter_yearly:   { code: '1274716', priceUsd: 49.5,  priceTry: 2221,  maxInstallment: 12, isYearly: true  },
+  pro_yearly:       { code: '1274740', priceUsd: 149.5, priceTry: 6708,  maxInstallment: 12, isYearly: true  },
+  business_yearly:  { code: '1274780', priceUsd: 299.5, priceTry: 13438, maxInstallment: 12, isYearly: true  },
+  credit_10:        { code: '1274710', priceUsd: 10,    priceTry: 430,   maxInstallment: 1,  isYearly: false },
+  credit_25:        { code: '1274725', priceUsd: 20,    priceTry: 860,   maxInstallment: 1,  isYearly: false },
+  credit_50:        { code: '1274750', priceUsd: 35,    priceTry: 1505,  maxInstallment: 1,  isYearly: false },
+  credit_100:       { code: '1247100', priceUsd: 60,    priceTry: 2580,  maxInstallment: 1,  isYearly: false },
 };
 
 const MONTHLY_PRICES: Record<string, number> = { starter: 7.5, basic: 19.5, pro: 19.5, professional: 19.5, business: 39.5 };
@@ -48,6 +48,7 @@ const CartDrawer: React.FC = () => {
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
   const [isAuthenticated,    setIsAuthenticated]    = useState(false);
+  const [currency,           setCurrency]           = useState<'TRY' | 'USD'>('TRY'); // Para birimi seçimi
   
   // İndirim kodu state'leri
   const [discountCode,       setDiscountCode]       = useState('');
@@ -161,12 +162,33 @@ const CartDrawer: React.FC = () => {
     return { code: plan?.code ?? item.id, priceUsd: price, isYearly: billingPeriod === 'yearly' };
   };
 
-  const totalPrice = items.reduce((sum, item) => sum + getPlanInfo(item).priceUsd, 0);
+  const totalPrice = items.reduce((sum, item) => {
+    const plan = getPlanInfo(item);
+    if (currency === 'USD') return sum + plan.priceUsd;
+    const rawId = item.id.toLowerCase();
+    const baseId = normalizeId(rawId);
+    const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
+    const entry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
+    return sum + (entry?.priceTry ?? plan.priceUsd);
+  }, 0);
   const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
   
-  // USD fiyat formatı
-  const formatPrice = (usdPrice: number): string => {
-    return `$${usdPrice.toFixed(2)}`;
+  // Fiyat formatı — currency seçimine göre
+  const formatPrice = (price: number): string => {
+    if (currency === 'USD') return `$${price.toFixed(2)}`;
+    return `₺${price.toFixed(2)}`;
+  };
+
+  // Seçilen currency'e göre fiyat
+  const getPriceForCurrency = (item: typeof items[0]) => {
+    const plan = getPlanInfo(item);
+    if (currency === 'USD') return plan.priceUsd;
+    // TRY için PLAN_MAP'ten TL fiyatını al
+    const rawId = item.id.toLowerCase();
+    const baseId = normalizeId(rawId);
+    const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
+    const planMapEntry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
+    return planMapEntry?.priceTry ?? plan.priceUsd;
   };
   
   // İndirim kodunu kaldır
@@ -279,8 +301,8 @@ const CartDrawer: React.FC = () => {
       const paymentData: any = {
         productCode: plan.code,
         installment: 1,
-        amount: finalPrice, // USD cinsinden indirimli fiyat
-        currency: 'USD',
+        amount: finalPrice,
+        currency: currency, // 'TRY' veya 'USD'
       };
       
       // İndirim kodu varsa backend'e gönder (kullanıcının girdiği kodu gönderiyoruz)
@@ -431,6 +453,43 @@ const CartDrawer: React.FC = () => {
                 </Typography>
               </Box>
             )}
+          </Box>
+
+          {/* Para Birimi Seçimi */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="body2" fontWeight="bold" sx={{ mb: 1, color: '#555' }}>
+              {language === 'tr' ? 'Ödeme Yöntemi' : 'Payment Method'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box
+                onClick={() => setCurrency('TRY')}
+                sx={{
+                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
+                  border: currency === 'TRY' ? '2px solid #1565C0' : '2px solid #e0e0e0',
+                  bgcolor: currency === 'TRY' ? '#e3f2fd' : 'white',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <Typography variant="body2" fontWeight="bold" color={currency === 'TRY' ? '#1565C0' : '#555'}>
+                  🇹🇷 {language === 'tr' ? 'Türk Kartı' : 'Turkish Card'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">TL</Typography>
+              </Box>
+              <Box
+                onClick={() => setCurrency('USD')}
+                sx={{
+                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
+                  border: currency === 'USD' ? '2px solid #1565C0' : '2px solid #e0e0e0',
+                  bgcolor: currency === 'USD' ? '#e3f2fd' : 'white',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <Typography variant="body2" fontWeight="bold" color={currency === 'USD' ? '#1565C0' : '#555'}>
+                  🌍 {language === 'tr' ? 'Yabancı Kart' : 'Foreign Card'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">USD</Typography>
+              </Box>
+            </Box>
           </Box>
 
           {/* Sözleşmeler */}
