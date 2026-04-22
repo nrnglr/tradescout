@@ -931,6 +931,7 @@ const LandingPage = () => {
                     py: { xs: 1.2, sm: 1.5 },
                     textTransform: 'none',
                     fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
                     '&:hover': {
                       bgcolor: '#E3F2FD',
@@ -940,6 +941,30 @@ const LandingPage = () => {
                   }}
                 >
                   {t('hero.startNow')}
+                </Button>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => navigate('/register')}
+                  sx={{
+                    bgcolor: '#FFFFFF',
+                    color: '#1565C0',
+                    borderRadius: '12px',
+                    fontSize: { xs: '0.95rem', sm: '1rem', md: '1.1rem' },
+                    px: { xs: 3, sm: 4 },
+                    py: { xs: 1.2, sm: 1.5 },
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                    '&:hover': {
+                      bgcolor: '#E3F2FD',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+                    },
+                  }}
+                >
+                  {t('hero.demoSignup')}
                 </Button>
                 <Button
                   variant="outlined"
@@ -955,6 +980,7 @@ const LandingPage = () => {
                     py: { xs: 1.2, sm: 1.5 },
                     textTransform: 'none',
                     fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
                     '&:hover': {
                       borderWidth: 2,
                       borderColor: '#E3F2FD',
