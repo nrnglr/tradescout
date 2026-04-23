@@ -1241,6 +1241,9 @@ const LandingPage = () => {
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
                         {t('packages.starter.discountedYearlyNote')}
                       </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565C0', mt: 0.5 }}>
+                        {t('packages.starter.yearlyCreditsNote')}
+                      </Typography>
                     </Box>
                   </Box>
 
@@ -1364,6 +1367,9 @@ const LandingPage = () => {
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
                         {t('packages.professional.discountedYearlyNote')}
                       </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565C0', mt: 0.5 }}>
+                        {t('packages.professional.yearlyCreditsNote')}
+                      </Typography>
                     </Box>
                   </Box>
 
@@ -1449,6 +1455,9 @@ const LandingPage = () => {
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
                         {t('packages.enterprise.discountedYearlyNote')}
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565C0', mt: 0.5 }}>
+                        {t('packages.enterprise.yearlyCreditsNote')}
                       </Typography>
                     </Box>
                   </Box>

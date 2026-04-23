@@ -97,7 +97,8 @@ export const translations = {
         feature6: "Sosyal medya",
         feature7: "WeChat (Çin için)",
         feature8: "Excel export",
-        searchLimit: "10 Arama (Her bir aramada 200 firma)"
+        searchLimit: "10 Arama (Her bir aramada 200 firma)",
+        yearlyCreditsNote: "Yıllık alımda toplam 120 Arama"
       },
       professional: {
         name: "Profesyonel Paket",
@@ -113,7 +114,8 @@ export const translations = {
         feature3: "Gelişmiş Excel export",
         feature4: "Daha hızlı veri erişimi",
         feature5: "Öncelikli destek",
-        searchLimit: "40 Arama (Her bir aramada 200 firma)"
+        searchLimit: "40 Arama (Her bir aramada 200 firma)",
+        yearlyCreditsNote: "Yıllık alımda toplam 480 Arama"
       },
       enterprise: {
         name: "Kurumsal Paket",
@@ -129,10 +131,11 @@ export const translations = {
         feature3: "Bulk veri export",
         feature4: "Öncelikli destek",
         feature5: "Satış ekipleri için kullanım",
-        searchLimit: "100 Arama (Her bir aramada 200 firma)"
+        searchLimit: "100 Arama (Her bir aramada 200 firma)",
+        yearlyCreditsNote: "Yıllık alımda toplam 1200 Arama"
       }
     },
-    
+
     // Footer
     footer: {
       tagline: "Ticaretin yeni rotası. Veri odaklı büyüme platformu.",
@@ -380,7 +383,8 @@ export const translations = {
         feature6: "Social media",
         feature7: "WeChat (for China)",
         feature8: "Excel export",
-        searchLimit: "10 Searches"
+        searchLimit: "10 Searches",
+        yearlyCreditsNote: "120 Searches total with annual plan"
       },
       professional: {
         name: "Professional Plan",
@@ -396,7 +400,8 @@ export const translations = {
         feature3: "Advanced Excel export",
         feature4: "Faster data access",
         feature5: "Priority support",
-        searchLimit: "40 Searches"
+        searchLimit: "40 Searches",
+        yearlyCreditsNote: "480 Searches total with annual plan"
       },
       enterprise: {
         name: "Corporate Plan",
@@ -412,10 +417,11 @@ export const translations = {
         feature3: "Bulk data export",
         feature4: "Priority support",
         feature5: "For sales teams",
-        searchLimit: "100 Searches"
+        searchLimit: "100 Searches",
+        yearlyCreditsNote: "1,200 Searches total with annual plan"
       }
     },
-    
+
     // Footer
     footer: {
       tagline: "The new route of trade. Data-driven growth platform.",
