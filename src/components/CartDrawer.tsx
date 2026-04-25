@@ -312,7 +312,10 @@ const CartDrawer: React.FC = () => {
 
       console.log('💳 Ödeme başlatılıyor:', paymentData);
 
-      const response = await apiClient.post('/api/payment/morpara/initialize', paymentData);
+      const endpoint = currency === 'TRY'
+        ? '/api/payment/initialize'
+        : '/api/payment/morpara/initialize';
+      const response = await apiClient.post(endpoint, paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
       if (paymentUrl) {
