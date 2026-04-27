@@ -312,8 +312,9 @@ const CartDrawer: React.FC = () => {
 
       console.log('💳 Ödeme başlatılıyor:', paymentData);
 
-      const endpoint = currency === 'TRY'
-        ? '/api/payment/initialize'
+      const isYearly = items.some(i => getPlanInfo(i).isYearly);
+      const endpoint = (isYearly && currency === 'TRY')
+        ? '/api/payment/paratika/initialize'
         : '/api/payment/morpara/initialize';
       const response = await apiClient.post(endpoint, paymentData);
 
