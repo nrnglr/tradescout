@@ -313,9 +313,14 @@ const CartDrawer: React.FC = () => {
       console.log('💳 Ödeme başlatılıyor:', paymentData);
 
       const isYearly = items.some(i => getPlanInfo(i).isYearly);
-      const endpoint = (isYearly && currency === 'TRY')
-        ? '/api/payment/paratika/initialize'
-        : '/api/payment/morpara/initialize';
+      const isCredit = items.some(i => i.id.toLowerCase().startsWith('credit'));
+      const endpoint = currency !== 'TRY'
+        ? '/api/payment/morpara/initialize'
+        : isYearly
+          ? '/api/payment/paratika/initialize'
+          : isCredit
+            ? '/api/payment/morpara/initialize'
+            : '/api/payment/initialize';
       const response = await apiClient.post(endpoint, paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
