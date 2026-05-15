@@ -48,7 +48,7 @@ const CartDrawer: React.FC = () => {
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
   const [isAuthenticated,    setIsAuthenticated]    = useState(false);
-  const [currency,           setCurrency]           = useState<'TRY' | 'USD'>('TRY'); // Para birimi seçimi
+  const [currency,           setCurrency]           = useState<'TRY' | 'USD'>('USD'); // Para birimi seçimi
   
   // İndirim kodu state'leri
   const [discountCode,       setDiscountCode]       = useState('');
@@ -164,31 +164,19 @@ const CartDrawer: React.FC = () => {
 
   const totalPrice = items.reduce((sum, item) => {
     const plan = getPlanInfo(item);
-    if (currency === 'USD') return sum + plan.priceUsd;
-    const rawId = item.id.toLowerCase();
-    const baseId = normalizeId(rawId);
-    const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
-    const entry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
-    return sum + (entry?.priceTry ?? plan.priceUsd);
+    return sum + plan.priceUsd;
   }, 0);
   const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
   
   // Fiyat formatı — currency seçimine göre
   const formatPrice = (price: number): string => {
-    if (currency === 'USD') return `$${price.toFixed(2)}`;
-    return `₺${price.toFixed(2)}`;
+    return `$${price.toFixed(2)}`;
   };
 
   // Seçilen currency'e göre fiyat
   const getPriceForCurrency = (item: typeof items[0]) => {
     const plan = getPlanInfo(item);
-    if (currency === 'USD') return plan.priceUsd;
-    // TRY için PLAN_MAP'ten TL fiyatını al
-    const rawId = item.id.toLowerCase();
-    const baseId = normalizeId(rawId);
-    const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
-    const planMapEntry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
-    return planMapEntry?.priceTry ?? plan.priceUsd;
+    return plan.priceUsd;
   };
   
   // İndirim kodunu kaldır
@@ -314,13 +302,7 @@ const CartDrawer: React.FC = () => {
 
       const isYearly = items.some(i => getPlanInfo(i).isYearly);
       const isCredit = items.some(i => i.id.toLowerCase().startsWith('credit'));
-      const endpoint = currency !== 'TRY'
-        ? '/api/payment/morpara/initialize'
-        : isYearly
-          ? '/api/payment/paratika/initialize'
-          : isCredit
-            ? '/api/payment/morpara/initialize'
-            : '/api/payment/initialize';
+      const endpoint = '/api/payment/morpara/initialize';
       const response = await apiClient.post(endpoint, paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
@@ -462,41 +444,6 @@ const CartDrawer: React.FC = () => {
                 </Typography>
               </Box>
             )}
-          </Box>
-
-          {/* Para Birimi Seçimi */}
-          <Box sx={{ mb: 1.5 }}>
-            <Typography variant="body2" fontWeight="bold" sx={{ mb: 1, color: '#555' }}>
-              {language === 'tr' ? 'Ödeme Yöntemi' : 'Payment Method'}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Box
-                onClick={() => setCurrency('TRY')}
-                sx={{
-                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
-                  border: currency === 'TRY' ? '2px solid #1565C0' : '2px solid #e0e0e0',
-                  bgcolor: currency === 'TRY' ? '#e3f2fd' : 'white',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Typography variant="body2" fontWeight="bold" color={currency === 'TRY' ? '#1565C0' : '#555'}>
-                  🇹🇷 Türkiye Kart (TRY)
-                </Typography>
-              </Box>
-              <Box
-                onClick={() => setCurrency('USD')}
-                sx={{
-                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
-                  border: currency === 'USD' ? '2px solid #1565C0' : '2px solid #e0e0e0',
-                  bgcolor: currency === 'USD' ? '#e3f2fd' : 'white',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Typography variant="body2" fontWeight="bold" color={currency === 'USD' ? '#1565C0' : '#555'}>
-                  🌍 International Card (USD)
-                </Typography>
-              </Box>
-            </Box>
           </Box>
 
           {/* Sözleşmeler */}
