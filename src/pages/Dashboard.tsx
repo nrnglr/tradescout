@@ -710,10 +710,7 @@ const Dashboard = () => {
       setError(language === 'tr' ? 'Lütfen ülke seçin!' : 'Please select a country!');
       return;
     }
-    if (!searchParams.city) {
-      setError(language === 'tr' ? 'Lütfen şehir seçin!' : 'Please select a city!');
-      return;
-    }
+  
 
     const companyCount = parseInt(searchParams.companyCount);
     const isAdmin = user?.role?.toLowerCase() === 'admin';
@@ -759,11 +756,12 @@ const Dashboard = () => {
 
       // API isteği - Arka planda otomatik arama
       // Bölge detayları varsa şehir bilgisine ekle
-      let locationQuery = searchParams.city;
-      if (searchParams.district) {
+      // Bölge detayları varsa şehir bilgisine ekle (Şehir seçilmemişse boş kalır)
+      let locationQuery = searchParams.city || '';
+      if (searchParams.city && searchParams.district) {
         locationQuery += `, ${searchParams.district}`;
       }
-      if (searchParams.neighborhood) {
+      if (searchParams.city && searchParams.neighborhood) {
         locationQuery += `, ${searchParams.neighborhood}`;
       }
 
@@ -1457,8 +1455,8 @@ const Dashboard = () => {
                       renderInput={(params) => (
                         <StyledTextField
                           {...params}
-                          label={t('dashboard.search.country')}
-                          placeholder={t('dashboard.search.countryPlaceholder')}
+                          label={`${t('dashboard.search.city')} ${language === 'tr' ? '(Opsiyonel)' : '(Optional)'}`}
+                          placeholder={searchParams.country ? (language === 'tr' ? 'Tüm ülke için boş bırakın' : 'Leave blank for whole country') : (language === 'tr' ? 'Önce ülke seçin' : 'Select country first')}
                           InputProps={{
                             ...params.InputProps,
                             startAdornment: (
