@@ -777,7 +777,7 @@ const Dashboard = () => {
 
       const response = await scraperService.scrape({
         category: searchParams.product,
-        city: locationQuery,
+        city: locationQuery || searchParams.country, // Eğer şehir boşsa ülkeyi gönder (Çökmeyi engeller)
         country: searchParams.country || 'Türkiye',
         language: searchParams.language || 'tr',
         maxResults: companyCount,
@@ -1443,7 +1443,7 @@ const Dashboard = () => {
 
                 {/* 2-4. Ülke, Şehir */}
                 <Box sx={{ display: 'flex', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
-                  {/* 2. Ülke - Autocomplete ile arama yapılabilir */}
+                  {/* 2. Ülke - Autocomplete ile arama yapılabilir (ZORUNLU ALAN) */}
                   <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
                     <Autocomplete
                       options={countries}
@@ -1455,8 +1455,8 @@ const Dashboard = () => {
                       renderInput={(params) => (
                         <StyledTextField
                           {...params}
-                          label={`${t('dashboard.search.city')} ${language === 'tr' ? '(Opsiyonel)' : '(Optional)'}`}
-                          placeholder={searchParams.country ? (language === 'tr' ? 'Tüm ülke için boş bırakın' : 'Leave blank for whole country') : (language === 'tr' ? 'Önce ülke seçin' : 'Select country first')}
+                          label={t('dashboard.search.country')} 
+                          placeholder={language === 'tr' ? 'Ülke seçiniz' : 'Select country'}
                           InputProps={{
                             ...params.InputProps,
                             startAdornment: (
@@ -1477,7 +1477,7 @@ const Dashboard = () => {
                     />
                   </Box>
 
-                  {/* 3. Şehir - Autocomplete ile arama yapılabilir (Ülke seçildikten sonra aktif) */}
+                  {/* 3. Şehir - Autocomplete ile arama yapılabilir (OPSİYONEL ALAN) */}
                   <Box sx={{ flex: '1 1 100%', minWidth: { sm: '250px', md: '300px' } }}>
                     <Autocomplete
                       options={cities}
@@ -1490,8 +1490,8 @@ const Dashboard = () => {
                       renderInput={(params) => (
                         <StyledTextField
                           {...params}
-                          label={t('dashboard.search.city')}
-                          placeholder={searchParams.country ? t('dashboard.search.cityPlaceholder') : (language === 'tr' ? 'Önce ülke seçin' : 'Select country first')}
+                          label={`${t('dashboard.search.city')} ${language === 'tr' ? '(Opsiyonel)' : '(Optional)'}`}
+                          placeholder={searchParams.country ? (language === 'tr' ? 'Tüm ülke için boş bırakın' : 'Leave blank for whole country') : (language === 'tr' ? 'Önce ülke seçin' : 'Select country first')}
                           InputProps={{
                             ...params.InputProps,
                             startAdornment: (

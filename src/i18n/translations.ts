@@ -177,7 +177,7 @@ export const translations = {
         productPlaceholder: "Örn: Tekstil, Zeytinyağı, Mobilya...",
         country: "Hedef Ülke",
         countryPlaceholder: "Örn: Almanya",
-        city: "Hedef Şehir",
+        city: "Hedef Şehir ",
         cityPlaceholder: "Örn: Berlin (Opsiyonel)",
         district: "İlçe",
         districtPlaceholder: "Örn: Kadıköy, Beşiktaş...",
