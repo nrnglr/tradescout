@@ -34,7 +34,7 @@ const MONTHLY_PRICES: Record<string, number> = { starter: 7.5, basic: 19.5, pro:
 const YEARLY_PRICES:  Record<string, number> = { starter: 49.5, basic: 149.5, pro: 149.5, professional: 149.5, business: 299.5 };
 
 // TL/USD Dönüşüm Oranı
-const USD_TO_TRY = 43; // 1 USD = 43 TRY
+const USD_TO_TRY = 45; // 1 USD = 45 TRY
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CartDrawer: React.FC = () => {
