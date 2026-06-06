@@ -1229,7 +1229,7 @@ const LandingPage = () => {
                       {t('packages.starter.price')}
                     </Typography>
                     <Typography variant="h3" fontWeight="900" sx={{ color: '#D32F2F', display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' } }}>
-                      {packages.starter.price} USD = {packages.starter.price * 45} TL
+                      {packages.starter.price} USD 
                       <Typography component="span" variant="h6" color="text.secondary" sx={{ ml: 1, fontWeight: 'medium' }}>
                          {t('packages.starter.period')}
                       </Typography>
@@ -1239,7 +1239,7 @@ const LandingPage = () => {
                         {t('packages.starter.yearlyNote')}
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
-                        {packages.starter.yearlyPrice} USD = {packages.starter.yearlyPrice * 45} TL / Yıl
+                        {packages.starter.yearlyPrice} USD 
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565C0', mt: 0.5 }}>
                         {t('packages.starter.yearlyCreditsNote')}
@@ -1355,7 +1355,7 @@ const LandingPage = () => {
                       {t('packages.professional.price')}
                     </Typography>
                     <Typography variant="h3" fontWeight="900" sx={{ color: '#D32F2F', display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' } }}>
-                      {packages.professional.price} USD = {packages.professional.price * 45} TL
+                      {packages.professional.price} USD 
                       <Typography component="span" variant="h6" color="text.secondary" sx={{ ml: 1, fontWeight: 'medium' }}>
                          {t('packages.professional.period')}
                       </Typography>
@@ -1365,7 +1365,7 @@ const LandingPage = () => {
                         {t('packages.professional.yearlyNote')}
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
-                        {packages.professional.yearlyPrice} USD = {packages.professional.yearlyPrice * 45} TL / Yıl
+                        {packages.professional.yearlyPrice} USD 
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565C0', mt: 0.5 }}>
                         {t('packages.professional.yearlyCreditsNote')}
@@ -1443,7 +1443,7 @@ const LandingPage = () => {
                       {t('packages.enterprise.price')}
                     </Typography>
                     <Typography variant="h3" fontWeight="900" sx={{ color: '#D32F2F', display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' } }}>
-                      {packages.enterprise.price} USD = {packages.enterprise.price * 45} TL
+                      {packages.enterprise.price} USD 
                       <Typography component="span" variant="h6" color="text.secondary" sx={{ ml: 1, fontWeight: 'medium' }}>
                          {t('packages.enterprise.period')}
                       </Typography>
@@ -1453,7 +1453,7 @@ const LandingPage = () => {
                         {t('packages.enterprise.yearlyNote')}
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#D32F2F' }}>
-                        {packages.enterprise.yearlyPrice} USD = {packages.enterprise.yearlyPrice * 45} TL / Yıl
+                        {packages.enterprise.yearlyPrice} USD 
                       </Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#1565C0', mt: 0.5 }}>
                         {t('packages.enterprise.yearlyCreditsNote')}

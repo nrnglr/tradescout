@@ -34,7 +34,7 @@ const MONTHLY_PRICES: Record<string, number> = { starter: 7.5, basic: 19.5, pro:
 const YEARLY_PRICES:  Record<string, number> = { starter: 49.5, basic: 149.5, pro: 149.5, professional: 149.5, business: 299.5 };
 
 // TL/USD Dönüşüm Oranı
-const USD_TO_TRY = 45; // 1 USD = 45 TRY
+const USD_TO_TRY = 43; // 1 USD = 43 TRY
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CartDrawer: React.FC = () => {
@@ -48,8 +48,8 @@ const CartDrawer: React.FC = () => {
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
   const [isAuthenticated,    setIsAuthenticated]    = useState(false);
-  const [currency,           setCurrency]           = useState<'TRY' | 'USD'>('USD'); // Para birimi seçimi
-  
+  const [currency,           setCurrency]           = useState<'TRY' | 'USD'>('TRY'); // Para birimi seçimi
+
   // İndirim kodu state'leri
   const [discountCode,       setDiscountCode]       = useState('');
   const [discountData,       setDiscountData]       = useState<any>(null);
@@ -62,7 +62,7 @@ const CartDrawer: React.FC = () => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       const newAuthState = !!token;
-      
+
       if (newAuthState !== isAuthenticated) {
         setIsAuthenticated(newAuthState);
         if (newAuthState && paymentError) {
@@ -164,72 +164,84 @@ const CartDrawer: React.FC = () => {
 
   const totalPrice = items.reduce((sum, item) => {
     const plan = getPlanInfo(item);
-    return sum + plan.priceUsd;
+    if (currency === 'USD') return sum + plan.priceUsd;
+    const rawId = item.id.toLowerCase();
+    const baseId = normalizeId(rawId);
+    const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
+    const entry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
+    return sum + (entry?.priceTry ?? plan.priceUsd);
   }, 0);
   const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
-  
+
   // Fiyat formatı — currency seçimine göre
   const formatPrice = (price: number): string => {
-    return `$${price.toFixed(2)}`;
+    if (currency === 'USD') return `$${price.toFixed(2)}`;
+    return `₺${price.toFixed(2)}`;
   };
 
   // Seçilen currency'e göre fiyat
   const getPriceForCurrency = (item: typeof items[0]) => {
     const plan = getPlanInfo(item);
-    return plan.priceUsd;
+    if (currency === 'USD') return plan.priceUsd;
+    // TRY için PLAN_MAP'ten TL fiyatını al
+    const rawId = item.id.toLowerCase();
+    const baseId = normalizeId(rawId);
+    const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
+    const planMapEntry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
+    return planMapEntry?.priceTry ?? plan.priceUsd;
   };
-  
+
   // İndirim kodunu kaldır
   const removeDiscountCode = () => {
     setDiscountCode('');
     setDiscountData(null);
     setDiscountError('');
   };
-  
+
   // İndirim kodu doğrulama fonksiyonu
   const validateDiscountCode = async () => {
     if (!discountCode.trim()) {
       setDiscountError(language === 'tr' ? 'Lütfen bir indirim kodu girin' : 'Please enter a discount code');
       return;
     }
-    
+
     if (items.length === 0) {
       setDiscountError(language === 'tr' ? 'Sepetinizde ürün bulunmuyor' : 'Your cart is empty');
       return;
     }
-    
+
     setDiscountLoading(true);
     setDiscountError('');
-    
+
     try {
       // İlk ürünün paket bilgisini al
       const plan = getPlanInfo(items[0]);
-      
+
       // Backend'in tam olarak beklediği paket kodunu gönder
       // Örnek: starter_monthly, pro_yearly, credit_10 gibi
       const rawId = items[0].id.toLowerCase();
       let packageCode = rawId;
-      
+
       // Eğer kredi paketi değilse, billing period'a göre paket kodu oluştur
       if (!rawId.startsWith('credit')) {
         const baseId = normalizeId(rawId);
         packageCode = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
       }
-      
+
       console.log('🏷️ İndirim kodu doğrulanıyor:', {
         code: discountCode.trim().toUpperCase(),
         packageCode,
         originalPrice: totalPrice
       });
-      
+
       const response = await apiClient.post('/api/discountcode/validate', {
         code: discountCode.trim().toUpperCase(),
         packageCode: packageCode,
         originalPrice: totalPrice // USD cinsinden fiyat
       });
-      
+
       console.log('✅ Backend response:', response.data);
-      
+
       if (response.data.isValid) {
         setDiscountData(response.data);
         setDiscountError('');
@@ -247,7 +259,7 @@ const CartDrawer: React.FC = () => {
       setDiscountLoading(false);
     }
   };
-  
+
   // Final fiyat hesaplama (indirim varsa)
   // Backend'den gelen response: { discountedPrice, originalPrice, discountPercentage, discountAmount }
   const finalPrice = discountData?.discountedPrice ?? totalPrice;
@@ -285,14 +297,14 @@ const CartDrawer: React.FC = () => {
 
     try {
       const plan = getPlanInfo(items[0]);
-      
+
       const paymentData: any = {
         productCode: plan.code,
         installment: 1,
         amount: finalPrice,
         currency: currency, // 'TRY' veya 'USD'
       };
-      
+
       // İndirim kodu varsa backend'e gönder (kullanıcının girdiği kodu gönderiyoruz)
       if (discountData && discountCode) {
         paymentData.discountCode = discountCode.trim().toUpperCase();
@@ -300,9 +312,15 @@ const CartDrawer: React.FC = () => {
 
       console.log('💳 Ödeme başlatılıyor:', paymentData);
 
-      const isYearly = items.some(i => getPlanInfo(i).isYearly);
+      
       const isCredit = items.some(i => i.id.toLowerCase().startsWith('credit'));
-      const endpoint = '/api/payment/morpara/initialize';
+      const endpoint = currency !== 'TRY'
+        ? '/api/payment/morpara/initialize'
+        : plan.isYearly
+          ? '/api/payment/paratika/initialize'
+          : isCredit
+            ? '/api/payment/morpara/initialize'
+            : '/api/payment/initialize';
       const response = await apiClient.post(endpoint, paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
@@ -446,6 +464,41 @@ const CartDrawer: React.FC = () => {
             )}
           </Box>
 
+          {/* Para Birimi Seçimi */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="body2" fontWeight="bold" sx={{ mb: 1, color: '#555' }}>
+              {language === 'tr' ? 'Ödeme Yöntemi' : 'Payment Method'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box
+                onClick={() => setCurrency('TRY')}
+                sx={{
+                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
+                  border: currency === 'TRY' ? '2px solid #1565C0' : '2px solid #e0e0e0',
+                  bgcolor: currency === 'TRY' ? '#e3f2fd' : 'white',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <Typography variant="body2" fontWeight="bold" color={currency === 'TRY' ? '#1565C0' : '#555'}>
+                  🇹🇷 Türkiye Kart (TRY)
+                </Typography>
+              </Box>
+              <Box
+                onClick={() => setCurrency('USD')}
+                sx={{
+                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
+                  border: currency === 'USD' ? '2px solid #1565C0' : '2px solid #e0e0e0',
+                  bgcolor: currency === 'USD' ? '#e3f2fd' : 'white',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <Typography variant="body2" fontWeight="bold" color={currency === 'USD' ? '#1565C0' : '#555'}>
+                  🌍 International Card (USD)
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
           {/* Sözleşmeler */}
           <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 2, p: 1.5, mb: 1.5, border: `1px solid ${allAccepted ? '#4caf50' : '#ffb74d'}` }}>
             {[
@@ -567,5 +620,4 @@ const CartDrawer: React.FC = () => {
     </Drawer>
   );
 };
-
 export default CartDrawer;
