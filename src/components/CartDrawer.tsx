@@ -18,23 +18,28 @@ import { apiClient } from '../services/api';
 
 // ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; priceTry: number; maxInstallment: number; isYearly: boolean }> = {
-  starter_monthly:  { code: '1274715', priceUsd: 7.5,   priceTry: 336,   maxInstallment: 1,  isYearly: false },
-  pro_monthly:      { code: '1274739', priceUsd: 19.5,  priceTry: 874,   maxInstallment: 1,  isYearly: false },
-  business_monthly: { code: '1274779', priceUsd: 39.5,  priceTry: 1772,  maxInstallment: 1,  isYearly: false },
-  starter_yearly:   { code: '1274716', priceUsd: 49.5,  priceTry: 2221,  maxInstallment: 12, isYearly: true  },
-  pro_yearly:       { code: '1274740', priceUsd: 149.5, priceTry: 6708,  maxInstallment: 12, isYearly: true  },
-  business_yearly:  { code: '1274780', priceUsd: 299.5, priceTry: 13438, maxInstallment: 12, isYearly: true  },
-  credit_10:        { code: '1274710', priceUsd: 10,    priceTry: 430,   maxInstallment: 1,  isYearly: false },
-  credit_25:        { code: '1274725', priceUsd: 20,    priceTry: 860,   maxInstallment: 1,  isYearly: false },
-  credit_50:        { code: '1274750', priceUsd: 35,    priceTry: 1505,  maxInstallment: 1,  isYearly: false },
-  credit_100:       { code: '1247100', priceUsd: 60,    priceTry: 2580,  maxInstallment: 1,  isYearly: false },
+  // Aylık Paketler
+  starter_monthly:  { code: '1274715', priceUsd: 10,    priceTry: 450,   maxInstallment: 1,  isYearly: false },
+  pro_monthly:      { code: '1274739', priceUsd: 26,    priceTry: 1170,  maxInstallment: 1,  isYearly: false },
+  business_monthly: { code: '1274779', priceUsd: 53,    priceTry: 2385,  maxInstallment: 1,  isYearly: false },
+  
+  // Yıllık Paketler
+  starter_yearly:   { code: '1274716', priceUsd: 69,    priceTry: 3105,  maxInstallment: 12, isYearly: true  },
+  pro_yearly:       { code: '1274740', priceUsd: 199,   priceTry: 8955,  maxInstallment: 12, isYearly: true  },
+  business_yearly:  { code: '1274780', priceUsd: 399,   priceTry: 17955, maxInstallment: 12, isYearly: true  },
+  
+  // Ekstra Krediler (Kur 45'e göre güncellendi)
+  credit_10:        { code: '1274710', priceUsd: 10,    priceTry: 450,   maxInstallment: 1,  isYearly: false },
+  credit_25:        { code: '1274725', priceUsd: 20,    priceTry: 900,   maxInstallment: 1,  isYearly: false },
+  credit_50:        { code: '1274750', priceUsd: 35,    priceTry: 1575,  maxInstallment: 1,  isYearly: false },
+  credit_100:       { code: '1247100', priceUsd: 60,    priceTry: 2700,  maxInstallment: 1,  isYearly: false },
 };
 
-const MONTHLY_PRICES: Record<string, number> = { starter: 7.5, basic: 19.5, pro: 19.5, professional: 19.5, business: 39.5 };
-const YEARLY_PRICES:  Record<string, number> = { starter: 49.5, basic: 149.5, pro: 149.5, professional: 149.5, business: 299.5 };
+const MONTHLY_PRICES: Record<string, number> = { starter: 10, basic: 26, pro: 26, professional: 26, business: 53 };
+const YEARLY_PRICES:  Record<string, number> = { starter: 69, basic: 199, pro: 199, professional: 199, business: 399 };
 
 // TL/USD Dönüşüm Oranı
-const USD_TO_TRY = 43; // 1 USD = 43 TRY
+const USD_TO_TRY = 45; // 1 USD = 45 TRY
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CartDrawer: React.FC = () => {

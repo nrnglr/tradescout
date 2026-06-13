@@ -710,7 +710,7 @@ const Dashboard = () => {
       setError(language === 'tr' ? 'Lütfen ülke seçin!' : 'Please select a country!');
       return;
     }
-  
+
 
     const companyCount = parseInt(searchParams.companyCount);
     const isAdmin = user?.role?.toLowerCase() === 'admin';
@@ -721,10 +721,10 @@ const Dashboard = () => {
     const hasPaidPackage = !!(_pkgType && _pkgType !== 'Free' && _pkgType !== 'free' && _pkgType !== '');
     const userMaxResults = user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100;
     const maxCompanies = isAdmin ? 1000 : (hasPaidPackage ? Math.max(userMaxResults, 200) : userMaxResults);
-    if (!isAdmin && (companyCount < 1 || companyCount > maxCompanies)) {
+    if (!isAdmin && (companyCount < 1 || companyCount > 100)) {
       const errMsg1 = language === 'tr'
-        ? `⚠️ Maksimum ${maxCompanies} firma aranabilir. Daha fazla arama için paket yükseltin!`
-        : `⚠️ Maximum ${maxCompanies} companies per search in your plan. Upgrade your package to search more!`;
+        ? `⚠️ Maksimum 100 firma aranabilir. Daha fazla arama için paket yükseltin!`
+        : `⚠️ Maximum 100 companies per search in your plan. Upgrade your package to search more!`;
       setError(errMsg1);
       return;
     }
@@ -1455,7 +1455,7 @@ const Dashboard = () => {
                       renderInput={(params) => (
                         <StyledTextField
                           {...params}
-                          label={t('dashboard.search.country')} 
+                          label={t('dashboard.search.country')}
                           placeholder={language === 'tr' ? 'Ülke seçiniz' : 'Select country'}
                           InputProps={{
                             ...params.InputProps,
@@ -1655,10 +1655,12 @@ const Dashboard = () => {
                         ),
                         inputProps: {
                           min: 1,
-                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : (user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100)
+                          // Adminse 1000, değilse kesin olarak 100 olsun
+                          max: user?.role?.toLowerCase() === 'admin' ? 1000 : 100
                         }
                       }}
-                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : `Min 1, max ${user?.maxResultsPerSearch || user?.MaxResultsPerSearch || 100} companies`}
+                      // Ekrandaki yazıyı da sabit 100 olarak güncelliyoruz
+                      helperText={user?.role?.toLowerCase() === 'admin' ? "Admin: No limit" : "Min 1, max 100 companies"}
                     />
                   </Box>
                 </Box>

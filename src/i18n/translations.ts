@@ -84,11 +84,11 @@ export const translations = {
         name: "Başlangıç Paketi",
         subtitle: "Küçük işletmeler için ideal",
         price: "$15",
-        discountedPrice: "$7.50", // YENİ EKLENEN
+        discountedPrice: "$10", // YENİ EKLENEN
         period: "/ay",
         yearlyPrice: "$99",
         yearlyNote: "Normal Yıllık: $99", // DEĞİŞEN
-        discountedYearlyNote: "İndirimli Yıllık: $49.50", // YENİ EKLENEN
+        discountedYearlyNote: "İndirimli Yıllık: $69", // YENİ EKLENEN
         feature1: "HS Code pazar analizi",
         feature2: "Firma keşfi",
         feature3: "E-posta adresleri",
@@ -97,41 +97,41 @@ export const translations = {
         feature6: "Sosyal medya",
         feature7: "WeChat (Çin için)",
         feature8: "Excel export",
-        searchLimit: "10 Arama (Her bir aramada 200 firma)",
+        searchLimit: "10 Arama (Her bir aramada 100 firma)",
         yearlyCreditsNote: "Yıllık alımda toplam 120 Arama"
       },
       professional: {
         name: "Profesyonel Paket",
         subtitle: "Büyüyen işletmeler için",
         price: "$39",
-        discountedPrice: "$19.50",
+        discountedPrice: "$26",
         period: "/ay",
         yearlyPrice: "$299",
        yearlyNote: "Normal Yıllık: $299", // DEĞİŞEN
-       discountedYearlyNote: "İndirimli Yıllık: $149.50", // YENİ EKLENEN
+       discountedYearlyNote: "İndirimli Yıllık: $199", // YENİ EKLENEN
         feature1: "Tüm Starter özellikleri",
         feature2: "Gelişmiş filtreleme",
         feature3: "Gelişmiş Excel export",
         feature4: "Daha hızlı veri erişimi",
         feature5: "Öncelikli destek",
-        searchLimit: "40 Arama (Her bir aramada 200 firma)",
+        searchLimit: "40 Arama (Her bir aramada 100 firma)",
         yearlyCreditsNote: "Yıllık alımda toplam 480 Arama"
       },
       enterprise: {
         name: "Kurumsal Paket",
         subtitle: "Büyük ekipler için",
         price: "$79",
-        discountedPrice: "$39.50", // YENİ EKLENEN
+        discountedPrice: "$53", // YENİ EKLENEN
         period: "/ay",
         yearlyPrice: "$599",
         yearlyNote: "Normal Yıllık: $599", // DEĞİŞEN
-        discountedYearlyNote: "İndirimli Yıllık: $299.50", // YENİ EKLENEN
+        discountedYearlyNote: "İndirimli Yıllık: $399", // YENİ EKLENEN
         feature1: "Tüm Professional özellikleri",
         feature2: "API erişimi",
         feature3: "Bulk veri export",
         feature4: "Öncelikli destek",
         feature5: "Satış ekipleri için kullanım",
-        searchLimit: "100 Arama (Her bir aramada 200 firma)",
+        searchLimit: "100 Arama (Her bir aramada 100 firma)",
         yearlyCreditsNote: "Yıllık alımda toplam 1200 Arama"
       }
     },
@@ -370,7 +370,7 @@ export const translations = {
         name: "Starter Plan",
         subtitle: "Ideal for small businesses",
         price: "$15",
-        discountedPrice: "$7.50", // YENİ EKLENEN
+        discountedPrice: "$10", // YENİ EKLENEN
         period: "/month",
         yearlyPrice: "$99",
        yearlyNote: "Normal Yearly: $99", // DEĞİŞEN

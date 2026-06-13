@@ -361,8 +361,8 @@ const LandingPage = () => {
     starter: {
       id: 'starter',
       name: t('packages.starter.name'),
-      price: 7.5,       // gösterim USD — gerçek çekim backend PriceTry=100 (1TL)
-      yearlyPrice: 49.5, // gösterim USD — gerçek çekim backend PriceTry=200 (2TL)
+      price: 10,       // gösterim USD — gerçek çekim backend PriceTry=100 (1TL)
+      yearlyPrice: 69, // gösterim USD — gerçek çekim backend PriceTry=200 (2TL)
       searchLimit: t('packages.starter.searchLimit'),
       features: [
         t('packages.starter.feature1'),
@@ -378,8 +378,8 @@ const LandingPage = () => {
     professional: {
       id: 'pro_monthly',
       name: t('packages.professional.name'),
-      price: 19.5,
-      yearlyPrice: 149.5,
+      price: 26,
+      yearlyPrice: 199,
       searchLimit: t('packages.professional.searchLimit'),
       features: [
         t('packages.professional.feature1'),
@@ -392,8 +392,8 @@ const LandingPage = () => {
     enterprise: {
       id: 'business_monthly',
       name: t('packages.enterprise.name'),
-      price: 39.5,
-      yearlyPrice: 299.5,
+      price: 53,
+      yearlyPrice: 399,
       searchLimit: t('packages.enterprise.searchLimit'),
       features: [
         t('packages.enterprise.feature1'),
