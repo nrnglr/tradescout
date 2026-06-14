@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard'; // Dashboard import
-import Pricing from './pages/Pricing'; // Pricing import
+import Dashboard from './pages/Dashboard'; 
+
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { CartProvider } from './context/CartContext';
 import CartDrawer from './components/CartDrawer';
@@ -32,7 +32,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
 
             {/* Pricing - Fiyatlandırma Sayfası */}
-            <Route path="/pricing" element={<Pricing />} />
+           
 
             {/* Yasal Sayfalar */}
             <Route path="/iade-politikasi" element={<ReturnPolicy />} />
