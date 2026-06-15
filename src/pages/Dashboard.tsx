@@ -20,6 +20,7 @@ import {
   Tooltip,
   Alert,
   AlertTitle,
+  List,
   Select,
   FormControl,
   InputLabel,
@@ -410,7 +411,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { language, t } = useLanguage();
-  const { openCart } = useCart();
+  const { openCart, addToCart } = useCart();
   const [user, setUser] = useState<any>(null);
 
   // Paket yükseltme uyarısı - her oturumda bir kez göster
@@ -496,6 +497,51 @@ const Dashboard = () => {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [creditModalOpen, setCreditModalOpen] = useState(false);
   const [buyingCredit, setBuyingCredit] = useState<string | null>(null);
+  // --- YENİ EKLENEN: Paket Yükseltme Modalı State ve Fonksiyonları ---
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  // Paket Bilgileri
+  const packages = {
+    starter: {
+      id: 'starter',
+      name: t('packages.starter.name'),
+      price: 10,
+      yearlyPrice: 69,
+      searchLimit: t('packages.starter.searchLimit'),
+      features: [t('packages.starter.feature1'), t('packages.starter.feature2'), t('packages.starter.feature3'), t('packages.starter.feature4'), t('packages.starter.feature5')]
+    },
+    professional: {
+      id: 'pro_monthly',
+      name: t('packages.professional.name'),
+      price: 26,
+      yearlyPrice: 199,
+      searchLimit: t('packages.professional.searchLimit'),
+      features: [t('packages.professional.feature1'), t('packages.professional.feature2'), t('packages.professional.feature3'), t('packages.professional.feature4'), t('packages.professional.feature5')]
+    },
+    enterprise: {
+      id: 'business_monthly',
+      name: t('packages.enterprise.name'),
+      price: 53,
+      yearlyPrice: 399,
+      searchLimit: t('packages.enterprise.searchLimit'),
+      features: [t('packages.enterprise.feature1'), t('packages.enterprise.feature2'), t('packages.enterprise.feature3'), t('packages.enterprise.feature4'), t('packages.enterprise.feature5')]
+    }
+  };
+
+  const handleAddToCart = (packageType: 'starter' | 'professional' | 'enterprise') => {
+    const pkg = packages[packageType];
+    addToCart({
+      id: pkg.id,
+      name: pkg.name,
+      price: pkg.price,
+      yearlyPrice: pkg.yearlyPrice,
+      period: 'monthly',
+      searchLimit: pkg.searchLimit,
+      features: pkg.features
+    });
+    setUpgradeModalOpen(false); // Modalı kapat
+    openCart(); // Sepeti sağdan aç
+  };
 
   // LocalStorage'dan son aramaları yükle
   useEffect(() => {
@@ -1236,16 +1282,11 @@ const Dashboard = () => {
                 <HistoryIcon sx={{ mr: 0.5 }} /> <Typography sx={{ fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Geçmiş' : 'History'}</Typography>
               </Button>
               {/* 3. Paket Yükselt */}
+              {/* 3. Paket Yükselt (MASAÜSTÜ) */}
               <Box sx={{ position: 'relative' }}>
                 <Button onClick={() => {
                   dismissUpgradeHint();
-                  navigate('/'); // Önce ana sayfaya git
-                  setTimeout(() => {
-                    const packagesSection = document.getElementById('packages');
-                    if (packagesSection) {
-                      packagesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }, 150); // Sayfanın yüklenmesi için kısa bir bekleme
+                  setUpgradeModalOpen(true); // YENİ EKLENEN
                 }} sx={{ color: '#FFD700', bgcolor: 'rgba(255, 215, 0, 0.15)', border: '1px solid rgba(255, 215, 0, 0.3)', borderRadius: '10px', px: 1.5, py: 0.75, '&:hover': { bgcolor: 'rgba(255, 215, 0, 0.25)' } }}>
                   <StarIcon sx={{ mr: 0.5 }} /> <Typography sx={{ fontWeight: 600, textTransform: 'none' }}>{language === 'tr' ? 'Paket Yükselt' : 'Upgrade'}</Typography>
                 </Button>
@@ -3461,6 +3502,88 @@ const Dashboard = () => {
           </Fade>
         </Modal>
       )}
+      {/* ── Paket Yükselt Modal ─────────────────────────────────────────── */}
+      <Modal open={upgradeModalOpen} onClose={() => setUpgradeModalOpen(false)} closeAfterTransition slots={{ backdrop: Backdrop }} slotProps={{ backdrop: { timeout: 300 } }}>
+        <Fade in={upgradeModalOpen}>
+          <Box sx={{
+            position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: { xs: '95vw', md: '90vw', lg: '1000px' }, maxHeight: '90vh', overflowY: 'auto',
+            bgcolor: '#f8fafc', borderRadius: 3, boxShadow: '0 20px 60px rgba(0,0,0,0.3)', p: { xs: 2, md: 4 }, outline: 'none',
+          }}>
+            {/* Başlık */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <StarIcon sx={{ color: '#F57F17', fontSize: 32 }} />
+                <Box>
+                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#1565C0' }}>
+                    {language === 'tr' ? 'Paket Yükselt' : 'Upgrade Package'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('packages.flexiblePackages')}
+                  </Typography>
+                </Box>
+              </Box>
+              <IconButton onClick={() => setUpgradeModalOpen(false)} size="small" sx={{ bgcolor: 'rgba(0,0,0,0.05)' }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            {/* Fiyat Kartları */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 3 }}>
+              {(['starter', 'professional', 'enterprise'] as const).map((pkgKey) => {
+                const pkg = packages[pkgKey];
+                const isPro = pkgKey === 'professional';
+                return (
+                  <Paper key={pkgKey} elevation={isPro ? 8 : 2} sx={{
+                    p: 3, borderRadius: 3, display: 'flex', flexDirection: 'column',
+                    border: isPro ? '3px solid #1565C0' : '1px solid #e0e0e0',
+                    position: 'relative'
+                  }}>
+                    {isPro && (
+                      <Chip label={t('packages.mostPopular')} sx={{ position: 'absolute', top: -15, left: '50%', transform: 'translateX(-50%)', bgcolor: '#1565C0', color: 'white', fontWeight: 'bold' }} />
+                    )}
+                    <Typography variant="h6" fontWeight="bold" color="#1565C0" gutterBottom>
+                      {pkg.name}
+                    </Typography>
+
+                    <Box sx={{ my: 2 }}>
+                      <Typography variant="h4" fontWeight="900" color="#D32F2F">
+                        ${pkg.price} <Typography component="span" variant="body2" color="text.secondary">/ {language === 'tr' ? 'ay' : 'mo'}</Typography>
+                      </Typography>
+                      <Typography variant="body2" fontWeight="bold" color="#1565C0" sx={{ mt: 1 }}>
+                        {pkg.yearlyPrice} USD / {language === 'tr' ? 'yıl' : 'yr'}
+                      </Typography>
+                    </Box>
+
+                    <List sx={{ flexGrow: 1, p: 0, '& .MuiListItem-root': { px: 0, py: 0.5 } }}>
+                      <ListItem>
+                        <ListItemIcon sx={{ minWidth: 32 }}><CheckCircleIcon color="primary" fontSize="small" /></ListItemIcon>
+                        <ListItemText primary={pkg.searchLimit} primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 'bold' }} />
+                      </ListItem>
+                      {pkg.features.map((feature, idx) => (
+                        <ListItem key={idx}>
+                          <ListItemIcon sx={{ minWidth: 32 }}><CheckCircleIcon color="primary" fontSize="small" /></ListItemIcon>
+                          <ListItemText primary={feature} primaryTypographyProps={{ fontSize: '0.85rem' }} />
+                        </ListItem>
+                      ))}
+                    </List>
+
+                    <Button
+                      variant={isPro ? "contained" : "outlined"}
+                      fullWidth
+                      startIcon={<ShoppingCartIcon />}
+                      onClick={() => handleAddToCart(pkgKey)}
+                      sx={{ mt: 3, borderRadius: 2, fontWeight: 'bold', py: 1 }}
+                    >
+                      {t('packages.addToCart')}
+                    </Button>
+                  </Paper>
+                );
+              })}
+            </Box>
+          </Box>
+        </Fade>
+      </Modal>
     </PageContainer>
   );
 };

@@ -97,7 +97,7 @@ export const translations = {
         feature6: "Sosyal medya",
         feature7: "WeChat (Çin için)",
         feature8: "Excel export",
-        searchLimit: "10 Arama (Her bir aramada 100 firma)",
+        searchLimit: "5 Arama (Her bir aramada 100 firma)",
         yearlyCreditsNote: "Yıllık alımda toplam 120 Arama"
       },
       professional: {
@@ -383,7 +383,7 @@ export const translations = {
         feature6: "Social media",
         feature7: "WeChat (for China)",
         feature8: "Excel export",
-        searchLimit: "10 Searches",
+        searchLimit: "5 Searches",
         yearlyCreditsNote: "120 Searches total with annual plan"
       },
       professional: {

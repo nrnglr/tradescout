@@ -1178,30 +1178,8 @@ const LandingPage = () => {
             </Typography>
           </Box>
 
-          {/* DİNAMİK İNDİRİM BANNER ALANI */}
-          <Box textAlign="center" mb={8}>
-            <Box sx={{
-              animation: `${pulse} 2s infinite`,
-              background: 'linear-gradient(45deg, #D32F2F 0%, #F44336 100%)',
-              color: 'white',
-              py: { xs: 1.5, md: 2 },
-              px: { xs: 3, md: 6 },
-              borderRadius: '50px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              boxShadow: '0 8px 25px rgba(211, 47, 47, 0.6)',
-              border: '2px solid #FFCDD2'
-            }}>
-              <Typography variant="h5" sx={{ 
-                fontWeight: 900, 
-                animation: `${blinkText} 1.5s infinite`, 
-                letterSpacing: 1, 
-                fontSize: { xs: '1.1rem', sm: '1.4rem', md: '1.8rem' } 
-              }}>
-                🔥 {t('packages.discountBadge')} 🔥
-              </Typography>
-            </Box>
-          </Box>
+         
+          
 
           <Box sx={{
             display: 'flex',
