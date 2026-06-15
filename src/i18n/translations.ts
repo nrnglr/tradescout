@@ -114,7 +114,7 @@ export const translations = {
         feature3: "Gelişmiş Excel export",
         feature4: "Daha hızlı veri erişimi",
         feature5: "Öncelikli destek",
-        searchLimit: "40 Arama (Her bir aramada 100 firma)",
+        searchLimit: "20 Arama (Her bir aramada 100 firma)",
         yearlyCreditsNote: "Yıllık alımda toplam 480 Arama"
       },
       enterprise: {
@@ -131,7 +131,7 @@ export const translations = {
         feature3: "Bulk veri export",
         feature4: "Öncelikli destek",
         feature5: "Satış ekipleri için kullanım",
-        searchLimit: "100 Arama (Her bir aramada 100 firma)",
+        searchLimit: "50 Arama (Her bir aramada 100 firma)",
         yearlyCreditsNote: "Yıllık alımda toplam 1200 Arama"
       }
     },
@@ -400,7 +400,7 @@ export const translations = {
         feature3: "Advanced Excel export",
         feature4: "Faster data access",
         feature5: "Priority support",
-        searchLimit: "40 Searches",
+        searchLimit: "20 Searches",
         yearlyCreditsNote: "480 Searches total with annual plan"
       },
       enterprise: {
@@ -417,7 +417,7 @@ export const translations = {
         feature3: "Bulk data export",
         feature4: "Priority support",
         feature5: "For sales teams",
-        searchLimit: "100 Searches",
+        searchLimit: "50 Searches",
         yearlyCreditsNote: "1,200 Searches total with annual plan"
       }
     },
