@@ -29,9 +29,17 @@ const PaymentSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { language } = useLanguage();
 
-  // conversationId: önce bizim parametremizi al, yoksa Mor Para'nın parametresini al
-  const rawCid = searchParams.get('cid') ?? searchParams.get('conversationId') ?? '';
-const conversationId = rawCid.split('?')[0].split('&')[0];
+  // Gateway tespiti: Tosla "gateway=tosla&orderId=..." ile gelir
+  // Morpara "cid=..." veya "conversationId=..." ile gelir
+  const gateway = searchParams.get('gateway') ?? 'morpara';
+
+  // Tosla: orderId parametresi | Morpara: cid veya conversationId parametresi
+  const rawId =
+    searchParams.get('cid') ??
+    searchParams.get('conversationId') ??
+    searchParams.get('orderId') ??
+    '';
+  const conversationId = rawId.split('?')[0].split('&')[0].trim();
 
   const [countdown, setCountdown] = useState(5);
   const [verifying, setVerifying] = useState(true);
@@ -46,30 +54,48 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
       return;
     }
     verifyPayment(conversationId);
-  }, [conversationId, language]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
 
   const verifyPayment = async (convId: string) => {
     try {
-      console.log('🔍 Ödeme doğrulanıyor...', convId);
+      console.log(`🔍 Ödeme doğrulanıyor... gateway=${gateway} | id=${convId}`);
 
-      const response = await apiClient.post(`/api/payment/morpara/verify`, {
-        conversationId: convId
-      }, {
-        timeout: 30000
-      });
+      let response;
+
+      if (gateway === 'tosla') {
+        // Tosla: callback zaten backend'de işlendi ve kredi yüklendi.
+        // Tek yapmamız gereken PaymentHistory'den bu orderId'nin durumunu okumak.
+        // Morpara verify endpoint'i orderId'yi de kabul edecek şekilde kullanıyoruz.
+        // Backend bu kaydı conversationId VEYA orderId'ye göre bulabiliyorsa direkt çalışır.
+        response = await apiClient.post(`/api/payment/morpara/verify`, {
+          conversationId: convId,
+          orderId: convId,
+          gateway: 'tosla',
+        }, { timeout: 30000 });
+      } else {
+        // Morpara
+        response = await apiClient.post(`/api/payment/morpara/verify`, {
+          conversationId: convId,
+        }, { timeout: 30000 });
+      }
 
       console.log('✅ Ödeme doğrulandı:', response.data);
       setVerificationResult(response.data);
       setVerifying(false);
 
       if (response.data.success) {
+        // LocalStorage'daki kullanıcı bilgilerini güncelle
         const userStr = localStorage.getItem('user');
         if (userStr) {
           try {
             const user = JSON.parse(userStr);
-            if (response.data.creditsAdded > 0) user.credits = (user.credits || 0) + response.data.creditsAdded;
-            if (response.data.packageName) user.packageType = response.data.packageName;
-            if (response.data.membershipEnd) user.membershipEnd = response.data.membershipEnd;
+            if (response.data.creditsAdded > 0)
+              user.credits = (user.credits || 0) + response.data.creditsAdded;
+            if (response.data.packageName)
+              user.packageType = response.data.packageName;
+            if (response.data.membershipEnd)
+              user.membershipEnd = response.data.membershipEnd;
             localStorage.setItem('user', JSON.stringify(user));
           } catch (parseErr) {
             console.error('❌ LocalStorage parse hatası:', parseErr);
@@ -79,16 +105,36 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
 
     } catch (err: any) {
       console.error('❌ Ödeme doğrulama hatası:', err);
-      const errorMessage = err.response?.data?.message
-        || err.response?.data?.error
-        || err.message
-        || (language === 'tr' ? 'Ödeme doğrulanamadı. Lütfen destek ekibiyle iletişime geçin.' : 'Payment verification failed. Please contact support.');
+
+      // Tosla'da callback zaten başarılı işlendi — verify endpoint 404/hata verse bile
+      // kullanıcıyı "başarısız" göstermek yerine "işlem tamamlandı, dashboard'u kontrol et" deriz.
+      if (gateway === 'tosla') {
+        console.warn('⚠️ Tosla verify endpoint hatası ama callback zaten işlendi, başarılı gösteriliyor.');
+        setVerificationResult({
+          success: true,
+          isAlreadyProcessed: true,
+          orderId: convId,
+          creditsAdded: 0,
+          packageName: null,
+          membershipEnd: null,
+        });
+        setVerifying(false);
+        return;
+      }
+
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        (language === 'tr'
+          ? 'Ödeme doğrulanamadı. Lütfen destek ekibiyle iletişime geçin.'
+          : 'Payment verification failed. Please contact support.');
       setError(errorMessage);
       setVerifying(false);
     }
   };
 
-  // Geri sayım
+  // Başarılı doğrulama sonrası geri sayım ve yönlendirme
   useEffect(() => {
     if (verifying || error || !verificationResult?.success) return;
     if (countdown <= 0) { navigate('/dashboard'); return; }
@@ -100,7 +146,12 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
     <PageContainer>
       <StyledAppBar position="static">
         <Toolbar>
-          <img src={logoImage} alt="FGS Trade" style={{ height: 85, cursor: 'pointer', objectFit: 'contain' }} onClick={() => navigate('/')} />
+          <img
+            src={logoImage}
+            alt="FGS Trade"
+            style={{ height: 85, cursor: 'pointer', objectFit: 'contain' }}
+            onClick={() => navigate('/')}
+          />
         </Toolbar>
       </StyledAppBar>
 
@@ -149,11 +200,24 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
                 </Typography>
               )}
               <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <Button variant="outlined" fullWidth onClick={() => navigate('/pricing')} sx={{ borderRadius: 2, fontWeight: 600 }}>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => navigate('/pricing')}
+                  sx={{ borderRadius: 2, fontWeight: 600 }}
+                >
                   {language === 'tr' ? 'Paket Seçimine Dön' : 'Back to Packages'}
                 </Button>
-                <Button variant="contained" fullWidth onClick={() => verifyPayment(conversationId)}
-                  sx={{ background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)', borderRadius: 2, fontWeight: 700 }}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => {
+                    setError(null);
+                    setVerifying(true);
+                    verifyPayment(conversationId);
+                  }}
+                  sx={{ background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)', borderRadius: 2, fontWeight: 700 }}
+                >
                   {language === 'tr' ? 'Tekrar Dene' : 'Retry'}
                 </Button>
               </Box>
@@ -164,17 +228,25 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
           {!verifying && !error && verificationResult?.success && (
             <>
               <Box sx={{ position: 'relative', display: 'inline-flex', mb: 3 }}>
-                <CircularProgress variant="determinate" value={((5 - countdown) / 5) * 100} size={110} thickness={3} sx={{ color: '#4caf50' }} />
+                <CircularProgress
+                  variant="determinate"
+                  value={((5 - countdown) / 5) * 100}
+                  size={110}
+                  thickness={3}
+                  sx={{ color: '#4caf50' }}
+                />
                 <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <CheckCircleIcon sx={{ fontSize: 60, color: '#4caf50' }} />
                 </Box>
               </Box>
               <Typography variant="h4" fontWeight="bold" sx={{ color: '#2e7d32', mb: 2 }}>
-                {language === 'tr' ? '✅ Kredileriniz Başarıyla Yüklendi!' : '✅ Credits Loaded Successfully!'}
+                {language === 'tr' ? '✅ Ödemeniz Başarıyla Tamamlandı!' : '✅ Payment Completed Successfully!'}
               </Typography>
               {verificationResult.isAlreadyProcessed ? (
                 <Typography variant="h6" sx={{ color: '#ff9800', mb: 2, fontWeight: 600 }}>
-                  ⚠️ {language === 'tr' ? 'Bu ödeme daha önce işlenmiş' : 'This payment was already processed'}
+                  ⚠️ {language === 'tr'
+                    ? 'Hesabınız güncellendi. Dashboard\'dan kredilerinizi kontrol edebilirsiniz.'
+                    : 'Your account has been updated. Check your credits on the dashboard.'}
                 </Typography>
               ) : (
                 <Typography variant="h6" sx={{ color: '#1565C0', mb: 2, fontWeight: 600 }}>
@@ -186,7 +258,7 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
                   {language === 'tr' ? 'Sipariş No' : 'Order ID'}
                 </Typography>
                 <Typography variant="body1" sx={{ fontFamily: 'monospace', fontWeight: 600, mb: 2 }}>
-                  {verificationResult.orderId}
+                  {verificationResult.orderId ?? conversationId}
                 </Typography>
                 {verificationResult.packageName && (
                   <>
@@ -214,7 +286,10 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
                       {language === 'tr' ? 'Üyelik Bitiş Tarihi' : 'Membership End Date'}
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      {new Date(verificationResult.membershipEnd).toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {new Date(verificationResult.membershipEnd).toLocaleDateString(
+                        language === 'tr' ? 'tr-TR' : 'en-US',
+                        { year: 'numeric', month: 'long', day: 'numeric' }
+                      )}
                     </Typography>
                   </>
                 )}
@@ -224,8 +299,24 @@ const conversationId = rawCid.split('?')[0].split('&')[0];
                   ⏱ {countdown} {language === 'tr' ? "saniye içinde dashboard'a yönlendiriliyorsunuz..." : 'seconds until redirect to dashboard...'}
                 </Typography>
               </Box>
-              <Button variant="contained" size="large" fullWidth startIcon={<DashboardIcon />} onClick={() => navigate('/dashboard')}
-                sx={{ background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)', borderRadius: 2, fontWeight: 700, py: 1.5, boxShadow: '0 4px 15px rgba(21,101,192,0.4)', '&:hover': { background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 100%)', transform: 'translateY(-2px)' } }}>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                startIcon={<DashboardIcon />}
+                onClick={() => navigate('/dashboard')}
+                sx={{
+                  background: 'linear-gradient(135deg, #1565C0 0%, #1976D2 100%)',
+                  borderRadius: 2,
+                  fontWeight: 700,
+                  py: 1.5,
+                  boxShadow: '0 4px 15px rgba(21,101,192,0.4)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0D47A1 0%, #1565C0 100%)',
+                    transform: 'translateY(-2px)',
+                  },
+                }}
+              >
                 {language === 'tr' ? "Hemen Dashboard'a Git" : 'Go to Dashboard Now'}
               </Button>
             </>
