@@ -98,7 +98,7 @@ export const translations = {
         feature7: "WeChat (Çin için)",
         feature8: "Excel export",
         searchLimit: "5 Arama (Her bir aramada 100 firma)",
-        yearlyCreditsNote: "Yıllık alımda toplam 120 Arama"
+        yearlyCreditsNote: "Yıllık alımda toplam 60 Arama"
       },
       professional: {
         name: "Profesyonel Paket",
@@ -115,7 +115,7 @@ export const translations = {
         feature4: "Daha hızlı veri erişimi",
         feature5: "Öncelikli destek",
         searchLimit: "20 Arama (Her bir aramada 100 firma)",
-        yearlyCreditsNote: "Yıllık alımda toplam 480 Arama"
+        yearlyCreditsNote: "Yıllık alımda toplam 240 Arama"
       },
       enterprise: {
         name: "Kurumsal Paket",
@@ -132,7 +132,7 @@ export const translations = {
         feature4: "Öncelikli destek",
         feature5: "Satış ekipleri için kullanım",
         searchLimit: "50 Arama (Her bir aramada 100 firma)",
-        yearlyCreditsNote: "Yıllık alımda toplam 1200 Arama"
+        yearlyCreditsNote: "Yıllık alımda toplam 300 Arama"
       }
     },
 
@@ -384,7 +384,7 @@ export const translations = {
         feature7: "WeChat (for China)",
         feature8: "Excel export",
         searchLimit: "5 Searches",
-        yearlyCreditsNote: "120 Searches total with annual plan"
+        yearlyCreditsNote: "30 Searches total with annual plan"
       },
       professional: {
         name: "Professional Plan",
@@ -401,7 +401,7 @@ export const translations = {
         feature4: "Faster data access",
         feature5: "Priority support",
         searchLimit: "20 Searches",
-        yearlyCreditsNote: "480 Searches total with annual plan"
+        yearlyCreditsNote: "240 Searches total with annual plan"
       },
       enterprise: {
         name: "Corporate Plan",
@@ -418,7 +418,7 @@ export const translations = {
         feature4: "Priority support",
         feature5: "For sales teams",
         searchLimit: "50 Searches",
-        yearlyCreditsNote: "1,200 Searches total with annual plan"
+        yearlyCreditsNote: "600 Searches total with annual plan"
       }
     },
 
