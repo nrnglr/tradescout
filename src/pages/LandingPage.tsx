@@ -57,6 +57,10 @@ import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import DescriptionIcon from '@mui/icons-material/Description';
+import DirectionsBoatIcon from '@mui/icons-material/DirectionsBoat';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import LanguageIcon from '@mui/icons-material/Language';
 // Logo import - FGSTrade
 import logoImage from '../assent/fgs-logo.png';
 // Iyzico ödeme logoları (beyaz versiyonlar)
@@ -325,6 +329,167 @@ const SubmitButton = styled(Button)({
   '&:active': {
     transform: 'translateY(-1px)',
   },
+});
+
+// --- TRADEpal BANNER STİLLERİ ---
+const float = keyframes`
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+`;
+
+const TradepalBanner = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  overflow: 'hidden',
+  background: 'radial-gradient(1200px circle at 85% 20%, rgba(0, 230, 195, 0.10), transparent 55%), linear-gradient(150deg, #050B18 0%, #0A1428 45%, #0D1B2A 100%)',
+  color: '#FFFFFF',
+  padding: theme.spacing(6, 0),
+  [theme.breakpoints.down('md')]: {
+    padding: theme.spacing(5, 0),
+  },
+}));
+
+const TradepalTopBar = styled(Box)({
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: '12px',
+  marginBottom: '28px',
+});
+
+const TradepalLogoText = styled(Typography)({
+  fontWeight: 900,
+  fontSize: '1.6rem',
+  letterSpacing: '0.5px',
+  background: 'linear-gradient(90deg, #00E6C3 0%, #29B6F6 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+});
+
+const TradepalPartnerChip = styled(Box)({
+  padding: '5px 14px',
+  borderRadius: '999px',
+  border: '1px solid rgba(0, 230, 195, 0.35)',
+  background: 'rgba(0, 230, 195, 0.08)',
+  fontSize: '0.8rem',
+  fontWeight: 600,
+  color: '#B9F5EA',
+  whiteSpace: 'nowrap',
+});
+
+const TradepalHighlight = styled('span')({
+  background: 'linear-gradient(90deg, #00E6C3 0%, #00FFA3 50%, #29B6F6 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+  textShadow: '0 0 30px rgba(0, 230, 195, 0.35)',
+});
+
+const TradepalFeatureRow = styled(Box)({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '14px',
+});
+
+const TradepalFeatureIcon = styled(Box)({
+  width: 44,
+  height: 44,
+  minWidth: 44,
+  borderRadius: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'linear-gradient(135deg, rgba(0, 230, 195, 0.18) 0%, rgba(41, 182, 246, 0.18) 100%)',
+  border: '1px solid rgba(0, 230, 195, 0.3)',
+  color: '#00E6C3',
+});
+
+const TradepalCTAButton = styled('a')({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '10px',
+  padding: '14px 30px',
+  borderRadius: '14px',
+  fontWeight: 700,
+  fontSize: '1.05rem',
+  textDecoration: 'none',
+  color: '#04121A',
+  background: 'linear-gradient(90deg, #00E6C3 0%, #29B6F6 100%)',
+  boxShadow: '0 8px 28px rgba(0, 230, 195, 0.35)',
+  transition: 'all 0.3s ease',
+  cursor: 'pointer',
+  '&:hover': {
+    transform: 'translateY(-3px)',
+    boxShadow: '0 12px 34px rgba(0, 230, 195, 0.5)',
+  },
+});
+
+const TradepalLinkText = styled('a')({
+  color: '#7FE9DA',
+  fontWeight: 600,
+  textDecoration: 'none',
+  fontSize: '1rem',
+  borderBottom: '1px solid rgba(127, 233, 218, 0.4)',
+  paddingBottom: '2px',
+  transition: 'all 0.25s ease',
+  cursor: 'pointer',
+  '&:hover': {
+    color: '#00E6C3',
+    borderColor: '#00E6C3',
+  },
+});
+
+const TradepalVisualPlaceholder = styled('a')(({ theme }) => ({
+  position: 'relative',
+  width: '100%',
+  minHeight: 320,
+  borderRadius: '24px',
+  background: 'linear-gradient(160deg, rgba(41, 182, 246, 0.12) 0%, rgba(0, 230, 195, 0.08) 100%)',
+  border: '1px solid rgba(255,255,255,0.08)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  overflow: 'hidden',
+  textDecoration: 'none',
+  cursor: 'pointer',
+  [theme.breakpoints.down('md')]: {
+    minHeight: 240,
+  },
+}));
+
+const TradepalFloatingCard = styled(Box)({
+  position: 'absolute',
+  padding: '14px 18px',
+  borderRadius: '16px',
+  background: 'rgba(10, 20, 40, 0.75)',
+  backdropFilter: 'blur(12px)',
+  border: '1px solid rgba(0, 230, 195, 0.3)',
+  boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
+  animation: `${float} 4s ease-in-out infinite`,
+  maxWidth: 240,
+});
+
+const TradepalFooterStrip = styled(Box)(({ theme }) => ({
+  marginTop: '48px',
+  paddingTop: '28px',
+  borderTop: '1px solid rgba(255,255,255,0.1)',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(4, 1fr)',
+  gap: '20px',
+  [theme.breakpoints.down('md')]: {
+    gridTemplateColumns: 'repeat(2, 1fr)',
+  },
+  [theme.breakpoints.down('sm')]: {
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '16px',
+  },
+}));
+
+const TradepalFooterItem = styled(Box)({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: '10px',
 });
 
 // --- COMPONENT ---
@@ -893,6 +1058,8 @@ const LandingPage = () => {
         </Box>
       </Drawer>
 
+     
+
       {/* --- HERO SECTION --- */}
       <HeroSection>
         <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 8, lg: 10, xl: 12 } }}>
@@ -1050,6 +1217,207 @@ const LandingPage = () => {
           </Box>
         </Container>
       </HeroSection>
+       {/* --- TRADEpal BANNER --- */}
+      <TradepalBanner
+      sx={{
+          borderRadius: { xs: '24px', md: '40px' }, // 1. Köşeleri şık bir şekilde yuvarlar
+          overflow: 'hidden',                       // 2. İçerdeki renklerin köşelerden taşmasını engeller
+          mx: { xs: 2, sm: 4, md: 8, lg: 10 },      // 3. Sağdan ve soldan boşluk bırakır (Kıvrımın belli olması için en önemli ayar budur)
+          my: { xs: 4, md: 6 },                     // 4. Üstten ve alttan boşluk bırakır
+          boxShadow: '0 20px 50px rgba(0,0,0,0.3)', // 5. (Ekstra) Afişin sayfada havada durduğu hissini vermek için derinlik gölgesi
+        }}>
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 8, lg: 10, xl: 12 } }}>
+          {/* Üst Başlıklar */}
+          <TradepalTopBar>
+            <TradepalLogoText>TRADEpal</TradepalLogoText>
+            <TradepalPartnerChip>FGS Trade iş birliğiyle sunulmaktadır.</TradepalPartnerChip>
+          </TradepalTopBar>
+
+          <Box sx={{ display: 'flex', gap: { xs: 4, md: 8 }, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* SOL TARAF */}
+            <Box sx={{ flex: 1, minWidth: '280px' }}>
+              <Typography
+                sx={{
+                  fontWeight: 900,
+                  fontSize: { xs: '2rem', sm: '2.6rem', md: '3.1rem' },
+                  lineHeight: 1.15,
+                  mb: 2,
+                  color: '#FFFFFF',
+                }}
+              >
+                Dünya Ticaret <TradepalHighlight>Verilerine Ulaşın!</TradepalHighlight>
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  color: 'rgba(255,255,255,0.75)',
+                  lineHeight: 1.7,
+                  mb: 4,
+                  maxWidth: '560px',
+                }}
+              >
+                Gümrük ve konşimento verileriyle gerçek ithalatçıları, ihracatçıları, alıcıları ve tedarikçileri keşfedin. Ticaret hareketlerini analiz ederek yeni iş fırsatları yakalayın.
+              </Typography>
+
+              {/* Orta Kısımdaki İkonlu Özellikler */}
+              <Stack spacing={2.5} sx={{ mb: 4 }}>
+                <TradepalFeatureRow>
+                  <TradepalFeatureIcon>
+                    <VerifiedIcon />
+                  </TradepalFeatureIcon>
+                  <Box>
+                    <Typography sx={{ fontWeight: 700, color: '#FFFFFF', fontSize: '1rem' }}>
+                      Gümrük Verileri
+                    </Typography>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.92rem' }}>
+                      Doğru, güncel ve kapsamlı
+                    </Typography>
+                  </Box>
+                </TradepalFeatureRow>
+
+                <TradepalFeatureRow>
+                  <TradepalFeatureIcon>
+                    <DescriptionIcon />
+                  </TradepalFeatureIcon>
+                  <Box>
+                    <Typography sx={{ fontWeight: 700, color: '#FFFFFF', fontSize: '1rem' }}>
+                      Konşimento Verileri
+                    </Typography>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.92rem' }}>
+                      Gerçek sevkiyat bilgilerine erişim
+                    </Typography>
+                  </Box>
+                </TradepalFeatureRow>
+
+                <TradepalFeatureRow>
+                  <TradepalFeatureIcon>
+                    <AnalyticsIcon />
+                  </TradepalFeatureIcon>
+                  <Box>
+                    <Typography sx={{ fontWeight: 700, color: '#FFFFFF', fontSize: '1rem' }}>
+                      Pazar Analizi
+                    </Typography>
+                    <Typography sx={{ color: 'rgba(255,255,255,0.65)', fontSize: '0.92rem' }}>
+                      Rakiplerinizi analiz edin, fırsatları yakalayın
+                    </Typography>
+                  </Box>
+                </TradepalFeatureRow>
+              </Stack>
+
+              {/* Aksiyon Butonu */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+               <TradepalCTAButton href="https://www.etradepal.com" target="_blank" rel="noopener noreferrer">
+                  Etradepal'i Keşfet <ArrowForwardIcon fontSize="small" />
+                </TradepalCTAButton>
+                <TradepalLinkText href="https://www.etradepal.com" target="_blank" rel="noopener noreferrer">
+    etradepal.com
+                  
+                </TradepalLinkText>
+              </Box>
+            </Box>
+
+            {/* SAĞ TARAF - Dekoratif Görsel Alanı */}
+            <Box sx={{ flex: 1, minWidth: '280px', maxWidth: { md: '520px' } }}>
+              <TradepalVisualPlaceholder
+                href="http://www.etradepal.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {/* Gemi / Dünya görseli yer tutucu */}
+                <DirectionsBoatIcon sx={{ fontSize: { xs: 90, md: 130 }, color: 'rgba(0, 230, 195, 0.35)' }} />
+                <LanguageIcon
+                  sx={{
+                    position: 'absolute',
+                    fontSize: { xs: 140, md: 200 },
+                    color: 'rgba(41, 182, 246, 0.12)',
+                  }}
+                />
+
+                {/* Yüzen Kutular */}
+                <TradepalFloatingCard sx={{ top: { xs: 16, md: 28 }, left: { xs: 16, md: 24 }, animationDelay: '0s' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <VerifiedIcon sx={{ fontSize: 18, color: '#00E6C3' }} />
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.5px', color: '#00E6C3' }}>
+                      GÜMRÜK VERİLERİ
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)' }}>
+                    Doğru, güncel ve kapsamlı bilgiler
+                  </Typography>
+                </TradepalFloatingCard>
+
+                <TradepalFloatingCard sx={{ bottom: { xs: 16, md: 28 }, right: { xs: 16, md: 24 }, animationDelay: '1.5s' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                    <DescriptionIcon sx={{ fontSize: 18, color: '#29B6F6' }} />
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.5px', color: '#29B6F6' }}>
+                      KONŞİMENTO VERİLERİ
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)' }}>
+                    Gerçek sevkiyat bilgilerine erişim
+                  </Typography>
+                </TradepalFloatingCard>
+              </TradepalVisualPlaceholder>
+            </Box>
+          </Box>
+
+          {/* En Alt Bilgi Çubuğu */}
+          <TradepalFooterStrip>
+            <TradepalFooterItem>
+              <VerifiedIcon sx={{ color: '#00E6C3', fontSize: 26 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
+                  Güvenilir Kaynak
+                </Typography>
+                <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)' }}>
+                  Doğru ve güvenilir verilerle işinizi büyütün.
+                </Typography>
+              </Box>
+            </TradepalFooterItem>
+
+            <TradepalFooterItem>
+              <PublicIcon sx={{ color: '#00E6C3', fontSize: 26 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
+                  Dünya Çapında Kapsam
+                </Typography>
+                <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)' }}>
+                  200+ ülke, milyonlarca kayıt ve geniş kapsam.
+                </Typography>
+              </Box>
+            </TradepalFooterItem>
+
+            <TradepalFooterItem>
+              <TrendingUpIcon sx={{ color: '#00E6C3', fontSize: 26 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
+                  Güncel ve Doğru Veri
+                </Typography>
+                <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)' }}>
+                  Sürekli güncellenen verilerle her zaman bir adım önde olun.
+                </Typography>
+              </Box>
+            </TradepalFooterItem>
+
+            <TradepalFooterItem>
+              <EmailIcon sx={{ color: '#00E6C3', fontSize: 26 }} />
+              <Box>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
+                  İletişim
+                </Typography>
+                <TradepalLinkText
+                  href="mailto:info@fgstrade.com"
+                  sx={{ fontSize: '0.82rem', border: 'none', color: 'rgba(255,255,255,0.6)' }}
+                >
+                  info@fgstrade.com
+                </TradepalLinkText>
+              </Box>
+            </TradepalFooterItem>
+          </TradepalFooterStrip>
+        </Container>
+      </TradepalBanner>
+      
 
       {/* --- ÖZELLİKLER --- */}
       <Box id="features" sx={{ py: 12, bgcolor: 'transparent', position: 'relative' }}>
@@ -1115,6 +1483,7 @@ const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+      
       
 
       {/* --- FİYATLANDIRMA VE PAKETLER --- */}
