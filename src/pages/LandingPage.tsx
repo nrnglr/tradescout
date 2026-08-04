@@ -1406,18 +1406,30 @@ const LandingPage = () => {
                 <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: '#FFFFFF' }}>
                   İletişim
                 </Typography>
-                <TradepalLinkText
-                  href="mailto:info@fgstrade.com"
-                  sx={{ fontSize: '0.82rem', border: 'none', color: 'rgba(255,255,255,0.6)' }}
+                {/* Bot Korumalı E-posta Alanı Başlangıcı */}
+                <Typography 
+                  component="span"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const user = "info";
+                    const domain = "fgstrade.com";
+                    window.location.href = `mail\u0074o:${user}@${domain}`;
+                  }}
+                  sx={{ 
+                    fontSize: '0.82rem', 
+                    color: 'rgba(255,255,255,0.6)', 
+                    cursor: 'pointer',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
                 >
-                  info@fgstrade.com
-                </TradepalLinkText>
+                  info<span>@</span>fgstrade.com
+                </Typography>
+                {/* Bot Korumalı E-posta Alanı Bitişi */}
               </Box>
             </TradepalFooterItem>
           </TradepalFooterStrip>
         </Container>
       </TradepalBanner>
-      
 
       {/* --- ÖZELLİKLER --- */}
       <Box id="features" sx={{ py: 12, bgcolor: 'transparent', position: 'relative' }}>
