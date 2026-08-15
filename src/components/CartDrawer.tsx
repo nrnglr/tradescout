@@ -53,7 +53,7 @@ const CartDrawer: React.FC = () => {
   const [isProcessing,       setIsProcessing]       = useState(false);
   const [paymentError,       setPaymentError]       = useState<string | null>(null);
   const [isAuthenticated,    setIsAuthenticated]    = useState(false);
-  const [currency,           setCurrency]           = useState<'TRY' | 'USD'>('TRY'); // Para birimi seçimi
+  const currency = 'TRY'; // Para birimi kalıcı olarak TRY yapıldı
 
   // İndirim kodu state'leri
   const [discountCode,       setDiscountCode]       = useState('');
@@ -166,36 +166,32 @@ const CartDrawer: React.FC = () => {
 
     return { code: plan?.code ?? item.id, priceUsd: price, isYearly: billingPeriod === 'yearly' };
   };
-
+// Fiyat formatı — currency seçimine göre
   const totalPrice = items.reduce((sum, item) => {
     const plan = getPlanInfo(item);
-    if (currency === 'USD') return sum + plan.priceUsd;
     const rawId = item.id.toLowerCase();
     const baseId = normalizeId(rawId);
     const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
     const entry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
     return sum + (entry?.priceTry ?? plan.priceUsd);
   }, 0);
-  const hasYearly  = items.some(item => getPlanInfo(item).isYearly);
 
-  // Fiyat formatı — currency seçimine göre
+  const hasYearly = items.some(item => getPlanInfo(item).isYearly);
+
+  // Fiyat formatı (Sadece TL)
   const formatPrice = (price: number): string => {
-    if (currency === 'USD') return `$${price.toFixed(2)}`;
     return `₺${price.toFixed(2)}`;
   };
 
-  // Seçilen currency'e göre fiyat
+  // Seçilen currency'e göre fiyat (Sadece TL)
   const getPriceForCurrency = (item: typeof items[0]) => {
     const plan = getPlanInfo(item);
-    if (currency === 'USD') return plan.priceUsd;
-    // TRY için PLAN_MAP'ten TL fiyatını al
     const rawId = item.id.toLowerCase();
     const baseId = normalizeId(rawId);
     const planKey = billingPeriod === 'yearly' ? `${baseId}_yearly` : `${baseId}_monthly`;
     const planMapEntry = PLAN_MAP[planKey] ?? PLAN_MAP[rawId];
     return planMapEntry?.priceTry ?? plan.priceUsd;
   };
-
   // İndirim kodunu kaldır
   const removeDiscountCode = () => {
     setDiscountCode('');
@@ -307,25 +303,15 @@ const CartDrawer: React.FC = () => {
         productCode: plan.code,
         installment: 1,
         amount: finalPrice,
-        currency: currency, // 'TRY' veya 'USD'
+        currency: 'TRY', // Sadece TRY üzerinden işlem yapılacak
       };
 
-      // İndirim kodu varsa backend'e gönder (kullanıcının girdiği kodu gönderiyoruz)
-      if (discountData && discountCode) {
-        paymentData.discountCode = discountCode.trim().toUpperCase();
-      }
-
-      console.log('💳 Ödeme başlatılıyor:', paymentData);
-
+      // İndirim kodu varsa backend'e gönder... (aradaki kodlar aynı kalacak)
       
-      const isCredit = items.some(i => i.id.toLowerCase().startsWith('credit'));
-      const endpoint = currency !== 'TRY'
-        ? '/api/payment/morpara/initialize'
-        : plan.isYearly
+      // Morpara devreden çıkarıldı, standart ve Paratika altyapısı kullanılıyor
+      const endpoint = plan.isYearly
           ? '/api/payment/paratika/initialize'
-          : isCredit
-            ? '/api/payment/morpara/initialize'
-            : '/api/payment/initialize';
+          : '/api/payment/initialize';
       const response = await apiClient.post(endpoint, paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
@@ -469,40 +455,9 @@ const CartDrawer: React.FC = () => {
             )}
           </Box>
 
-          {/* Para Birimi Seçimi */}
-          <Box sx={{ mb: 1.5 }}>
-            <Typography variant="body2" fontWeight="bold" sx={{ mb: 1, color: '#555' }}>
-              {language === 'tr' ? 'Ödeme Yöntemi' : 'Payment Method'}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Box
-                onClick={() => setCurrency('TRY')}
-                sx={{
-                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
-                  border: currency === 'TRY' ? '2px solid #1565C0' : '2px solid #e0e0e0',
-                  bgcolor: currency === 'TRY' ? '#e3f2fd' : 'white',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Typography variant="body2" fontWeight="bold" color={currency === 'TRY' ? '#1565C0' : '#555'}>
-                  🇹🇷 Türkiye Kart (TRY)
-                </Typography>
-              </Box>
-              <Box
-                onClick={() => setCurrency('USD')}
-                sx={{
-                  flex: 1, p: 1.5, borderRadius: 2, cursor: 'pointer', textAlign: 'center',
-                  border: currency === 'USD' ? '2px solid #1565C0' : '2px solid #e0e0e0',
-                  bgcolor: currency === 'USD' ? '#e3f2fd' : 'white',
-                  transition: 'all 0.2s'
-                }}
-              >
-                <Typography variant="body2" fontWeight="bold" color={currency === 'USD' ? '#1565C0' : '#555'}>
-                  🌍 International Card (USD)
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
+         {/* Para Birimi Seçimi */}
+                                  <DeleteOutlineIcon fontSize="small" />
+
 
           {/* Sözleşmeler */}
           <Box sx={{ bgcolor: '#f5f5f5', borderRadius: 2, p: 1.5, mb: 1.5, border: `1px solid ${allAccepted ? '#4caf50' : '#ffb74d'}` }}>

@@ -470,7 +470,7 @@ const Dashboard = () => {
     neighborhood: '', // Mahalle/Bölge
     language: 'tr',
     product: '',
-    companyCount: '100'
+    companyCount: '10'
   });
 
   // Loading ve Sonuç State'leri
