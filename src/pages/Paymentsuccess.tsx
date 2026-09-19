@@ -31,7 +31,7 @@ const PaymentSuccess: React.FC = () => {
 
   // Gateway tespiti: Tosla "gateway=tosla&orderId=..." ile gelir
   // Morpara "cid=..." veya "conversationId=..." ile gelir
-  const gateway = searchParams.get('gateway') ?? 'morpara';
+  const gateway = searchParams.get('gateway') ?? 'tosla';
 
   // Tosla: orderId parametresi | Morpara: cid veya conversationId parametresi
   const rawId =
@@ -64,15 +64,10 @@ const PaymentSuccess: React.FC = () => {
       let response;
 
       if (gateway === 'tosla') {
-        // Tosla: callback zaten backend'de işlendi ve kredi yüklendi.
-        // Tek yapmamız gereken PaymentHistory'den bu orderId'nin durumunu okumak.
-        // Morpara verify endpoint'i orderId'yi de kabul edecek şekilde kullanıyoruz.
-        // Backend bu kaydı conversationId VEYA orderId'ye göre bulabiliyorsa direkt çalışır.
-        response = await apiClient.post(`/api/payment/morpara/verify`, {
-          conversationId: convId,
-          orderId: convId,
-          gateway: 'tosla',
-        }, { timeout: 30000 });
+        // Tosla'nın kendi doğrulama/kredi yükleme endpoint'i.
+        // PaymentController.VerifyPayment → ToslaPaymentService.VerifyAndProcessPaymentAsync
+        // Tosla'dan gerçek ödeme durumunu sorgulayıp krediyi bu istekte yüklüyor.
+        response = await apiClient.post(`/api/payment/verify/${convId}`, {}, { timeout: 30000 });
       } else {
         // Morpara
         response = await apiClient.post(`/api/payment/morpara/verify`, {
@@ -106,22 +101,8 @@ const PaymentSuccess: React.FC = () => {
     } catch (err: any) {
       console.error('❌ Ödeme doğrulama hatası:', err);
 
-      // Tosla'da callback zaten başarılı işlendi — verify endpoint 404/hata verse bile
-      // kullanıcıyı "başarısız" göstermek yerine "işlem tamamlandı, dashboard'u kontrol et" deriz.
-      if (gateway === 'tosla') {
-        console.warn('⚠️ Tosla verify endpoint hatası ama callback zaten işlendi, başarılı gösteriliyor.');
-        setVerificationResult({
-          success: true,
-          isAlreadyProcessed: true,
-          orderId: convId,
-          creditsAdded: 0,
-          packageName: null,
-          membershipEnd: null,
-        });
-        setVerifying(false);
-        return;
-      }
-
+      // Artık doğru endpoint'e (/api/payment/verify/{orderId}) gittiğimiz için
+      // buradaki hata gerçek bir hata — sahte "başarılı" göstermiyoruz.
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -327,7 +308,7 @@ const PaymentSuccess: React.FC = () => {
 
       <Box sx={{ textAlign: 'center', py: 3 }}>
         <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Morpara Sanal POS
+          🔒 256-bit SSL {language === 'tr' ? 'ile güvenli ödeme' : 'secure payment'} · Tosla Sanal POS
         </Typography>
       </Box>
     </PageContainer>

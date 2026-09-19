@@ -16,30 +16,29 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../services/api';
 
-// ─── Tosla Paket Kodları ──────────────────────────────────────────────────────
 const PLAN_MAP: Record<string, { code: string; priceUsd: number; priceTry: number; maxInstallment: number; isYearly: boolean }> = {
   // Aylık Paketler
-  starter_monthly:  { code: '1274715', priceUsd: 10,    priceTry: 450,   maxInstallment: 1,  isYearly: false },
-  pro_monthly:      { code: '1274739', priceUsd: 26,    priceTry: 1170,  maxInstallment: 1,  isYearly: false },
-  business_monthly: { code: '1274779', priceUsd: 53,    priceTry: 2385,  maxInstallment: 1,  isYearly: false },
-  
+  starter_monthly:  { code: '1274715', priceUsd: 10,    priceTry: 490,   maxInstallment: 1,  isYearly: false },
+  pro_monthly:      { code: '1274739', priceUsd: 26,    priceTry: 1274,  maxInstallment: 1,  isYearly: false },
+  business_monthly: { code: '1274779', priceUsd: 53,    priceTry: 2597,  maxInstallment: 1,  isYearly: false },
+
   // Yıllık Paketler
-  starter_yearly:   { code: '1274716', priceUsd: 69,    priceTry: 3105,  maxInstallment: 12, isYearly: true  },
-  pro_yearly:       { code: '1274740', priceUsd: 199,   priceTry: 8955,  maxInstallment: 12, isYearly: true  },
-  business_yearly:  { code: '1274780', priceUsd: 399,   priceTry: 17955, maxInstallment: 12, isYearly: true  },
-  
-  // Ekstra Krediler (Kur 45'e göre güncellendi)
-  credit_10:        { code: '1274710', priceUsd: 10,    priceTry: 450,   maxInstallment: 1,  isYearly: false },
-  credit_25:        { code: '1274725', priceUsd: 20,    priceTry: 900,   maxInstallment: 1,  isYearly: false },
-  credit_50:        { code: '1274750', priceUsd: 35,    priceTry: 1575,  maxInstallment: 1,  isYearly: false },
-  credit_100:       { code: '1247100', priceUsd: 60,    priceTry: 2700,  maxInstallment: 1,  isYearly: false },
+  starter_yearly:   { code: '1274716', priceUsd: 69,    priceTry: 3381,  maxInstallment: 12, isYearly: true  },
+  pro_yearly:       { code: '1274740', priceUsd: 199,   priceTry: 9751,  maxInstallment: 12, isYearly: true  },
+  business_yearly:  { code: '1274780', priceUsd: 399,   priceTry: 19551, maxInstallment: 12, isYearly: true  },
+
+  // Ekstra Krediler (Kur 49'a göre güncellendi)
+  credit_10:        { code: '1274710', priceUsd: 10,    priceTry: 490,   maxInstallment: 1,  isYearly: false },
+  credit_25:        { code: '1274725', priceUsd: 20,    priceTry: 980,   maxInstallment: 1,  isYearly: false },
+  credit_50:        { code: '1274750', priceUsd: 35,    priceTry: 1715,  maxInstallment: 1,  isYearly: false },
+  credit_100:       { code: '1247100', priceUsd: 60,    priceTry: 2940,  maxInstallment: 1,  isYearly: false },
 };
 
 const MONTHLY_PRICES: Record<string, number> = { starter: 10, basic: 26, pro: 26, professional: 26, business: 53 };
 const YEARLY_PRICES:  Record<string, number> = { starter: 69, basic: 199, pro: 199, professional: 199, business: 399 };
 
 // TL/USD Dönüşüm Oranı
-const USD_TO_TRY = 45; // 1 USD = 45 TRY
+const USD_TO_TRY = 49; // 1 USD = 49 TRY
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CartDrawer: React.FC = () => {
@@ -309,9 +308,7 @@ const CartDrawer: React.FC = () => {
       // İndirim kodu varsa backend'e gönder... (aradaki kodlar aynı kalacak)
       
       // Morpara devreden çıkarıldı, standart ve Paratika altyapısı kullanılıyor
-      const endpoint = plan.isYearly
-          ? '/api/payment/paratika/initialize'
-          : '/api/payment/initialize';
+      const endpoint = '/api/payment/initialize';
       const response = await apiClient.post(endpoint, paymentData);
 
       const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
