@@ -295,29 +295,31 @@ const CartDrawer: React.FC = () => {
     setIsProcessing(true);
     setPaymentError(null);
 
-    try {
-      const plan = getPlanInfo(items[0]);
+   try {
+  const plan = getPlanInfo(items[0]);
+  const paymentData: any = {
+    productCode: plan.code,
+    installment: 1,
+    amount: finalPrice,
+    currency: 'TRY',
+  };
 
-      const paymentData: any = {
-        productCode: plan.code,
-        installment: 1,
-        amount: finalPrice,
-        currency: 'TRY', // Sadece TRY üzerinden işlem yapılacak
-      };
+  // İndirim kodu varsa backend'e gönder
+  if (discountData && discountCode) {
+    paymentData.discountCode = discountCode;
+  }
 
-      // İndirim kodu varsa backend'e gönder... (aradaki kodlar aynı kalacak)
-      
-      // Morpara devreden çıkarıldı, standart ve Paratika altyapısı kullanılıyor
-      const endpoint = '/api/payment/initialize';
-      const response = await apiClient.post(endpoint, paymentData);
+  // Artık tüm paketler (aylık + yıllık) Tosla üzerinden işleniyor
+  const endpoint = '/api/payment/initialize';
+  const response = await apiClient.post(endpoint, paymentData);
 
-      const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
-      if (paymentUrl) {
-        console.log('✅ Ödeme URL alındı, yönlendiriliyor...');
-        window.location.href = paymentUrl;
-      } else {
-        throw new Error('Payment URL alınamadı');
-      }
+  const paymentUrl = response.data?.paymentUrl ?? response.data?.redirectUrl;
+  if (paymentUrl) {
+    console.log('✅ Ödeme URL alındı, yönlendiriliyor...');
+    window.location.href = paymentUrl;
+  } else {
+    throw new Error('Payment URL alınamadı');
+  }
     } catch (error: any) {
       console.error('❌ Ödeme hatası:', error);
       if (error.response?.status === 401) {
