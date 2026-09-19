@@ -132,7 +132,7 @@ export const translations = {
         feature4: "Öncelikli destek",
         feature5: "Satış ekipleri için kullanım",
         searchLimit: "50 Arama (Her bir aramada 100 firma)",
-        yearlyCreditsNote: "Yıllık alımda toplam 300 Arama"
+        yearlyCreditsNote: "Yıllık alımda toplam 600 Arama"
       }
     },
 
